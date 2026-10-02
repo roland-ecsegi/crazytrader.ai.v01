@@ -1,187 +1,29 @@
 # Testing and Certification V1
 
-## Principle
+Working code/backtests are not real-money certification.
 
-Passing unit tests does not make the platform real-money ready.
+Test layers: unit; schema/contract; integration; simulation; security; failure/chaos; restart/recovery; idempotency; data-quality; supply-chain/license checks.
 
-Certification is a cumulative evidence process.
+Mandatory failures include lost order response/UNKNOWN state, WebSocket gap, duplicate NATS delivery, service/DB/NATS restart, reconciliation mismatch, Claude unavailable, risk/OPA/OpenBao unavailable, clock skew, stale data and attempted risk increase during degraded state. Also prove authorized risk reduction/cancellation remains available in intended degraded modes.
 
-## Test layers
+## Ladder
 
-### Unit
+**L0 DEVELOPMENT** — no readiness claim.
 
-Required for:
+**L1 BACKTEST READY** — reproducible data/config, realistic costs, immutable artifact, leakage controls, repeatable result.
 
-- domain rules;
-- state machines;
-- risk calculations;
-- policy inputs;
-- decimal math;
-- schema validation.
+**L2 SIMULATION READY** — event-driven orders/portfolio, partial fills/cancel/latency/failure/restart simulation.
 
-### Contract
+**L3 PAPER READY** — real-time data, simulated execution, real-time risk/ledger/audit, stable continuous operation.
 
-Required for:
+**L4 SHADOW READY** — live market/account observation where permitted, real TradeIntents, no live orders, reconciliation and execution-estimate validation.
 
-- service APIs;
-- events;
-- TradeIntent;
-- RiskDecision;
-- PolicyDecision;
-- exchange adapter normalization.
+**L5 CANARY AUTHORIZED** — live path technically ready; withdrawal disabled; hard risk/OPA/kill/reconciliation/monitoring healthy; tiny owner-defined cap; incident/runbooks ready; explicit owner authorization. Actual bounded canary runs on owner-controlled Enterprise Local deployment, never Codex Cloud.
 
-### Integration
+**L6 LIVE CERTIFIED** — real canary evidence accepted; no unresolved critical execution/reconciliation/ledger/risk/security defects; duplicate-order/recovery/kill evidence; monitoring/backups/runbooks verified; explicit owner activation.
 
-Required for:
+Do not fabricate elapsed-market evidence. Paper/shadow/canary require real observation. Codex may continue independent engineering while evidence accumulates.
 
-- PostgreSQL;
-- ClickHouse;
-- NATS;
-- OPA;
-- OpenBao;
-- MLflow;
-- exchange test interfaces.
+Missing owner live credentials/activation means BLOCKED at the relevant L5/L6 gate, not Enterprise Local complete.
 
-### Simulation
-
-Required for:
-
-- order lifecycle;
-- partial fills;
-- cancellation;
-- latency;
-- market-data gaps;
-- execution-cost modeling.
-
-### Failure and chaos
-
-Required scenarios include:
-
-1. Network timeout immediately after order submission.
-2. Binance returns an error after local submission state changes.
-3. WebSocket disconnect and sequence gap.
-4. Duplicate NATS delivery.
-5. Service restart during open order.
-6. Reconciliation mismatch.
-7. PostgreSQL temporary outage.
-8. NATS consumer restart.
-9. Claude becomes unavailable.
-10. Risk engine unavailable.
-11. OPA unavailable.
-12. Secret store unavailable.
-13. Clock skew outside tolerance.
-14. Market data stale while a new TradeIntent arrives.
-
-## Mandatory example: unknown order state
-
-Given:
-
-- an approved execution request;
-- the HTTP/WebSocket response is lost after the venue may have accepted the order.
-
-Expected:
-
-- order enters UNKNOWN;
-- no blind retry;
-- reconciliation starts;
-- venue is queried using stable identifiers;
-- existing order is recovered if present;
-- only if absence is proven and the intent remains valid may a safe retry occur;
-- all state transitions are audited.
-
-## Mandatory example: Claude failure
-
-Given:
-
-- an open position;
-- Claude/AI provider becomes unavailable.
-
-Expected:
-
-- hard risk remains active;
-- reconciliation remains active;
-- deterministic protective actions remain active;
-- no new AI-dependent trades are initiated unless policy explicitly permits an offline deterministic strategy;
-- the system records degraded agent status.
-
-## Certification ladder
-
-### L0 DEVELOPMENT
-
-No claim of trading readiness.
-
-### L1 BACKTEST READY
-
-Requires:
-
-- reproducible data/config;
-- fees modeled;
-- slippage model;
-- immutable strategy version;
-- repeatable result.
-
-### L2 SIMULATION READY
-
-Requires:
-
-- event-driven order simulation;
-- failure-path simulation;
-- restart tests;
-- portfolio accounting simulation.
-
-### L3 PAPER READY
-
-Requires:
-
-- real-time market data;
-- simulated orders;
-- real-time risk;
-- audit;
-- stable continuous operation.
-
-### L4 SHADOW READY
-
-Requires:
-
-- live Binance market/account observation where permitted;
-- real TradeIntent generation;
-- no live order submission;
-- reconciliation checks;
-- execution-estimate comparison.
-
-### L5 CANARY READY
-
-Requires:
-
-- live execution path technically enabled;
-- withdrawal disabled;
-- hard risk active;
-- kill switch active;
-- reconciliation healthy;
-- tiny owner-approved capital cap;
-- incident procedures tested.
-
-### L6 LIVE CERTIFIED
-
-Requires:
-
-- canary evidence accepted;
-- no unresolved critical execution defects;
-- no unresolved critical reconciliation defects;
-- duplicate-order protection verified;
-- recovery verified;
-- kill switch verified;
-- monitoring verified;
-- explicit owner activation.
-
-## Capital ramp
-
-Capital increase is not automatic proof of safety.
-
-Use controlled steps with explicit policy caps and evidence review.
-
-## Evidence
-
-Each certification level must store machine-readable evidence references and blockers.
-
-The application must refuse live activation below L6.
+Capital increases are stepwise, reversible, owner-capped and evidence-based.

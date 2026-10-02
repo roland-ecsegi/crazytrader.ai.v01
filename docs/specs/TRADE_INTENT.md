@@ -1,141 +1,31 @@
 # TradeIntent Contract V1
 
-## Purpose
+TradeIntent is the sole proposal interface for Math Mode, Strategy Mode, owner manual requests and rebalancing. It is not an exchange order.
 
-TradeIntent is the only permitted interface by which an agent, Math Mode, or Strategy Mode may request a financial action.
+Required fields:
+- intent_id/schema_version;
+- tenant_id/portfolio_id;
+- mode;
+- source_type/source_id;
+- strategy_version_id/model_version_ids/risk_profile_version_id where applicable;
+- capital_budget_ref;
+- instrument_id/symbol;
+- side/intent_type;
+- risk_effect: RISK_INCREASING | RISK_REDUCING | RISK_NEUTRAL;
+- exactly one authoritative sizing expression (requested_notional or requested_quantity) with explicit conversion metadata when needed;
+- confidence/expected_edge when applicable;
+- expected_horizon/max_slippage/reason_code/evidence_refs;
+- market_state_ref/portfolio_state_ref;
+- created_at/expires_at/trace_id.
 
-It is a proposal, not an order.
+Intent types: OPEN, INCREASE, REDUCE, CLOSE, REBALANCE.
 
-## Required fields
+Validation: schema -> certification -> portfolio/capital budget -> Hard Risk -> OPA -> execution plan -> final expiry/venue-rule validation -> order.
 
-- intent_id
-- schema_version
-- tenant_id
-- portfolio_id
-- source_type
-- source_id
-- strategy_version_id when applicable
-- model_version_ids when applicable
-- instrument_id
-- symbol
-- side
-- intent_type
-- requested_notional or requested_quantity
-- confidence when produced by probabilistic systems
-- expected_edge
-- expected_horizon
-- max_slippage
-- reason_code
-- evidence_refs
-- created_at
-- expires_at
-- trace_id
+Risk-reducing intents remain auditable but policy/risk must preserve safe emergency reduction under degraded conditions.
 
-## Source types
+Rejected/expired intents are immutable. Retry means a new intent. intent_id is never reused. Execution creates stable client-order IDs from approved execution requests, never free-form model text.
 
-Examples:
+Evidence must reconstruct feature/model/strategy/regime/market/portfolio/capital/risk-profile/cost context.
 
-- math_engine
-- strategy_engine
-- owner_manual
-- portfolio_rebalance
-
-Owner manual actions must still pass risk and policy.
-
-## Intent types
-
-V1 examples:
-
-- OPEN
-- INCREASE
-- REDUCE
-- CLOSE
-- REBALANCE
-
-## Example
-
-    {
-      "intent_id": "ti_01...",
-      "schema_version": "1",
-      "tenant_id": "local-owner",
-      "portfolio_id": "strategy-medium",
-      "source_type": "strategy_engine",
-      "source_id": "strategy-agent",
-      "strategy_version_id": "trend-breakout@17",
-      "instrument_id": "binance:spot:BTCUSDT",
-      "symbol": "BTCUSDT",
-      "side": "BUY",
-      "intent_type": "OPEN",
-      "requested_notional": "40.00",
-      "confidence": "0.84",
-      "expected_edge": "0.012",
-      "expected_horizon": "PT2H",
-      "max_slippage": "0.0015",
-      "reason_code": "TREND_REGIME_BREAKOUT",
-      "evidence_refs": ["ev_..."],
-      "created_at": "...",
-      "expires_at": "...",
-      "trace_id": "..."
-    }
-
-## Validation sequence
-
-    TradeIntent
-        |
-        v
-    Schema Validation
-        |
-        v
-    Certification Validation
-        |
-        v
-    Portfolio Validation
-        |
-        v
-    Hard Risk Validation
-        |
-        v
-    OPA Authorization
-        |
-        v
-    Execution Plan
-        |
-        v
-    Order Submission
-
-## Rejection behavior
-
-Rejected intents are immutable audit records.
-
-A rejected intent is not modified and retried.
-
-If the source still wants to trade, it must create a new intent based on current state.
-
-## Expiry
-
-An expired intent may never be submitted.
-
-Execution must validate expiry again immediately before submission.
-
-## Idempotency
-
-intent_id must never be reused for a different proposal.
-
-Execution generates an idempotent client_order_id derived from an approved execution request, not from free-form model text.
-
-## Evidence
-
-Each intent must be attributable to enough evidence to reproduce why it was proposed:
-
-- feature snapshot;
-- strategy version;
-- model versions;
-- market-state snapshot reference;
-- portfolio-state reference;
-- risk-profile version.
-
-## Manual override rule
-
-There is no direct owner bypass around hard risk.
-
-The owner may change configured limits through an auditable configuration workflow, then create a new intent.
+Owner cannot bypass hard risk; owner changes audited config/policy then creates a new intent.

@@ -1,113 +1,29 @@
 # ExecPlan Standard
 
-## Purpose
+ExecPlans are mandatory living/resumable implementation records for new services/agents, financial state machines, TradeIntent/events, migrations, risk/OPA/execution/reconciliation/ledger/Binance/security changes, cross-service work, and roadmap phases.
 
-ExecPlans are mandatory for substantial Codex work in CrazyTrader.ai.
+Store at `docs/plans/YYYY-MM-DD-short-title.md`.
 
-An ExecPlan is a living implementation document that allows another agent or engineer to understand what is being changed, why, how it will be tested, and what remains incomplete.
+Required sections:
+- Goal and measurable gate
+- Non-goals
+- Architecture context
+- Current state
+- Proposed design and reused open-source components
+- Files/ownership
+- Dependencies, pinned-version plan, licensing/replacement path
+- Failure modes, including risk-increasing vs risk-reducing behavior where relevant
+- Security/financial-risk impact
+- Data/event migrations and replay compatibility
+- Implementation steps
+- Exact test plan
+- Acceptance criteria
+- Rollback/recovery
+- Resume checkpoint
+- Progress log
+- Decisions
+- Completion summary
 
-## When an ExecPlan is required
+Resume checkpoint must record working branch, last durable commit, current step, next exact action, uncommitted-work status, blockers/usage state, and last verification commands.
 
-Create an ExecPlan for:
-
-- a new service;
-- a new agent;
-- a new financial state machine;
-- a change to TradeIntent;
-- database schema changes;
-- NATS event schema changes;
-- risk changes;
-- OPA policy changes;
-- execution changes;
-- Binance integration;
-- security architecture changes;
-- cross-service refactoring;
-- roadmap work expected to require multiple commits.
-
-## ExecPlan location
-
-Store plans under:
-
-    docs/plans/
-
-Use:
-
-    YYYY-MM-DD-short-title.md
-
-## Required structure
-
-# Title
-
-## Goal
-
-State the concrete outcome.
-
-## Non-goals
-
-List what is explicitly excluded.
-
-## Architecture context
-
-Reference the architecture/specification sections that constrain the work.
-
-## Current state
-
-Describe what exists before the task.
-
-## Proposed design
-
-Describe components, boundaries, public contracts, and data flow.
-
-## Files and ownership
-
-List directories/files expected to change.
-
-## Dependencies
-
-List blocking tasks, external dependencies, and required infrastructure.
-
-## Failure modes
-
-Describe failures and required safe behavior.
-
-## Security and financial-risk impact
-
-Explicitly state whether the task is above or below the financial trust boundary.
-
-If below it, include negative-path tests and recovery tests.
-
-## Data migrations
-
-Describe any schema/event migrations and backward compatibility.
-
-## Implementation steps
-
-Use a checkbox list with small, verifiable steps.
-
-## Test plan
-
-Specify exact tests, not only broad categories.
-
-## Acceptance criteria
-
-List objective pass/fail conditions.
-
-## Rollback
-
-Describe how to revert the change safely.
-
-## Progress log
-
-Append dated progress updates during execution.
-
-## Decisions
-
-Record decisions that would otherwise be rediscovered later.
-
-## Completion summary
-
-When complete, record what shipped, what remains, and any follow-up work.
-
-## Rule
-
-An ExecPlan may evolve during implementation, but safety constraints and acceptance criteria may not be weakened merely to make tests pass.
+Safety/product invariants may not be weakened to make tests pass. In Autonomous Program Mode a passing gate leads automatically to the next eligible phase. Before expected usage/budget interruption, push a durable checkpoint.

@@ -1,150 +1,33 @@
 # Risk and Security Specification V1
 
-## Hard Risk Engine
+Hard Risk is deterministic and independent from Risk Analyst Agent.
 
-The Hard Risk Engine is deterministic and independent from the Risk Analyst Agent.
+Inputs: TradeIntent, risk direction, portfolio/allocation, P&L/drawdown, open orders, liquidity/spread/volatility, market/exchange/reconciliation health, certification, risk profile and owner absolute limits.
 
-## Risk inputs
+## Risk direction
 
-- TradeIntent
-- portfolio state
-- current allocation
-- current drawdown
-- realized daily P&L
-- total daily P&L
-- open orders
-- market liquidity
-- spread
-- volatility
-- market-data health
-- exchange health
-- reconciliation health
-- certification level
-- selected risk profile
-- owner absolute limits
+RISK_INCREASING, RISK_REDUCING, RISK_NEUTRAL.
 
-## Hard-rule categories
+Unknown/degraded safety state denies new/increased risk by default but preserves safe cancellation and authorized exposure reduction/flattening where venue state permits. All degraded-mode actions are audited.
 
-- maximum portfolio capital
-- maximum mode capital
-- maximum strategy exposure
-- maximum symbol exposure
-- maximum total exposure
-- maximum concurrent positions
-- maximum order notional
-- maximum order frequency
-- realized daily-loss limit
-- total daily-loss limit
-- maximum drawdown
-- minimum liquidity
-- maximum spread
-- maximum slippage
-- stale-data rejection
-- exchange-health rejection
-- reconciliation-health rejection
+Hard rules cover portfolio/mode/strategy/symbol/total caps, concurrent positions, order notional/frequency, daily loss/drawdown, liquidity/spread/slippage, stale/gapped data, exchange/reconciliation health and certification.
 
-## Risk profiles
+Low/Medium/High alter sizing/selectivity/concentration/volatility tolerance only within owner/system maxima.
 
-Low, Medium, and High may alter:
+## OPA
 
-- position sizing;
-- signal threshold;
-- drawdown budget within owner maximum;
-- strategy eligibility;
-- concentration;
-- volatility tolerance;
-- concurrent-position count.
+Deny risk-increasing actions on invalid certification, permissions, symbol allowlist, lifecycle stage, hard-risk decision, reconciliation/exchange health, global state or expiry. Policy must explicitly model emergency risk reduction so "trading blocked" never accidentally means "cannot close."
 
-They may never alter:
+## Kill switches
 
-- withdrawal prohibition;
-- global kill switch;
-- certification requirement;
-- owner absolute limits;
-- secret boundaries;
-- reconciliation requirements.
+Pause Agent/Strategy/Portfolio/Math/Strategy Mode; Disable New Orders; Cancel Open Orders; Reduce Exposure; Global Kill. Global Kill works without Claude and has explicit cancel-only vs flatten-approved policy.
 
-## OPA policy examples
+## Secrets and infrastructure
 
-Deny when:
+Use OpenBao/equivalent locally. Binance live read/trade only, withdraw disabled, IP allowlist preferred, separate test/live keys. Codex Cloud/LLM prompt/memory never receive live secrets.
 
-- certification is insufficient;
-- live trading is disabled;
-- actor lacks required permission;
-- symbol is not allowlisted;
-- strategy lifecycle stage is not eligible;
-- hard-risk decision is deny;
-- reconciliation state is unhealthy;
-- exchange state is unhealthy;
-- global kill is active;
-- TradeIntent expired.
+External content is untrusted. Use structured tools, provenance-aware memory, permission immutability, redaction, shell/network/filesystem isolation and output schema validation.
 
-## Kill-switch hierarchy
+Internal DB/OPA/OpenBao endpoints are not directly WAN-exposed. Use least-privilege service identities, pinned dependencies/lockfiles, vulnerability scanning, SBOM before live, artifact hashes/signatures where practical and separate environment configs.
 
-- Pause Agent
-- Pause Strategy
-- Pause Portfolio
-- Pause Math Mode
-- Pause Strategy Mode
-- Disable New Orders
-- Cancel Open Orders
-- Reduce Exposure
-- Global Kill
-
-Global Kill must work without Claude.
-
-## Secrets
-
-Preferred secrets manager: OpenBao or equivalent.
-
-Binance key permissions for live Spot:
-
-- read: enabled
-- trade: enabled
-- withdraw: disabled
-
-Prefer exchange IP allowlisting.
-
-Secrets must never be stored in:
-
-- source control;
-- prompts;
-- agent memory;
-- frontend storage;
-- logs;
-- ClickHouse;
-- unencrypted DB fields.
-
-## Environment separation
-
-Required environments:
-
-- development
-- test
-- simulation
-- paper
-- shadow
-- canary
-- live
-
-Live credentials must never be reused in development.
-
-## Security event audit
-
-Audit at minimum:
-
-- permission changes;
-- risk-limit changes;
-- policy changes;
-- strategy promotions;
-- model promotions;
-- secret lifecycle events;
-- kill-switch actions;
-- live-mode activation;
-- TradeIntent decisions;
-- order submissions;
-- reconciliation incidents.
-
-## Fail-closed rule
-
-When safety-critical state is unknown, new trading is blocked until state is reconciled.
+Unknown safety state blocks **new risk**, not safe management of existing exposure.

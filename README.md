@@ -1,41 +1,37 @@
 # CrazyTrader.ai V0.1
 
-CrazyTrader.ai is an autonomous, agent-controlled crypto trading platform being designed as an Enterprise Local product first, with a later Enterprise SaaS phase.
-
-Current repository status: architecture and Codex execution specification.
+CrazyTrader.ai is an autonomous, agent-controlled crypto trading platform being built as an **Enterprise Local** product first, with a separate future Enterprise SaaS commercialization phase.
 
 ## Product target
 
-Enterprise Local must be:
+Enterprise Local is the complete private product for one owner / one tenant. It must eventually support real-money Binance Spot trading after formal certification; the future SaaS phase is **not** required for the owner to trade live.
 
-- single-owner and single-tenant;
-- privately deployable;
-- capable of Binance Spot live trading after certification;
-- built around permanent software agents with persistent identity, memory, skills, permissions, and audit history;
-- capable of running Math Mode and Strategy Mode independently;
-- able to use Claude CLI, Claude API, and future AI providers through adapters;
-- protected by deterministic risk, policy, execution, reconciliation, and kill-switch systems;
-- able to research and improve strategies without allowing unvalidated research to reach live capital.
+Core product requirements:
+
+- **Math Mode**: quantitative/statistical live decision path; AI may research/orchestrate but does not replace the quantitative decision engine.
+- **Strategy Mode**: validated/versioned strategies with **Low / Medium / High** risk profiles.
+- Independent capital allocation and P&L for Math Mode and Strategy Mode.
+- Permanent software agents with stable identity, real executable skills, governed memory, permissions, experience, and audit history.
+- AI Gateway supporting Claude CLI/subscription workflows, Claude Agent SDK where supported, Claude API, and future providers.
+- Autonomous research and controlled learning from historical data and the platform's own executed trades.
+- Deterministic Hard Risk Engine, OPA policy enforcement, execution, reconciliation, ledger, kill switches, and recovery.
+- Binance live key with **withdrawal disabled**; live credentials are owner-local secrets and are never exposed to Codex Cloud or LLM prompts.
+- Backtest -> simulation -> paper -> shadow -> bounded canary -> L6 LIVE CERTIFIED.
+- Custom product UI and business logic. Open-source components are infrastructure building blocks, not the product identity.
+
+## Performance objective
+
+The platform must optimize **sustainable risk-adjusted compounded return subject to survival, drawdown, liquidity, cost, and owner-capital constraints**.
+
+There is **no guaranteed monthly return** and no hard-coded rule forcing a target such as 12%, 44%, 100% or a minimum number of trades. Zero trades is valid when the estimated edge does not clear costs and risk thresholds.
 
 ## Core operating principle
 
-AI proposes. Math calculates. Risk constrains. Policy authorizes. Execution executes. Exchange confirms. Ledger records. Agents learn.
-
-## Trading modes
-
-### Math Mode
-
-Pure quantitative/statistical decision logic. The LLM may orchestrate research and explain results, but the trading edge calculation is produced by deterministic or validated quantitative models.
-
-### Strategy Mode
-
-Validated and versioned strategies operating under selectable Low, Medium, and High risk profiles. High risk never bypasses absolute hard limits.
+> AI proposes. Math calculates. Risk constrains. Policy authorizes. Execution executes. Exchange confirms. Ledger records. Agents learn.
 
 ## Financial trust boundary
 
-Everything above the trust boundary may fail, hallucinate, become unavailable, or propose a bad action.
-
-Everything below it must be deterministic, constrained, auditable, recoverable, and fail-safe.
+Anything above the boundary may be wrong; anything below must be deterministic, constrained, auditable, recoverable, and fail-safe.
 
     Claude / Agents / ML / Research
                   |
@@ -57,24 +53,26 @@ Everything below it must be deterministic, constrained, auditable, recoverable, 
                   v
                Binance
 
-## Repository documentation
+## Start here
 
-Start with:
+1. `AGENTS.md`
+2. `.agent/PLANS.md`
+3. `docs/architecture/ARCHITECTURE_V1.md`
+4. `docs/architecture/OPEN_SOURCE_ADOPTION.md`
+5. `docs/specs/TRADING_MODES.md`
+6. `docs/specs/AGENTS_AND_SKILLS.md`
+7. `docs/specs/STRATEGY_MODEL_LIFECYCLE.md`
+8. `docs/specs/CAPITAL_GROWTH.md`
+9. `docs/specs/TRADE_INTENT.md`
+10. `docs/specs/RISK_SECURITY.md`
+11. `docs/specs/TESTING_AND_CERTIFICATION.md`
+12. `docs/roadmap/AUTONOMOUS_ENTERPRISE_LOCAL_GOAL.md`
+13. `docs/roadmap/CODEX_RESUME_PROTOCOL.md`
+14. `docs/roadmap/CODEX_MASTER_PROMPT.md`
+15. `docs/program/STATUS.md`
 
-1. AGENTS.md
-2. .agent/PLANS.md
-3. docs/architecture/ARCHITECTURE_V1.md
-4. docs/specs/SERVICE_CONTRACTS.md
-5. docs/specs/DOMAIN_MODEL.md
-6. docs/specs/TRADE_INTENT.md
-7. docs/specs/EVENT_CATALOG.md
-8. docs/specs/AGENTS_AND_SKILLS.md
-9. docs/specs/RISK_SECURITY.md
-10. docs/specs/TESTING_AND_CERTIFICATION.md
-11. docs/roadmap/IMPLEMENTATION_ROADMAP.md
-12. docs/roadmap/CODEX_TASK_GRAPH.md
-13. docs/roadmap/PHASE_0_BOOTSTRAP.md
+## Current state
 
-## Current rule
+Architecture/specification baseline audited on 2026-10-02. Implementation starts at Phase 0 and, in Autonomous Program Mode, proceeds automatically through the roadmap after each gate passes.
 
-Do not implement real-money trading yet. The repository is in Phase 0 specification/bootstrap. Live trading must remain impossible until the certification ladder reaches L6 LIVE CERTIFIED.
+Real-money activation remains impossible before L6 and requires an explicit owner-controlled local credential/activation step.

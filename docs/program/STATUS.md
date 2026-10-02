@@ -1,37 +1,38 @@
 # Autonomous Program Status
 
 ## Program
-
 CrazyTrader.ai — Enterprise Local
 
 ## Mode
-
 AUTONOMOUS PROGRAM
 
 ## Current phase
-
 Phase 0 — Repository and contracts
 
-## Completed phases
+## Completed
+- Architecture V1 baseline
+- 2026-10-02 full conversation/repository audit and specification hardening
 
-- Architecture V1 documentation baseline
-
-## Current certification level
-
+## Certification
 L0 — DEVELOPMENT
 
-## Next action
+## Working branch
+Not yet created by Codex implementation task. Preferred: `codex/enterprise-local-autonomous`.
 
-Execute Phase 0 according to docs/roadmap/PHASE_0_BOOTSTRAP.md and the Master Goal.
+## Last durable commit
+Set by Codex when implementation starts.
+
+## Next action
+Execute Phase 0, then continue autonomously through the audited roadmap.
 
 ## Blockers
+None for implementation. Future external actions: owner-local Claude authentication validation and Binance L5/L6 secrets/activation.
 
-None recorded.
+## Usage state
+READY. Follow `docs/roadmap/CODEX_RESUME_PROTOCOL.md` if budget-limited.
 
 ## Latest verification
-
-Not yet executed by Codex implementation task.
+Documentation audit completed; implementation validation not yet started.
 
 ## Durable-state rule
-
-Update this file at every phase gate and before any task stops.
+Update this file at every meaningful checkpoint, phase gate, blocker and usage-limit pause.

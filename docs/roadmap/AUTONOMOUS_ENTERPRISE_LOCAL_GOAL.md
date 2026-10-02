@@ -1,208 +1,25 @@
 # Autonomous Enterprise Local Master Goal
 
-## Goal
+Take CrazyTrader.ai from the audited baseline to **Enterprise Local / L6 LIVE CERTIFIED**, autonomously in Codex Cloud except for true external owner actions. Enterprise SaaS is out of scope.
 
-Take CrazyTrader.ai from the current repository state to a complete Enterprise Local product with all planned local/private functionality implemented, tested, documented, and operationally ready.
+Required end state: custom single-owner product; Math and Strategy (Low/Medium/High); independent capital/P&L and Auto Trading controls; permanent agents with real skills/memory/permissions; Claude CLI/Agent SDK/API via AI Gateway; autonomous research/controlled learning; lifecycle; Capital Growth; Binance Spot; Hard Risk/OPA/execution/reconciliation/ledger; OpenBao/NATS/PostgreSQL/ClickHouse/object store/MLflow; custom UI; observability/backups/recovery/runbooks; L1-L6 evidence.
 
-The work should proceed autonomously in Codex Cloud with minimal owner involvement.
+Autonomous loop per phase: inspect status -> read specs -> ExecPlan -> implement -> test -> adversarial gate review -> repair -> update evidence -> commit/push -> auto-advance.
 
-The owner should only be contacted when a true external blocker prevents safe continuation.
+Before inventing mature infrastructure, follow `OPEN_SOURCE_ADOPTION.md`.
 
-## End state
+Codex Cloud never receives Binance live keys, owner Claude auth/session material or OpenBao unseal/bootstrap secrets. Final Claude local-auth validation and Binance canary/live run on owner-controlled deployment.
 
-The target end state is Enterprise Local, not Enterprise SaaS.
+Only ask owner for minimum true external action after completing all independent work and checkpointing.
 
-Enterprise Local includes:
+Follow `CODEX_RESUME_PROTOCOL.md`. Auto-continue within budget. Budget-limited means paused, not completed. If platform requires manual Resume after reset, preserve state so that is the only action required.
 
-- single owner / single tenant;
-- local/private deployment;
-- complete Math Mode;
-- complete Strategy Mode;
-- Low / Medium / High risk profiles;
-- permanent agents with stable identity, real skills, governed memory, permissions, and audit history;
-- Claude CLI adapter;
-- Claude API adapter capability;
-- AI Gateway;
-- autonomous research;
-- controlled learning;
-- strategy/model lifecycle;
-- Capital Growth Engine;
-- Binance Spot integration;
-- deterministic Hard Risk Engine;
-- OPA policy layer;
-- execution engine;
-- reconciliation;
-- append-only ledger;
-- OpenBao-based secret architecture;
-- NATS JetStream;
-- PostgreSQL;
-- ClickHouse;
-- object storage;
-- MLflow;
-- observability;
-- backups/recovery;
-- Command Center UI;
-- backtest;
-- simulation;
-- paper trading;
-- shadow mode;
-- canary capability;
-- live-certification workflow;
-- Enterprise Local operational runbooks.
+Maintain STATUS, DECISIONS, KNOWN_ISSUES, VALIDATION_LOG and active ExecPlans. STATUS records phase/certification/branch/last commit/next action/blockers/usage/verification.
 
-Enterprise SaaS is explicitly out of scope for this Master Goal.
+Use durable branch (preferred `codex/enterprise-local-autonomous`) and push frequently.
 
-## Autonomous operating contract
+At major gates audit architecture drift, prompt/secret exposure, agent privilege creep, duplicate orders, idempotency, unknown-state recovery, risk-reduction availability, ledger invariants, event replay, stale data, policy/certification bypass, unvalidated promotion and dependency licensing/security.
 
-Codex should work continuously toward the end state.
+L5/L6 requires explicit owner action and local canary. If missing, set BLOCKED_FOR_OWNER_LIVE_VALIDATION. Do not declare complete.
 
-Do not stop for:
-
-- routine implementation choices;
-- ordinary dependency choices covered by repository rules;
-- passing phase transitions;
-- non-critical refactors;
-- status updates;
-- permission to continue after tests pass;
-- permission to create the next ExecPlan.
-
-For each phase:
-
-1. inspect repository and current program status;
-2. read the relevant architecture/specs;
-3. create or update the phase ExecPlan;
-4. implement;
-5. test;
-6. self-review;
-7. run security/failure tests appropriate to the phase;
-8. fix defects;
-9. update docs;
-10. record evidence;
-11. commit and push durable progress;
-12. advance to the next phase.
-
-## Durable program memory
-
-Maintain:
-
-- docs/program/STATUS.md
-- docs/program/DECISIONS.md
-- docs/program/KNOWN_ISSUES.md
-- docs/program/VALIDATION_LOG.md
-
-These files are the durable continuation state if a Codex Cloud task is resumed or restarted.
-
-STATUS.md must always contain:
-
-- current phase;
-- completed phases;
-- next action;
-- current blockers;
-- latest verification commands/results;
-- relevant commit SHA;
-- certification level.
-
-## Git strategy
-
-Use a long-running branch for the autonomous program unless the environment imposes another safe workflow.
-
-Preferred branch:
-
-    codex/enterprise-local-autonomous
-
-Commit at meaningful milestones and at every phase gate.
-
-Push progress often enough that a lost cloud workspace does not lose significant work.
-
-Do not rewrite published history unless required for recovery.
-
-## Quality policy
-
-Never advance because implementation merely appears complete.
-
-Every phase must have objective evidence.
-
-If tests reveal architectural weakness, repair the implementation before advancing.
-
-If a contract must change, update specifications and migration paths.
-
-## Self-audit policy
-
-At each major gate, perform an adversarial self-review.
-
-Specifically inspect:
-
-- architecture drift;
-- security bypasses;
-- accidental direct exchange access;
-- secret leakage;
-- duplicate-order risk;
-- idempotency;
-- unknown-state recovery;
-- ledger integrity;
-- event replay behavior;
-- stale market data;
-- risk bypasses;
-- policy bypasses;
-- certification bypasses;
-- agent privilege creep;
-- unvalidated model/strategy promotion;
-- dependency licensing.
-
-## Research behavior
-
-Codex may research current public technical documentation when needed to implement dependencies correctly.
-
-Prefer official upstream documentation and repositories.
-
-Record material dependency decisions in docs/program/DECISIONS.md.
-
-## Blocker policy
-
-A true blocker requires owner input or external action.
-
-Valid examples:
-
-- Codex Cloud environment lacks required permission;
-- GitHub access fails;
-- an external account must be authenticated;
-- a secret must be entered into a secure environment by the owner;
-- an exchange API key must be created/configured;
-- owner-defined capital or live-trading activation is required;
-- a legal/commercial license choice cannot be safely inferred;
-- a required product choice has multiple materially different interpretations not resolved by architecture.
-
-When a blocker occurs:
-
-1. continue every independent task possible;
-2. persist progress to Git;
-3. update STATUS.md;
-4. create/update BLOCKER.md;
-5. ask only for the minimal owner action needed;
-6. provide exact resume instructions.
-
-## Real-money boundary
-
-Codex may build and validate everything necessary for real-money operation.
-
-Codex must not invent or expose live credentials.
-
-When L5/L6 validation genuinely requires external owner-controlled Binance credentials or explicit live activation, treat that as an external blocker.
-
-After the owner performs the required secure action, resume the existing Master Goal and continue validation.
-
-## Completion condition
-
-The Master Goal is complete when:
-
-1. all Enterprise Local implementation phases are complete;
-2. all required automated tests pass;
-3. paper/shadow/canary readiness is implemented;
-4. certification evidence is recorded;
-5. no unresolved critical security, execution, reconciliation, ledger, or risk defects remain;
-6. operational runbooks exist;
-7. the repository can be deployed as the Enterprise Local product;
-8. any remaining action requiring the owner's live Binance credentials or explicit real-money activation is clearly isolated and documented;
-9. Enterprise SaaS work has not been mixed into this scope.
-
-If owner-controlled live credentials and activation are supplied during the Goal, continue through the live certification workflow according to the repository safety rules.
+Master Goal completes only after actual L6 evidence exists, required tests pass, no critical defect remains, runbooks are ready, and SaaS has not been mixed into scope.

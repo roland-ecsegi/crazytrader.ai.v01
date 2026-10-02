@@ -1,122 +1,32 @@
 # AI Provider Routing V1
 
-## Goal
+Permanent agent identity is independent of provider/model/transport.
 
-The AI provider must be replaceable without changing permanent agent identity or financial-control logic.
-
-## Provider architecture
-
-    Permanent Agent
-          |
-          v
-       AI Gateway
-          |
-          +--> Claude CLI Adapter
-          |
-          +--> Claude API Adapter
-          |
-          +--> Future Provider Adapter
-
-## Agent identity rule
-
-Agent identity is independent from:
-
-- provider;
-- model;
-- reasoning mode;
-- transport;
-- subscription or API path.
-
-Changing the model must not create a new agent or discard its governed memory/history.
+    Agent -> AI Gateway
+              |-> Claude CLI / claude -p
+              |-> Claude Agent SDK
+              |-> Claude API
+              |-> future provider
 
 ## Enterprise Local
 
-Enterprise Local may use Claude CLI through the owner's authenticated local Claude Code environment.
+Provider/model are selectable from the custom application UI.
 
-The adapter must:
+Claude CLI and Claude Agent SDK may use the owner's authenticated Claude subscription where Anthropic supports that usage. Treat this as current operational capability, not a permanent pricing guarantee; adapters must expose auth/usage-limit state cleanly.
 
-- call the CLI through a controlled process boundary;
-- enforce timeout;
-- capture normalized output;
-- capture normalized failure state;
-- avoid placing secrets in prompts;
-- record provider/model metadata;
-- support cancellation;
-- prevent shell capability from becoming exchange authority.
+Owner Claude login/session material stays local and is never copied to Codex Cloud, source control, frontend storage or agent memory.
 
-## Claude API
+### CLI adapter
+Controlled workdir/process boundary, timeout/cancel, normalized structured output, tool allowlist, no inherited Binance/OpenBao live secrets by default, secret redaction and provider/model/latency/status audit.
 
-The API adapter is optional in early Enterprise Local and becomes important for future SaaS.
+### Agent SDK adapter
+Preferred where it provides cleaner programmatic agent/tool control under supported auth. Keep behind our adapter so provider policy changes do not redefine permanent agents.
 
-It must support:
+### API adapter
+Optional in Enterprise Local; normal commercial/SaaS path later. Supports usage/cost accounting, timeout/retry, provider failure, model policy and future tenant attribution.
 
-- configured model selection;
-- usage tracking;
-- retry policy;
-- timeout policy;
-- error normalization;
-- fallback policy;
-- tenant attribution in future SaaS.
+Fallback is explicit/audited and cannot duplicate financial actions. TradeIntent/execution idempotency remain outside AI Gateway.
 
-## Provider fallback
+Claude/provider availability is never required for hard risk, OPA, kill switch, reconciliation, duplicate-order prevention, deterministic protection or ledger integrity.
 
-Fallback must be explicit and auditable.
-
-A provider timeout may allow another provider to complete a research/advisory task.
-
-A provider fallback must never duplicate a financial action.
-
-TradeIntent identity and execution idempotency remain outside the AI provider layer.
-
-## Required normalized response envelope
-
-- request_id
-- agent_id
-- provider
-- model
-- started_at
-- completed_at
-- status
-- structured_output when requested
-- usage metadata when available
-- tool_calls
-- error_class
-- trace_id
-
-## Safety
-
-Claude or another AI provider must not be required for:
-
-- hard risk;
-- OPA policy decisions;
-- kill switch;
-- reconciliation;
-- duplicate-order prevention;
-- emergency open-position handling;
-- internal ledger integrity.
-
-## Model configuration
-
-A per-agent configuration may specify:
-
-- primary provider;
-- primary model;
-- reasoning level;
-- maximum response budget;
-- timeout;
-- fallback sequence;
-- tool allowlist;
-- task categories.
-
-## Future SaaS
-
-Commercial operation should move toward centrally governed API routing with:
-
-- per-tenant quotas;
-- cost attribution;
-- provider policies;
-- rate limiting;
-- audit;
-- billing integration.
-
-CLI support can remain a private/local execution option where appropriate.
+Codex Cloud tests these adapters with mocks/non-secret config. Owner-local auth validation is a later external integration step.
