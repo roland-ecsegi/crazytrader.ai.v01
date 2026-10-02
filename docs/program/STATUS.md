@@ -17,7 +17,7 @@ Phase 0 — Repository and contracts
 L0 — DEVELOPMENT
 
 ## Working branch
-Not yet created by Codex implementation task. Preferred: `codex/enterprise-local-autonomous`.
+`codex/enterprise-local-autonomous` — created and ready for the Codex Master Goal.
 
 ## Last durable commit
 Set by Codex when implementation starts.
