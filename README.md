@@ -64,12 +64,15 @@ Anything above the boundary may be wrong; anything below must be deterministic, 
 7. `docs/specs/STRATEGY_MODEL_LIFECYCLE.md`
 8. `docs/specs/CAPITAL_GROWTH.md`
 9. `docs/specs/TRADE_INTENT.md`
-10. `docs/specs/RISK_SECURITY.md`
-11. `docs/specs/TESTING_AND_CERTIFICATION.md`
-12. `docs/roadmap/AUTONOMOUS_ENTERPRISE_LOCAL_GOAL.md`
-13. `docs/roadmap/CODEX_RESUME_PROTOCOL.md`
-14. `docs/roadmap/CODEX_MASTER_PROMPT.md`
-15. `docs/program/STATUS.md`
+10. `docs/specs/EXECUTION_AND_RECONCILIATION.md`
+11. `docs/specs/RISK_SECURITY.md`
+12. `docs/specs/UI_COMMAND_CENTER.md`
+13. `docs/specs/LOCAL_DEPLOYMENT.md`
+14. `docs/specs/TESTING_AND_CERTIFICATION.md`
+15. `docs/roadmap/AUTONOMOUS_ENTERPRISE_LOCAL_GOAL.md`
+16. `docs/roadmap/CODEX_RESUME_PROTOCOL.md`
+17. `docs/roadmap/CODEX_MASTER_PROMPT.md`
+18. `docs/program/STATUS.md`
 
 ## Current state
 
