@@ -19,7 +19,7 @@ The implementation must preserve the architecture in docs/architecture and docs/
 9. Unknown exchange state must trigger reconciliation, never blind retry.
 10. Real-money mode must be impossible before L6 LIVE CERTIFIED.
 11. Withdrawal capability is out of scope and must remain disabled.
-12. Phase 0 must not include live Binance credentials or live order submission.
+12. Live credentials and real-money activation require an explicit owner-controlled external setup step.
 
 ## Architecture authority
 
@@ -29,10 +29,49 @@ In case of conflict, use this precedence:
 2. Accepted ADRs under docs/adr.
 3. docs/architecture/ARCHITECTURE_V1.md.
 4. docs/specs.
-5. current ExecPlan.
-6. implementation details.
+5. docs/roadmap/AUTONOMOUS_ENTERPRISE_LOCAL_GOAL.md when autonomous-program mode is active.
+6. current ExecPlan.
+7. implementation details.
 
 If implementation requires changing a higher-priority rule, stop and create an ADR proposal instead of silently changing architecture.
+
+## Autonomous program mode
+
+When Codex is explicitly launched with the Enterprise Local Master Goal in docs/roadmap/AUTONOMOUS_ENTERPRISE_LOCAL_GOAL.md, it is authorized to progress autonomously through the implementation roadmap without waiting for routine human approval between phases.
+
+In autonomous program mode, Codex must:
+
+1. keep durable project state in the repository;
+2. create or update phase ExecPlans;
+3. implement the current phase;
+4. run validation and self-audit;
+5. fix failures;
+6. record evidence;
+7. commit completed milestones to the assigned working branch;
+8. advance to the next phase only after the previous gate passes;
+9. continue until Enterprise Local completion or a true external blocker is reached.
+
+Codex must not stop merely to ask routine questions, confirm ordinary engineering choices, request approval for a passing phase gate, or provide status updates.
+
+A blocker is valid only when work cannot safely continue without information, access, credentials, an external service action, or a binding product decision that cannot be derived from the existing architecture.
+
+Examples of valid blockers:
+
+- repository/environment permission is missing;
+- required cloud tooling cannot be enabled by Codex;
+- owner authentication is required;
+- a required external credential must be entered by the owner;
+- Binance live API credentials are required for later live validation;
+- explicit owner activation is required before real-money execution;
+- a binding architecture conflict requires an ADR decision and no safe default exists.
+
+When blocked, Codex must:
+
+1. finish all independent work that can still proceed;
+2. commit and push durable progress;
+3. write BLOCKER.md or update the program status with exact blocker details;
+4. ask the owner for the minimum action required to unblock;
+5. state exactly how to resume.
 
 ## Required workflow for substantial work
 
@@ -134,13 +173,15 @@ Do not copy GPL or AGPL code into proprietary core without explicit legal/licens
 
 ## Phase control
 
-The current active phase is defined in docs/roadmap/PHASE_0_BOOTSTRAP.md.
+Outside autonomous program mode, the current active phase is defined by the relevant roadmap phase document.
 
-Do not implement later phases opportunistically unless the active ExecPlan explicitly authorizes a dependency stub or interface.
+In autonomous program mode, Codex may advance sequentially through the roadmap after each phase gate passes and evidence is recorded.
+
+Do not skip gates. Do not claim later certification levels without their required evidence.
 
 ## Definition of Done
 
-A task is done only when:
+A task or phase is done only when:
 
 - acceptance criteria pass;
 - tests pass;
@@ -148,4 +189,5 @@ A task is done only when:
 - no TODO hides a safety-critical missing implementation;
 - failure behavior is defined;
 - no new privilege escalation path was introduced;
-- the task remains within the current certification/roadmap gate.
+- required evidence is recorded;
+- the current certification/roadmap gate is genuinely satisfied.
