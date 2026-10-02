@@ -1,18 +1,80 @@
 # Data, Events, and Ledger Specification V1
 
-PostgreSQL: operational/domain state.
-ClickHouse: high-volume market/features/signals/predictions/execution/strategy/agent/backtest telemetry; never the financial ledger.
-Object storage: versioned datasets/artifacts/reports/snapshots.
-NATS JetStream: durable event/replay; financial consumers assume at-least-once delivery and implement idempotency.
+## PostgreSQL
+
+Operational relational state:
+- tenants/owners;
+- agents, skills, permissions, provider configs and memory metadata;
+- portfolios/capital allocations/risk profiles;
+- exchange accounts/instruments;
+- strategies/versions;
+- models/versions;
+- experiments;
+- trade intents;
+- risk/policy decisions;
+- orders/fills/positions;
+- ledger transactions/postings;
+- incidents/certification/configuration versions;
+- audit references.
+
+## ClickHouse
+
+High-volume analytical/time-series data:
+- ticks/trades/candles;
+- selected order-book snapshots/deltas;
+- features/signals/model predictions;
+- execution/strategy telemetry;
+- agent observations;
+- backtest/research observations.
+
+ClickHouse is never the financial ledger.
+
+## Object storage
+
+Versioned:
+- historical datasets;
+- model/strategy artifacts;
+- reports;
+- backtest artifacts;
+- snapshots;
+- large experiment outputs.
+
+## NATS JetStream
+
+Durable event backbone and replay. Critical consumers assume at-least-once delivery unless explicitly stronger. Financial state mutation handlers must be idempotent.
 
 ## Ledger
 
-Append-only transactions/postings sufficient to reconstruct capital allocation/release, reservations, asset acquisition/disposal, fees, realized P&L, portfolio/strategy transfers and reconciliation corrections.
+The ledger is append-only and reconstructable.
 
-Historical entries are never silently edited. Corrections are compensating transactions with reason/provenance. Tests must prove internal balances can be reconstructed from ledger history.
+Transactions/postings cover:
+- capital allocation/release;
+- order reservation/release;
+- asset acquisition/disposal;
+- fees;
+- realized P&L;
+- portfolio/strategy transfers;
+- reconciliation corrections.
 
-Binance is external venue truth; ledger is internal accounting truth. Reconcile balances, open/recent orders, fills, reservations and attributed holdings.
+Historical entries are never edited. Corrections are compensating transactions with reason/provenance.
 
-Critical mismatch blocks **new risk**, opens an incident and starts reconciliation while preserving safe cancellation/risk reduction.
+Tests must prove internal balance/exposure can be reconstructed from ledger history and that duplicate events cannot double-post.
 
-Never use binary float for accounting/notional/fee/price-quantity conversion. Respect venue precision/min-notional filters explicitly.
+## External/internal truth
+
+Binance = external venue truth.
+Ledger/domain = internal accounting/control truth.
+
+Continuously reconcile:
+- balances;
+- open/recent orders;
+- fills;
+- reservations;
+- attributed holdings;
+- venue precision/filter metadata.
+
+Critical mismatch blocks new/increased risk, opens incident and starts reconciliation while preserving authorized cancellation/risk reduction.
+
+## Precision
+
+No binary floats for financial/accounting values or venue quantity/price conversion. Respect exchange tick/step/min-notional rules explicitly and version venue metadata.
