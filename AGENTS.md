@@ -70,6 +70,7 @@ Follow `docs/roadmap/CODEX_RESUME_PROTOCOL.md`. Auto-continue while Goal is acti
 - `services/ledger`: append-only journal.
 - `services/research`: experiments/backtests/candidates.
 - `services/audit`: durable audit.
+- `services/notification`: critical alerts/notifications.
 - `packages/contracts`, `domain`, `events`: shared versioned contracts.
 - `agents`: manifests/skills/governed prompts.
 - `policies/opa`: policy.
