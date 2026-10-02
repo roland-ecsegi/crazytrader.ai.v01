@@ -47,7 +47,7 @@ All delivered responsibilities above with actual integration evidence; no mock p
 Stop workers; preserve persistent event/audit tables; revert application version. Do not drop durable production data. Test fixture volumes disposable. Retained outbox replays idempotently after restart.
 
 ## Resume checkpoint
-Branch codex/enterprise-local-autonomous; last durable 324f697. Current: Phase 1 gate passed. Next: Phase 2 ExecPlan and normalized market freshness/data ingestion. Uncommitted: checkpoint only. Blockers: none. Usage: active. Verification Phase 0 checks PASS.
+Branch codex/enterprise-local-autonomous; last durable 8de8c80231f91208529c82d29f49d7c1c76327fc (Phase 1 published). Current: Phase 1 gate passed. Next: Phase 2 ExecPlan and normalized market freshness/data ingestion. Uncommitted: checkpoint only. Blockers: none. Usage: active. Verification: Phase 1 local checks/integration/build/actual runtime smoke PASS; hosted CI run 37068956651 PASS.
 
 ## Progress log
 2026-10-02: designed transactional persistence and service responsibility boundaries.

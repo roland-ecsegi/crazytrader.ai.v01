@@ -1,0 +1,17 @@
+{
+  "implementation_commit": "8de8c80231f91208529c82d29f49d7c1c76327fc",
+  "run_id": 37068956651,
+  "job_id": 111043565024,
+  "conclusion": "success",
+  "steps": [
+    "make setup check",
+    "make integration"
+  ],
+  "url": "https://github.com/roland-ecsegi/crazytrader.ai.v01/actions/runs/37068956651",
+  "earlier_format_failure": {
+    "commit": "324f6976fe6328ba21532dddc580bbf89f427614",
+    "run_id": 37066810615,
+    "cause": "platform_probe.py formatting after late proxy fix",
+    "resolution": "reformatted in passing Phase 1 checkpoint"
+  }
+}
