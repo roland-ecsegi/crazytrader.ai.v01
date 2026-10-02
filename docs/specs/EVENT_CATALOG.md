@@ -63,6 +63,7 @@ Breaking schema changes require a new schema version.
 
 ## Portfolio and ledger events
 
+- CapitalAllocationProposed.v1
 - CapitalAllocated.v1
 - CapitalAllocationReduced.v1
 - PositionOpened.v1
@@ -100,6 +101,9 @@ Breaking schema changes require a new schema version.
 - AgentAvailabilityChanged.v1
 - AgentPermissionChanged.v1
 - AgentMemoryUpdated.v1
+- ExperienceRecordCreated.v1
+- AIProviderAvailabilityChanged.v1
+- AIProviderUsageLimited.v1
 
 ## Research events
 
@@ -114,6 +118,8 @@ Breaking schema changes require a new schema version.
 - ModelRegistered.v1
 - ModelPromoted.v1
 - ModelRolledBack.v1
+- StrategyPromotionDenied.v1
+- ModelPromotionDenied.v1
 
 ## Platform events
 
