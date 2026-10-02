@@ -7,7 +7,7 @@ Respect gates; parallelize only independent work with stable contracts.
       -> T002 domain + T003 CI
       -> T004 contracts/events
       -> T004A open-source/license compatibility spikes
-      -> T005 NATS + T006 PostgreSQL + T007 audit
+      -> T005 NATS + T006 PostgreSQL + T007 audit + T007B notification
       -> T008 control API
       -> T009 market data
       -> T010 ClickHouse/object data
