@@ -6,6 +6,7 @@ from pathlib import Path
 
 from crazytrader_contracts import models
 from crazytrader_contracts.events import EventEnvelope
+from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
@@ -20,6 +21,7 @@ TYPES = [
     models.AuditEvent,
     models.CertificationState,
     EventEnvelope,
+    HealthChange,
 ]
 
 

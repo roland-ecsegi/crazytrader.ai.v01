@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "health": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNKNOWN"
+      ],
+      "title": "Health",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "reason_code": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "service_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Service Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "service_id",
+    "health",
+    "reason_code",
+    "occurred_at"
+  ],
+  "title": "HealthChange",
+  "type": "object"
+}

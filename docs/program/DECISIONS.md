@@ -19,3 +19,7 @@ Python 3.12 with uv 0.12.19 and hash-locked dependencies; Pydantic frozen/extra-
 ## 2026-10-02 — Open-source adoption gate
 
 See docs/evidence/spikes/ADOPTION.md and exact version/license hashes. Use Nautilus unmodified dynamic dependency for simulation; defer native live submission until UNKNOWN recovery fault proof. Official Binance modular SDK remains venue reference behind deterministic boundary. SeaweedFS Apache-2.0 S3 candidate avoids embedding AGPL object-store core. No secret/bootstrap material used. GitHub connector can publish atomic trees/commits and fast-forward branch when shell Git lacks write credentials.
+
+## 2026-10-02 — Platform durability/readiness
+
+PostgreSQL is canonical immutable event/audit state with transactional outbox and inbox. NATS file JetStream is at-least-once transport, not an exactly-once ledger. Notification failures persist bounded attempts; only local console delivery exists so far. Readiness requires fresh audit/outbox/notification heartbeats, not only reachable stores. Explicit admin migration separated from ordinary worker startup. App UID10001/read-only Compose with API-only ingress and loopback binding; data network internal. Development role/auth settings are not production security certification.

@@ -1,0 +1,79 @@
+# Development backbone only. Authenticated credentials are owner-local, never committed.
+# Production OpenBao/TLS/least-privilege roles and hardening remain Phase 14 gates.
+name: crazytrader-local
+x-platform: &platform
+  image: crazytrader-platform:phase1
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: [/tmp]
+  networks: [platform]
+  environment: &environment
+    CT_DATABASE_DSN: ${CT_DATABASE_DSN:?owner-local DSN required}
+    CT_NATS_URL: nats://nats:4222
+  depends_on:
+    postgres:
+      condition: service_healthy
+    nats:
+      condition: service_started
+services:
+  postgres:
+    image: postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: crazytrader
+      POSTGRES_USER: crazytrader
+      POSTGRES_PASSWORD: ${CT_POSTGRES_PASSWORD:?owner-local database password required}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    networks: [platform]
+    healthcheck:
+      test: [CMD, pg_isready, -U, crazytrader, -d, crazytrader]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+  nats:
+    image: nats:2.11.8-alpine@sha256:71092f77d707a4a81b12aca5096d6b2d2e07ad16aa57c84066940a17af74f61a
+    command: [-js, -sd, /data]
+    restart: unless-stopped
+    volumes: [nats-data:/data]
+    networks: [platform]
+  migrate:
+    <<: *platform
+    restart: 'no'
+    environment:
+      <<: *environment
+      CT_MIGRATION_PATH: /app/infra/migrations/001_platform.sql
+    command: [/app/.venv/bin/python, -m, crazytrader_platform.migrate]
+  outbox:
+    <<: *platform
+    environment:
+      <<: *environment
+      CT_SERVICE_ROLE: outbox
+  audit:
+    <<: *platform
+    environment:
+      <<: *environment
+      CT_SERVICE_ROLE: audit
+  notification:
+    <<: *platform
+    environment:
+      <<: *environment
+      CT_SERVICE_ROLE: notification
+  control-api:
+    <<: *platform
+    networks: [platform, ingress]
+    environment:
+      <<: *environment
+      CT_SERVICE_ROLE: control-api
+      CT_OWNER_TOKEN: ${CT_OWNER_TOKEN:?owner-local API token required}
+      CT_BIND_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:${CT_CONTROL_PORT:-8080}:8080"
+networks:
+  ingress: {}
+  platform:
+    internal: true
+volumes:
+  postgres-data:
+  nats-data:

@@ -200,7 +200,8 @@ print(mlflow.__version__)
 """
         observed["mlflow"] = docker("exec", ml, "python", "-c", registry).stdout.strip()
         obj = start(
-            "object", ["server", "-s3", "-dir=/data", "-ip=object"],
+            "object",
+            ["server", "-s3", "-dir=/data", "-ip=object"],
             ["-e", "NO_PROXY=object,127.0.0.1", "-e", "no_proxy=object,127.0.0.1"],
         )
         probe = """

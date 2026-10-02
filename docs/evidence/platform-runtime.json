@@ -1,0 +1,18 @@
+{
+  "certification": "L0",
+  "checks": [
+    "actual non-root image build",
+    "explicit migration",
+    "three worker readiness",
+    "owner authentication",
+    "audit worker stop -> degraded",
+    "audit worker restart -> ready"
+  ],
+  "secrets": "random disposable platform fixtures only; never recorded",
+  "limitations": [
+    "development service credentials",
+    "no production TLS/role isolation",
+    "no financial execution",
+    "no live readiness claim"
+  ]
+}
