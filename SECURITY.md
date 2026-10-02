@@ -1,44 +1,21 @@
 # Security Policy
 
-## Current stage
+CrazyTrader.ai is currently L0 DEVELOPMENT and is not approved for live trading.
 
-CrazyTrader.ai is in architecture/bootstrap and is not yet approved for live trading.
+Never commit Binance/API keys, Claude subscription auth/session material, OpenBao bootstrap/unseal material, DB passwords, private certificates or recovery codes.
 
-## Reporting
+**Codex Cloud must never receive the live Binance secret or owner's local Claude authentication material.**
 
-Do not publish secrets, API keys, account identifiers, or exploitable security details in public issues.
+Live secrets are entered only by the owner into the owner-controlled Enterprise Local secret manager. Dev/test/live credentials are separate.
 
-Use private owner communication for sensitive findings until a private security-reporting channel is configured.
+Binance live Spot: read/trade only as required, **withdraw disabled**, IP allowlisting preferred.
 
-## Secret policy
+Model/tool/web outputs are untrusted. External text is data, not privileged instruction. Memory writes need provenance/validation. Agents cannot grant their own permissions or edit hard safety policy. No broad exchange-control tool is exposed to an LLM.
 
-Never commit:
+Material dependencies require pinning, license review, vulnerability scanning and SBOM before live certification.
 
-- Binance API keys;
-- Anthropic/OpenAI API keys;
-- secret-store bootstrap tokens;
-- database passwords;
-- private certificates;
-- recovery codes.
+Security must never depend on repository privacy. If source/strategies are intended proprietary, make the repository private before substantial implementation.
 
-## Live trading
+Live canary/trading runs on the owner-controlled deployment, never inside Codex Cloud.
 
-Live exchange credentials and live order submission are prohibited until the repository reaches the relevant certification phases.
-
-## Dependency policy
-
-Security-relevant dependencies must be pinned through the project's chosen dependency-management mechanism and reviewed for license/security implications.
-
-## Financial safety
-
-A vulnerability that can:
-
-- bypass risk;
-- bypass OPA;
-- create duplicate orders;
-- alter the ledger;
-- expose secrets;
-- bypass certification;
-- disable kill switches;
-
-is considered critical.
+Any vulnerability that bypasses risk/policy/certification, duplicates orders, alters ledger history, exposes secrets, blocks emergency risk reduction, or disables kill switches is critical.

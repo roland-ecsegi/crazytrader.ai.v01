@@ -2,186 +2,96 @@
 
 ## Principle
 
-Passing unit tests does not make the platform real-money ready.
-
-Certification is a cumulative evidence process.
+Working code or a strong backtest is not real-money certification. Certification is cumulative evidence.
 
 ## Test layers
 
 ### Unit
-
-Required for:
-
-- domain rules;
-- state machines;
-- risk calculations;
-- policy inputs;
-- decimal math;
-- schema validation.
+Domain rules, decimal math, state machines, risk calculations, schemas.
 
 ### Contract
-
-Required for:
-
-- service APIs;
-- events;
-- TradeIntent;
-- RiskDecision;
-- PolicyDecision;
-- exchange adapter normalization.
+Service APIs, events, TradeIntent, RiskDecision, PolicyDecision, exchange-normalization contracts.
 
 ### Integration
-
-Required for:
-
-- PostgreSQL;
-- ClickHouse;
-- NATS;
-- OPA;
-- OpenBao;
-- MLflow;
-- exchange test interfaces.
+PostgreSQL, ClickHouse, NATS, OPA, OpenBao, MLflow, object store, test exchange interfaces.
 
 ### Simulation
+Order lifecycle, partial fills, cancellation, latency, slippage/cost model, gaps and portfolio accounting.
 
-Required for:
+### Failure / chaos
+At minimum:
+1. network timeout after venue may have accepted order;
+2. venue error after local state transition;
+3. WebSocket disconnect/sequence gap;
+4. duplicate NATS delivery;
+5. service restart during open order;
+6. reconciliation mismatch;
+7. PostgreSQL outage;
+8. NATS consumer restart;
+9. Claude/provider unavailable;
+10. Hard Risk unavailable;
+11. OPA unavailable;
+12. OpenBao unavailable;
+13. clock skew;
+14. stale market data;
+15. attempted new risk during degraded state;
+16. authorized risk reduction during degraded state;
+17. duplicate fill/event replay;
+18. secret-redaction failure injection.
 
-- order lifecycle;
-- partial fills;
-- cancellation;
-- latency;
-- market-data gaps;
-- execution-cost modeling.
-
-### Failure and chaos
-
-Required scenarios include:
-
-1. Network timeout immediately after order submission.
-2. Binance returns an error after local submission state changes.
-3. WebSocket disconnect and sequence gap.
-4. Duplicate NATS delivery.
-5. Service restart during open order.
-6. Reconciliation mismatch.
-7. PostgreSQL temporary outage.
-8. NATS consumer restart.
-9. Claude becomes unavailable.
-10. Risk engine unavailable.
-11. OPA unavailable.
-12. Secret store unavailable.
-13. Clock skew outside tolerance.
-14. Market data stale while a new TradeIntent arrives.
-
-## Mandatory example: unknown order state
-
-Given:
-
-- an approved execution request;
-- the HTTP/WebSocket response is lost after the venue may have accepted the order.
+## Mandatory UNKNOWN-order scenario
 
 Expected:
-
-- order enters UNKNOWN;
+- state becomes UNKNOWN;
 - no blind retry;
-- reconciliation starts;
-- venue is queried using stable identifiers;
-- existing order is recovered if present;
-- only if absence is proven and the intent remains valid may a safe retry occur;
-- all state transitions are audited.
+- reconciliation queries venue with stable identifiers;
+- existing order recovered if present;
+- safe retry only after absence is established and intent remains valid;
+- all transitions audited;
+- no duplicate exposure.
 
-## Mandatory example: Claude failure
+## Mandatory AI outage scenario
 
-Given:
-
-- an open position;
-- Claude/AI provider becomes unavailable.
-
-Expected:
-
-- hard risk remains active;
+With an open position and Claude unavailable:
+- Hard Risk remains active;
 - reconciliation remains active;
-- deterministic protective actions remain active;
-- no new AI-dependent trades are initiated unless policy explicitly permits an offline deterministic strategy;
-- the system records degraded agent status.
+- deterministic protective logic remains active;
+- no new AI-dependent opportunity is created unless separately certified deterministic strategy permits it;
+- agent/provider degradation is recorded.
 
 ## Certification ladder
 
 ### L0 DEVELOPMENT
-
-No claim of trading readiness.
+No readiness claim.
 
 ### L1 BACKTEST READY
-
-Requires:
-
-- reproducible data/config;
-- fees modeled;
-- slippage model;
-- immutable strategy version;
-- repeatable result.
+Reproducible dataset/config, realistic fee/slippage assumptions, leakage controls, immutable artifact and repeatable results.
 
 ### L2 SIMULATION READY
-
-Requires:
-
-- event-driven order simulation;
-- failure-path simulation;
-- restart tests;
-- portfolio accounting simulation.
+Event-driven order/portfolio simulation with failure/restart and accounting evidence.
 
 ### L3 PAPER READY
-
-Requires:
-
-- real-time market data;
-- simulated orders;
-- real-time risk;
-- audit;
-- stable continuous operation.
+Real-time market data, simulated execution, live risk/ledger/audit, stable continuous operation.
 
 ### L4 SHADOW READY
+Live venue/account observation where permitted, real TradeIntents, no live order submission, reconciliation and execution-estimate validation.
 
-Requires:
+### L5 CANARY AUTHORIZED
+Live path technically ready; withdrawal disabled; Hard Risk/OPA/kill/reconciliation/monitoring healthy; tiny owner-defined capital cap; incident/runbooks ready; explicit owner authorization.
 
-- live Binance market/account observation where permitted;
-- real TradeIntent generation;
-- no live order submission;
-- reconciliation checks;
-- execution-estimate comparison.
-
-### L5 CANARY READY
-
-Requires:
-
-- live execution path technically enabled;
-- withdrawal disabled;
-- hard risk active;
-- kill switch active;
-- reconciliation healthy;
-- tiny owner-approved capital cap;
-- incident procedures tested.
+Actual canary trades are executed only on the owner-controlled Enterprise Local deployment.
 
 ### L6 LIVE CERTIFIED
+Requires real canary evidence meeting predefined criteria; no unresolved critical execution/reconciliation/ledger/risk/security defects; duplicate-order/recovery/kill-switch evidence; monitoring/backups/runbooks verified; explicit owner live activation.
 
-Requires:
+## Observation-time honesty
 
-- canary evidence accepted;
-- no unresolved critical execution defects;
-- no unresolved critical reconciliation defects;
-- duplicate-order protection verified;
-- recovery verified;
-- kill switch verified;
-- monitoring verified;
-- explicit owner activation.
+Do not fabricate elapsed-market evidence or claim unobserved regimes. Paper/shadow/canary stages consume real time. Continue independent engineering while time-based evidence accumulates.
+
+## Completion truth
+
+Missing owner credentials/activation => BLOCKED at L5/L6, not complete.
 
 ## Capital ramp
 
-Capital increase is not automatic proof of safety.
-
-Use controlled steps with explicit policy caps and evidence review.
-
-## Evidence
-
-Each certification level must store machine-readable evidence references and blockers.
-
-The application must refuse live activation below L6.
+Stepwise, reversible, owner-capped and evidence-based. Exact amounts are configuration, not a profit-guarantee mechanism.

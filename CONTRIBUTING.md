@@ -1,52 +1,11 @@
 # Contributing to CrazyTrader.ai
 
-## Before coding
+Read `AGENTS.md`, `.agent/PLANS.md`, architecture/specs and current program status before coding. Substantial work requires an ExecPlan.
 
-Read:
+PR/task summaries should state goal, architecture impact, changed contracts/services, tests/gate evidence, security/financial impact, migrations and limitations.
 
-- AGENTS.md
-- .agent/PLANS.md
-- docs/architecture/ARCHITECTURE_V1.md
-- relevant docs/specs files
-- active roadmap phase
+TradeIntent, hard risk, OPA, execution, reconciliation, ledger, certification and secrets changes require explicit gate review plus negative-path tests.
 
-## Work style
+In Autonomous Program Mode the gate review may be an independent adversarial Codex pass. Routine human approval is not required unless a true external blocker or binding decision exists.
 
-Use a focused branch or Codex task.
-
-For substantial work, create an ExecPlan under docs/plans.
-
-## Pull requests
-
-A PR should state:
-
-- goal;
-- architecture impact;
-- files/services changed;
-- tests executed;
-- security/financial-risk impact;
-- migration impact;
-- remaining limitations.
-
-## Safety-critical changes
-
-Changes to:
-
-- TradeIntent;
-- risk;
-- OPA;
-- execution;
-- reconciliation;
-- ledger;
-- certification;
-- secrets;
-
-require explicit review and negative-path tests.
-
-## Documentation
-
-Behavioral changes must update the corresponding specification.
-
-## Scope
-
-Do not implement a later roadmap phase merely because it is convenient. Respect active phase gates.
+Behavioral changes update matching specs. Do not skip roadmap gates.

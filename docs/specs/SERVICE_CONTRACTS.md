@@ -122,11 +122,14 @@ Inputs:
 - exchange health;
 - reconciliation health;
 - risk profile;
+- risk_effect (increasing/reducing/neutral);
 - hard owner limits.
 
 Output:
 
-- RiskDecision with allow/deny, reason codes, calculated exposure, and rule evidence.
+- RiskDecision with allow/deny, reason codes, calculated exposure, risk direction, degraded-mode permissions, and rule evidence.
+
+Critical rule: unhealthy/unknown state denies new/increased risk by default but must not unintentionally block an authorized cancellation or exposure-reduction path.
 
 ## policy-engine
 
@@ -162,6 +165,8 @@ Owns:
 
 Must accept only fully authorized execution requests.
 
+For live credentials, execution obtains a secret reference only from the owner-controlled local secret manager. Codex Cloud and agent/LLM contexts never receive raw live credentials.
+
 ## reconciliation
 
 Owns comparison between:
@@ -173,7 +178,7 @@ Owns comparison between:
 - balances;
 - reservations.
 
-Critical mismatch must block new trading.
+Critical mismatch must block new/increased risk while preserving safe cancellation/risk reduction where policy and venue state allow.
 
 ## ledger
 

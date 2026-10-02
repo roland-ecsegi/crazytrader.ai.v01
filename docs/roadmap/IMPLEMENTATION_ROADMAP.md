@@ -2,246 +2,113 @@
 
 ## Goal
 
-Build from a safe repository foundation to Enterprise Local LIVE CERTIFIED through gated phases.
+Reach Enterprise Local / L6 LIVE CERTIFIED through evidence-gated autonomous phases.
 
-## Phase 0 — Repository and contracts
+## Phase 0 — Repository, toolchain and contracts
 
 Deliver:
-
 - monorepo/toolchain;
-- architecture docs;
-- AGENTS.md and ExecPlan standard;
-- domain package;
-- contract package;
-- event package;
-- CI;
-- lint/type/test framework;
-- local development container baseline;
-- no live trading.
+- typed domain/contracts/events;
+- CI, formatting, linting, type checks;
+- unit/contract test framework;
+- secret scan;
+- reproducible local developer setup.
 
-Exit gate:
+No live exchange path.
 
-- all Phase 0 acceptance criteria pass.
+## Phase 0.5 — Open-source compatibility/license spikes
+
+Before reinventing infrastructure:
+- evaluate/pin NautilusTrader execution/simulation fit;
+- validate Binance official SDK/reference behavior;
+- verify OPA/OpenBao/NATS/MLflow/PostgreSQL/ClickHouse/object-store integration approach;
+- record versions/licenses/security/replacement boundaries;
+- record why any approved candidate is rejected.
 
 ## Phase 1 — Platform backbone
 
-Deliver:
+PostgreSQL, NATS JetStream, audit service, notification service, control API, service config/identity, health model and baseline telemetry.
 
-- PostgreSQL;
-- NATS JetStream;
-- audit service;
-- basic control API;
-- service identity/config system;
-- health model;
-- local observability baseline.
+## Phase 2 — Market/data platform
 
-## Phase 2 — Market data and data platform
+Binance test/sandbox market-data adapter, normalized events, freshness/gap detection, ClickHouse, object storage and historical ingestion.
 
-Deliver:
+## Phase 3 — Ledger/portfolio primitives
 
-- Binance test/sandbox market-data adapter;
-- normalized market events;
-- gap/freshness detection;
-- ClickHouse;
-- object storage;
-- historical ingestion interfaces.
+Append-only transaction/posting ledger, reservations, allocations, decimal invariants, portfolio attribution and reconciliation-ready state.
 
-## Phase 3 — Ledger and portfolio primitives
+## Phase 4 — Hard Risk + OPA
 
-Deliver:
+Risk-direction classification, deterministic limits, Low/Medium/High constraints, kill hierarchy, degraded-mode risk-reduction path, OPA policies and negative-path tests.
 
-- append-only ledger;
-- portfolio accounting;
-- capital allocation;
-- deterministic decimal handling;
-- reconciliation-ready internal state.
+No live risk-increasing orders.
 
-## Phase 4 — Hard Risk and OPA
+## Phase 5 — Execution + reconciliation
 
-Deliver:
+Execution state machine, idempotent client IDs, selected execution foundation, exchange test adapter, partial fill/cancel flow, UNKNOWN state and reconciliation.
 
-- risk rules engine;
-- policy decision integration;
-- kill-switch hierarchy;
-- negative-path test suite.
+Start with simulation/testnet only.
 
-No live execution yet.
+## Phase 6 — Math Mode
 
-## Phase 5 — Execution and reconciliation
+Quantitative features/models, expected-value/cost model, sizing, separate budget/P&L, Auto Trading controls, TradeIntent generation and deterministic fixtures.
 
-Deliver:
+## Phase 7 — Strategy Mode
 
-- execution state machine;
-- exchange test adapter;
-- idempotent order submission;
-- UNKNOWN state recovery;
-- reconciliation service.
-
-Initially testnet/simulation only.
-
-## Phase 6 — Math Mode V1
-
-Deliver:
-
-- feature interfaces;
-- quantitative edge contract;
-- transaction-cost model;
-- position-sizing proposal;
-- Math Mode TradeIntent generation;
-- deterministic test fixtures.
-
-## Phase 7 — Strategy Mode V1
-
-Deliver:
-
-- strategy registry;
-- immutable versions;
-- regime metadata;
-- Low/Medium/High profiles;
-- Strategy Mode TradeIntent generation.
+Strategy registry/immutable versions, regime metadata, Low/Medium/High, separate budget/P&L, Auto Trading controls and TradeIntent generation.
 
 ## Phase 8 — Permanent agent runtime
 
-Deliver:
+Stable identity, permissions, task lifecycle, skill registry, governed memory, ExperienceRecords, audit and agent health.
 
-- stable agent identity;
-- task lifecycle;
-- permission model;
-- skill registry;
-- memory layers;
-- audit integration.
+## Phase 9 — AI Gateway / Claude
 
-## Phase 9 — Claude integration
-
-Deliver:
-
-- Claude CLI adapter;
-- Claude API adapter interface;
-- AI Gateway;
-- provider fallback;
-- usage and error telemetry.
-
-AI remains outside the financial trust boundary.
+Claude CLI, Agent SDK and API adapters, UI-selectable provider/model, fallback/usage telemetry, local-auth boundary and provider outage behavior.
 
 ## Phase 10 — Research lab
 
-Deliver:
-
-- experiments;
-- backtesting integration;
-- MLflow;
-- optimization workflow;
-- candidate strategy/model registry;
-- research-agent tooling.
+Backtest/research engine integration, MLflow, optimization, datasets/features lineage, candidate registry, leakage/overfit controls and research-agent skills.
 
 ## Phase 11 — Controlled learning
 
-Deliver:
-
-- experience records;
-- post-trade analysis;
-- online-learning research path;
-- drift detection;
-- promotion workflow.
+Experience pipeline, post-trade analysis, drift, online/adaptive research path, lifecycle/promotion/rollback enforcement.
 
 ## Phase 12 — Capital Growth Engine
 
-Deliver:
+Mode/strategy allocation proposals, correlation/liquidity/regime inputs, performance-quality/sample-size gates, owner absolute caps and degradation de-allocation.
 
-- portfolio allocation proposals;
-- risk-budget allocation;
-- strategy correlation analysis;
-- owner hard-cap integration.
+## Phase 13 — Custom Command Center UI
 
-## Phase 13 — UI Command Center
-
-Deliver:
-
-- system health;
-- portfolios;
-- Math/Strategy controls;
-- agent views;
-- research views;
-- certification views;
-- risk and kill-switch controls;
-- audit visibility.
+System health, portfolios, Math/Strategy controls, capital/risk profiles, Auto Trading, agents, skills/memory status, strategies/models, research, certification, audit, Global Kill and AI provider/model selection.
 
 ## Phase 14 — Security hardening
 
-Deliver:
+OpenBao, network/service least privilege, secret rotation, prompt-injection controls, dependency vulnerability scanning/SBOM, environment separation and hardening tests.
 
-- OpenBao integration;
-- service least privilege;
-- secret rotation;
-- environment isolation;
-- dependency and configuration hardening.
+## Phase 15 — Operations/recovery readiness
 
-## Phase 15 — L1/L2 certification
+Backup/restore drills, restart/replay/reconciliation recovery, upgrade/rollback, runbooks, monitoring/alerts and long-duration operational tests.
 
-Deliver:
+## Phase 16 — L1/L2
 
-- backtest readiness;
-- simulation readiness;
-- deterministic evidence.
+Backtest and simulation certification evidence.
 
-## Phase 16 — L3 Paper
+## Phase 17 — L3 Paper
 
-Deliver:
+Real-time paper operation, stability, failure/restart and accounting evidence.
 
-- paper-trading operation;
-- long-running stability tests;
-- failure/restart testing.
+## Phase 18 — L4 Shadow
 
-## Phase 17 — L4 Shadow
+Live observation without orders, reconciliation proof and execution-estimate comparison.
 
-Deliver:
+## Phase 19 — L5 Canary Authorized + owner-local bounded canary
 
-- live observation;
-- no order submission;
-- reconciliation proof;
-- execution estimate validation.
+Owner enters withdrawal-disabled live key into local secret store and sets tiny capital cap/activation. Run bounded real canary on owner deployment and collect evidence.
 
-## Phase 18 — L5 Canary
+## Phase 20 — L6 LIVE CERTIFIED / Enterprise Local acceptance
 
-Deliver:
+Resolve critical findings; verify recovery, duplicate-order protection, ledger, kill switch, monitoring/backups/runbooks; explicit owner live activation; final autonomous architecture/security audit.
 
-- tiny real-money capital cap;
-- full risk and monitoring;
-- incident testing;
-- live execution evidence.
+## Future Enterprise SaaS — separate
 
-## Phase 19 — L6 Live Certified
-
-Deliver:
-
-- accepted canary evidence;
-- resolved critical findings;
-- verified recovery;
-- verified kill switch;
-- explicit owner live activation.
-
-## Phase 20 — Enterprise Local stabilization
-
-Deliver:
-
-- operational runbooks;
-- backup/restore;
-- upgrade process;
-- long-duration monitoring;
-- performance tuning.
-
-## Separate future phase — Enterprise SaaS
-
-Not required for Enterprise Local live trading.
-
-Adds:
-
-- real multi-tenancy;
-- organizations/users;
-- RBAC/SSO/MFA;
-- subscriptions/billing;
-- tenant isolation;
-- commercial API;
-- API-based AI usage metering;
-- HA/scaling;
-- compliance and formal security programs.
+Multiple users/orgs, real tenant isolation, RBAC/SSO/MFA, subscriptions/billing, commercial API, paid API-first AI usage/cost metering, HA/scaling and additional security/compliance/pentesting/customer admin.

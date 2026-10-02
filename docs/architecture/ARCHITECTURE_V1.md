@@ -2,224 +2,77 @@
 
 ## Target
 
-CrazyTrader.ai V0.1 targets Enterprise Local first:
+CrazyTrader.ai V0.1 is a complete private single-owner/single-tenant product first, capable of Binance Spot real-money operation after L6 certification without the future SaaS phase.
 
-- one owner;
-- one tenant;
-- private/local deployment;
-- Binance Spot first;
-- fully functional Math Mode;
-- fully functional Strategy Mode with Low, Medium, and High profiles;
-- permanent agents;
-- Claude CLI and API routing;
-- research and controlled self-improvement;
-- real-money capability only after formal certification.
+Future Enterprise SaaS adds customer multi-tenancy, subscriptions/billing, commercial API, paid API-first AI routing at scale, stronger tenant/compliance security and HA as justified.
 
-The later Enterprise SaaS phase adds customer-facing multi-tenancy, billing, commercial APIs, stronger tenant isolation, and large-scale infrastructure. It must not be required for the owner to trade live locally.
+## Product invariants
+
+- Math Mode and Strategy Mode are first-class.
+- Math Mode live decisions are quantitative/statistical and cost-aware.
+- Strategy Mode uses validated/versioned strategies with Low/Medium/High profiles.
+- Mode capital, P&L, drawdown and attribution are independently observable.
+- No fixed return guarantee or forced minimum trade count.
+- Permanent agents are persistent software entities, not temporary labels.
+- Open-source solves infrastructure; custom UI/product behavior and agent governance remain ours.
+- Binance withdrawal remains disabled.
+- Codex Cloud builds the product but never possesses live secrets.
 
 ## Four planes
 
-### Trading Plane
+**Trading**: market data, features, Math/Strategy, portfolio, TradeIntent, hard risk, OPA, execution, reconciliation, ledger.
 
-Owns:
+**Agent Control**: permanent identities, runtime, skills/tools, memory, orchestration, AI routing.
 
-- market data;
-- feature computation;
-- Math Mode;
-- Strategy Mode;
-- portfolio state;
-- TradeIntent;
-- risk;
-- policy;
-- execution;
-- reconciliation;
-- ledger.
+**Research**: data, hypotheses, experiments, features/models/strategies, backtests, optimization, walk-forward and candidate lifecycle.
 
-### Agent Control Plane
-
-Owns:
-
-- permanent agent identity;
-- agent runtime;
-- skills;
-- tools;
-- memory;
-- task orchestration;
-- AI provider selection;
-- advisory analysis.
-
-### Research Plane
-
-Owns:
-
-- datasets;
-- experiments;
-- feature research;
-- model training;
-- strategy discovery;
-- backtesting;
-- optimization;
-- walk-forward validation;
-- candidate lifecycle.
-
-### Platform Plane
-
-Owns:
-
-- UI;
-- control API;
-- databases;
-- event backbone;
-- secrets;
-- audit;
-- observability;
-- backups;
-- infrastructure.
+**Platform**: custom UI/control API, storage/events/secrets/audit/observability/backups/recovery/deployment.
 
 ## Core flow
 
-    Owner / UI
-         |
-         v
-     Control API
-         |
-         +-------------------+------------------+
-         |                   |                  |
-         v                   v                  v
-    Agent Runtime      Trading Control      Research
-         |                   |                  |
-         +-------------------+------------------+
-                             |
-                             v
-                        TradeIntent
-                             |
-                             v
-                     Hard Risk Engine
-                             |
-                             v
-                            OPA
-                             |
-                        ALLOW / DENY
-                             |
-                             v
-                     Execution Engine
-                             |
-                             v
-                     Binance Adapter
-                             |
-                             v
-                          Binance
-                             |
-                             v
-                      Reconciliation
-                             |
-                             v
-                          Ledger
+    Owner / Custom UI -> Control API
+             |-> Agent Runtime
+             |-> Trading Control
+             |-> Research
+                    |
+                 TradeIntent
+                    |
+             Hard Risk Engine
+                    |
+                   OPA
+                    |
+              Execution Engine
+                    |
+                  Binance
+                    |
+              Reconciliation
+                    |
+                  Ledger
+
+## Risk-direction invariant
+
+Degraded state may deny **new/increased risk** while preserving authorized **risk reduction, cancellation and emergency flattening**. A failed dependency must not trap capital.
 
 ## Financial trust boundary
 
-Above the boundary:
+Above: agents, Claude/AI, ML, research, strategy/portfolio proposals.
+Below: schema/certification, hard risk, OPA, execution, reconciliation, ledger, kill switches.
+Anything above may be wrong.
 
-- agents;
-- Claude;
-- ML;
-- research;
-- strategy proposals;
-- portfolio recommendations.
+## Baseline services/platform
 
-Below the boundary:
+control-api, agent-runtime, ai-gateway, market-data, math-engine, strategy-engine, portfolio-engine, risk-engine, OPA, execution, reconciliation, ledger, research, audit, notification; PostgreSQL, ClickHouse, NATS JetStream, OpenBao, MLflow, object storage, OpenTelemetry, Prometheus.
 
-- contract validation;
-- certification enforcement;
-- hard risk;
-- policy;
-- execution;
-- reconciliation;
-- ledger;
-- kill switches.
+## Reuse
 
-The system must assume that anything above the boundary can be wrong.
+Follow `OPEN_SOURCE_ADOPTION.md`. NautilusTrader is the primary execution/simulation candidate subject to an early spike. Binance official SDK is venue-native reference/integration. Hummingbot/Condor/MCP are selective reference sources. Quant/ML libraries stay in research and cannot become direct live authorities.
 
-## Baseline services
+## AI runtime
 
-- control-api
-- agent-runtime
-- ai-gateway
-- market-data
-- math-engine
-- strategy-engine
-- portfolio-engine
-- risk-engine
-- execution
-- reconciliation
-- ledger
-- research
-- audit
-- notification
-
-Platform components:
-
-- PostgreSQL
-- ClickHouse
-- NATS JetStream
-- OPA
-- OpenBao
-- MLflow
-- object storage
-- OpenTelemetry
-- Prometheus
-
-## Preferred reusable foundations
-
-### NautilusTrader
-
-Strong candidate for execution and simulation foundations. Exact version must be pinned only after a compatibility spike.
-
-### Binance official SDK
-
-Use for exchange-native compatibility, integration tests, reconciliation/reference behavior, and API drift checks.
-
-### Hummingbot / Condor / MCP
-
-Use as crypto-native architectural reference and selective reuse where appropriate. Do not expose broad exchange-control MCP tools directly to live agents.
-
-### Qlib, Optuna, River, Riskfolio-Lib, Stable-Baselines3
-
-Research-plane candidates. None may directly control live execution.
-
-### MLflow
-
-Model and experiment registry candidate.
-
-### OPA
-
-Authorization policy engine.
-
-### OpenBao
-
-Secrets manager.
-
-### NATS JetStream
-
-Event backbone and replay.
-
-### PostgreSQL and ClickHouse
-
-Operational state and analytical/time-series storage respectively.
+Permanent agents are provider-independent. Enterprise Local should support Claude CLI/`claude -p`, Claude Agent SDK where supported, Claude API and future adapters behind AI Gateway. Local subscription auth stays owner-local and never enters Codex Cloud.
 
 ## Deployment
 
-Enterprise Local should initially use containers on a Linux host, with Docker Compose or equivalent orchestration.
+Owner-controlled Linux/private host with containers/Compose or equivalent. Internal DB/OPA/OpenBao endpoints are not directly exposed to WAN. Kubernetes is deferred to SaaS.
 
-Kubernetes is intentionally deferred to the SaaS/scaling phase.
-
-## Future SaaS readiness
-
-Important entities should be tenant-aware from the start where low-cost to do so:
-
-- tenant_id
-- owner_id
-
-Enterprise Local may use a single constant tenant such as local-owner.
-
-Tenant-awareness in schemas is not permission to claim multi-tenant security before the SaaS hardening phase.
+Schemas may carry tenant/owner IDs now; that is not a claim of current multi-tenant isolation.

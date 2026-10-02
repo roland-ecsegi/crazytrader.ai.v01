@@ -2,112 +2,97 @@
 
 ## Purpose
 
-ExecPlans are mandatory for substantial Codex work in CrazyTrader.ai.
+ExecPlans are mandatory for substantial Codex work in CrazyTrader.ai. They are living implementation documents and durable resume checkpoints.
 
-An ExecPlan is a living implementation document that allows another agent or engineer to understand what is being changed, why, how it will be tested, and what remains incomplete.
-
-## When an ExecPlan is required
+## When required
 
 Create an ExecPlan for:
-
-- a new service;
-- a new agent;
+- a new service or permanent agent;
 - a new financial state machine;
-- a change to TradeIntent;
-- database schema changes;
-- NATS event schema changes;
-- risk changes;
-- OPA policy changes;
-- execution changes;
+- TradeIntent, RiskDecision, PolicyDecision or event-schema changes;
+- database/event migrations;
+- risk/OPA/execution/reconciliation/ledger changes;
 - Binance integration;
-- security architecture changes;
+- AI provider integration;
+- security architecture;
 - cross-service refactoring;
-- roadmap work expected to require multiple commits.
+- every implementation roadmap phase.
 
-## ExecPlan location
+## Location
 
-Store plans under:
+Store under:
 
-    docs/plans/
-
-Use:
-
-    YYYY-MM-DD-short-title.md
+    docs/plans/YYYY-MM-DD-short-title.md
 
 ## Required structure
 
-# Title
+### Goal
+Concrete outcome and measurable gate.
 
-## Goal
+### Non-goals
+What is intentionally excluded.
 
-State the concrete outcome.
+### Architecture context
+Binding architecture/spec/ADR references and invariants.
 
-## Non-goals
+### Current state
+What exists before the work starts.
 
-List what is explicitly excluded.
+### Proposed design
+Components, boundaries, contracts, data flow and open-source foundations to reuse.
 
-## Architecture context
+### Files and ownership
+Directories/files expected to change and why.
 
-Reference the architecture/specification sections that constrain the work.
+### Dependencies and licensing
+External dependencies, version/pinning plan, license, security implications, replacement path, and whether the component crosses the financial trust boundary.
 
-## Current state
+### Failure modes
+Expected failures and fail-safe behavior. For money-path work explicitly cover risk-increasing vs risk-reducing behavior.
 
-Describe what exists before the task.
+### Security and financial-risk impact
+State whether work is above/below the financial trust boundary. Cover secrets, prompt injection, privilege changes, replay/idempotency, and degraded-state behavior as relevant.
 
-## Proposed design
+### Data/event migrations
+Schema changes, compatibility, replay/backfill plan, rollback.
 
-Describe components, boundaries, public contracts, and data flow.
+### Implementation steps
+Small checkable steps with status boxes.
 
-## Files and ownership
+### Test plan
+Exact commands/tests, not broad categories.
 
-List directories/files expected to change.
+### Acceptance criteria
+Objective pass/fail conditions.
 
-## Dependencies
+### Rollback/recovery
+How to revert safely.
 
-List blocking tasks, external dependencies, and required infrastructure.
+### Resume checkpoint
+Always record:
+- working branch;
+- last durable commit SHA;
+- current step;
+- next exact action;
+- uncommitted-work status;
+- current blockers;
+- usage/budget state;
+- last verification commands/results.
 
-## Failure modes
+### Progress log
+Dated updates.
 
-Describe failures and required safe behavior.
+### Decisions
+Material decisions/alternatives/rationale.
 
-## Security and financial-risk impact
+### Completion summary
+What shipped, evidence, limitations, next phase.
 
-Explicitly state whether the task is above or below the financial trust boundary.
+## Rules
 
-If below it, include negative-path tests and recovery tests.
+Safety/product invariants cannot be weakened to make tests pass.
 
-## Data migrations
-
-Describe any schema/event migrations and backward compatibility.
-
-## Implementation steps
-
-Use a checkbox list with small, verifiable steps.
-
-## Test plan
-
-Specify exact tests, not only broad categories.
-
-## Acceptance criteria
-
-List objective pass/fail conditions.
-
-## Rollback
-
-Describe how to revert the change safely.
-
-## Progress log
-
-Append dated progress updates during execution.
-
-## Decisions
-
-Record decisions that would otherwise be rediscovered later.
-
-## Completion summary
-
-When complete, record what shipped, what remains, and any follow-up work.
-
-## Rule
-
-An ExecPlan may evolve during implementation, but safety constraints and acceptance criteria may not be weakened merely to make tests pass.
+In Autonomous Program Mode:
+- a passing gate automatically leads to the next eligible phase;
+- before expected budget/usage interruption, checkpoint and push;
+- if resumed after interruption, rehydrate from this ExecPlan and docs/program/STATUS.md rather than replanning from scratch.

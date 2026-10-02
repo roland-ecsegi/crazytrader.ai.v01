@@ -1,135 +1,38 @@
 # Phase 0 — Repository Bootstrap
 
 ## Status
-
 ACTIVE
 
 ## Objective
 
-Create a reproducible, testable repository foundation and freeze the first version of domain and service contracts.
-
-Phase 0 intentionally does not implement live trading.
+Create the reproducible monorepo/toolchain and freeze initial typed domain/contracts/events. No live Binance credentials or live order submission in this phase.
 
 ## Deliverables
 
-### Repository
+Create planned `apps/`, `services/` (including `notification`), `packages/`, `agents/`, `policies/opa/`, `infra/`, `tests/`, and `docs/plans/` structure.
 
-Create:
+Toolchain must be justified in ExecPlan. Preference: Python for trading/research/agent services, TypeScript for custom web UI, reuse Rust indirectly through mature dependencies before custom Rust.
 
-- apps/web
-- apps/control-api
-- services/agent-runtime
-- services/ai-gateway
-- services/market-data
-- services/math-engine
-- services/strategy-engine
-- services/portfolio-engine
-- services/risk-engine
-- services/execution
-- services/reconciliation
-- services/ledger
-- services/research
-- services/audit
-- packages/domain
-- packages/contracts
-- packages/events
-- packages/shared
-- agents
-- policies/opa
-- infra
-- tests/unit
-- tests/integration
-- tests/simulation
-- tests/chaos
-- tests/security
-- docs/plans
+Implement typed foundations for TradeIntent, RiskDecision, PolicyDecision, Order/OrderState, Fill, Portfolio, StrategyVersion, ModelVersion, AuditEvent, CertificationState and common event envelope.
 
-### Toolchain
+Add formatting, linting, type checking, unit/contract tests, CI, secret scan and reproducible local setup.
 
-Codex must propose and document the exact language/runtime choices before implementing them.
+## Acceptance
 
-Guiding preference:
+1. Structure exists.
+2. Docs linked.
+3. Contracts type-check.
+4. Unit/contract tests pass.
+5. CI runs equivalent checks.
+6. Secret scan clean.
+7. No live-order path exists.
+8. Architecture rules referenced.
+9. Phase 0.5 / Phase 1 can proceed without guessing core semantics.
 
-- Python for trading/research/agent services unless a stronger reason exists.
-- TypeScript for web UI.
-- Rust may be used indirectly through NautilusTrader or performance-critical libraries rather than introducing custom Rust prematurely.
+## Autonomous transition
 
-### Contracts
+Create/update `docs/plans/phase-0-repository-bootstrap.md`, implement and validate.
 
-Implement initial typed contracts for:
+**In Autonomous Program Mode, do not stop at the Phase 0 gate.** Record evidence, commit/push, then automatically proceed to Phase 0.5 and next eligible phase.
 
-- TradeIntent
-- RiskDecision
-- PolicyDecision
-- Order
-- OrderState
-- Fill
-- Portfolio
-- StrategyVersion
-- ModelVersion
-- AuditEvent
-- CertificationState
-- common event envelope
-
-### Quality
-
-Provide:
-
-- formatting;
-- linting;
-- type checking;
-- unit-test framework;
-- contract tests;
-- pre-commit or equivalent developer checks;
-- CI workflow.
-
-### Local developer environment
-
-Provide:
-
-- documented setup;
-- environment-variable template with no secrets;
-- container baseline where justified;
-- one command or documented minimal command set to run checks.
-
-## Explicit non-goals
-
-Do not implement:
-
-- Binance live credentials;
-- Binance live order submission;
-- real-money mode;
-- production risk values;
-- automatic strategy self-promotion;
-- billing;
-- multi-user SaaS;
-- Kubernetes.
-
-## Acceptance criteria
-
-Phase 0 passes only if:
-
-1. Repository structure exists.
-2. Documentation is internally linked.
-3. Contracts compile/type-check.
-4. Unit tests run.
-5. Contract tests run.
-6. CI executes the same core checks.
-7. No secrets are present.
-8. No code path can submit a live exchange order.
-9. Architecture rules are referenced from AGENTS.md.
-10. A Phase 1 ExecPlan can be written without guessing core contract semantics.
-
-## First Codex task
-
-Codex should:
-
-1. Read AGENTS.md.
-2. Read .agent/PLANS.md.
-3. Read architecture/spec documents.
-4. Create docs/plans/phase-0-repository-bootstrap.md.
-5. Propose exact toolchain choices in that plan.
-6. Implement Phase 0 only.
-7. Run all Phase 0 checks.
-8. Update the plan with evidence.
-9. Stop at the Phase 0 gate.
+Outside Autonomous Program Mode, return the Phase 0 result normally.

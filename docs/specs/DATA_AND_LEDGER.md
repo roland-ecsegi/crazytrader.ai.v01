@@ -2,126 +2,79 @@
 
 ## PostgreSQL
 
-Use PostgreSQL for operational relational state:
-
-- tenants
-- owners
-- agents
-- agent permissions
-- agent metadata
-- portfolios
-- capital allocations
-- exchange accounts
-- instruments
-- strategies
-- strategy versions
-- models
-- model versions
-- experiments
-- trade intents
-- risk decisions
-- policy decisions
-- orders
-- fills
-- positions
-- incidents
-- certification state
-- configuration versions
-- audit references
+Operational relational state:
+- tenants/owners;
+- agents, skills, permissions, provider configs and memory metadata;
+- portfolios/capital allocations/risk profiles;
+- exchange accounts/instruments;
+- strategies/versions;
+- models/versions;
+- experiments;
+- trade intents;
+- risk/policy decisions;
+- orders/fills/positions;
+- ledger transactions/postings;
+- incidents/certification/configuration versions;
+- audit references.
 
 ## ClickHouse
 
-Use ClickHouse for high-volume analytical and time-series data:
+High-volume analytical/time-series data:
+- ticks/trades/candles;
+- selected order-book snapshots/deltas;
+- features/signals/model predictions;
+- execution/strategy telemetry;
+- agent observations;
+- backtest/research observations.
 
-- ticks
-- trades
-- candles
-- order-book snapshots/deltas as selected by implementation
-- features
-- signals
-- predictions
-- execution telemetry
-- strategy telemetry
-- agent observations
-- backtest observations
-
-ClickHouse is not the financial ledger.
+ClickHouse is never the financial ledger.
 
 ## Object storage
 
-Use MinIO or equivalent for:
-
+Versioned:
 - historical datasets;
-- model artifacts;
-- strategy artifacts;
-- backtest outputs;
+- model/strategy artifacts;
 - reports;
+- backtest artifacts;
 - snapshots;
-- large experiment artifacts.
+- large experiment outputs.
 
 ## NATS JetStream
 
-Use as the event backbone.
+Durable event backbone and replay. Critical consumers assume at-least-once delivery unless explicitly stronger. Financial state mutation handlers must be idempotent.
 
-Critical consumers must use durable consumption and explicit idempotency.
+## Ledger
 
-## Internal ledger
+The ledger is append-only and reconstructable.
 
-The ledger is append-only.
-
-Entry categories include:
-
-- capital allocation;
-- capital release;
-- order reservation;
-- reservation release;
-- asset acquisition;
-- asset disposal;
-- fee;
+Transactions/postings cover:
+- capital allocation/release;
+- order reservation/release;
+- asset acquisition/disposal;
+- fees;
 - realized P&L;
-- portfolio transfer;
-- strategy allocation;
-- reconciliation correction.
+- portfolio/strategy transfers;
+- reconciliation corrections.
 
-Corrections are compensating entries. Historical entries are not silently edited.
+Historical entries are never edited. Corrections are compensating transactions with reason/provenance.
 
-## Truth model
+Tests must prove internal balance/exposure can be reconstructed from ledger history and that duplicate events cannot double-post.
 
-Binance is the external venue truth.
+## External/internal truth
 
-The internal ledger is the internal accounting truth.
+Binance = external venue truth.
+Ledger/domain = internal accounting/control truth.
 
-The platform continuously reconciles the two.
-
-## Reconciliation
-
-Compare at minimum:
-
-- account balances;
-- open orders;
-- recent orders;
+Continuously reconcile:
+- balances;
+- open/recent orders;
 - fills;
-- internal reservations;
-- attributed portfolio holdings.
+- reservations;
+- attributed holdings;
+- venue precision/filter metadata.
 
-Critical mismatch behavior:
+Critical mismatch blocks new/increased risk, opens incident and starts reconciliation while preserving authorized cancellation/risk reduction.
 
-    mismatch detected
-          |
-          v
-    block new trading
-          |
-          v
-    open incident
-          |
-          v
-    reconcile venue state
-          |
-          v
-    recover or require owner intervention
+## Precision
 
-## Decimal precision
-
-Never use binary floating point for accounting balances, notional amounts, fees, or ledger values.
-
-Store and calculate with explicit decimal precision appropriate to venue rules.
+No binary floats for financial/accounting values or venue quantity/price conversion. Respect exchange tick/step/min-notional rules explicitly and version venue metadata.

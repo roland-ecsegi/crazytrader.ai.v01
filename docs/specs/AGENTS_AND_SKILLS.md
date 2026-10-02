@@ -2,247 +2,112 @@
 
 ## Permanent-agent rule
 
-A permanent agent is a persistent software entity.
-
-It is not merely a prompt or a temporary model invocation.
-
-Identity must survive provider/model changes.
-
-## Agent record
+A permanent agent is a persistent software entity, not merely a prompt or temporary model invocation. Its identity survives provider/model changes.
 
 Each agent has:
-
-- agent_id
-- stable role
-- responsibilities
-- permissions
-- tools
-- skills
-- working memory
-- long-term memory
-- experience history
-- performance history
-- provider/model configuration
-- audit history
+- stable agent_id and role;
+- responsibilities;
+- permission profile;
+- executable skills/tools;
+- working and long-term memory;
+- experience/performance history;
+- AI provider/model config;
+- audit history.
 
 ## Baseline agents
 
 ### Chief Orchestrator
-
-Purpose:
-
-- coordinate work;
-- route tasks;
-- handle dependencies;
-- request reviews;
-- escalate incidents.
-
-No direct trading authority.
+Coordinates tasks/dependencies, requests reviews, handles escalation. No direct trading authority.
 
 ### Math Research Agent
-
-Purpose:
-
-- generate quantitative hypotheses;
-- create features;
-- run experiments;
-- interpret statistical results;
-- create model candidates.
-
-No live deployment authority.
+Generates quantitative hypotheses, features, model proposals and experiments; interprets statistical evidence. No live deployment authority.
 
 ### Strategy Research Agent
-
-Purpose:
-
-- generate and compare strategies;
-- research regime-specific behavior;
-- optimize parameters;
-- register strategy candidates.
-
-No live deployment authority.
+Generates/compares strategies, regime-specific ideas and parameter studies; registers candidates. No live deployment authority.
 
 ### Market Regime Agent
-
-Purpose:
-
-- classify regime;
-- detect regime transition;
-- publish advisory regime metadata.
-
-Advisory only.
+Classifies trend/range/volatility/liquidity regimes and transitions. Advisory only.
 
 ### Portfolio Agent
-
-Purpose:
-
-- propose capital allocation;
-- analyze concentration and correlation;
-- propose capital increases/decreases.
-
-Proposal only.
+Analyzes capital efficiency/correlation and proposes allocation changes. Cannot exceed owner hard caps.
 
 ### Risk Analyst Agent
-
-Purpose:
-
-- analyze emerging risk;
-- detect degradation;
-- recommend tighter limits;
-- review unusual drawdown.
-
-This agent is not the Hard Risk Engine.
+Analyzes emerging/degrading risk and recommends tighter limits. It is not the deterministic Hard Risk Engine.
 
 ### Execution Supervisor Agent
-
-Purpose:
-
-- inspect slippage;
-- inspect rejection patterns;
-- detect execution anomalies;
-- escalate reconciliation problems.
-
-It may not submit exchange orders itself.
+Inspects slippage, rejections, latency and execution anomalies; escalates reconciliation issues. Cannot directly submit raw exchange orders.
 
 ### Learning Agent
-
-Purpose:
-
-- convert outcomes into experience;
-- identify repeated success/failure;
-- propose new hypotheses;
-- maintain learning summaries.
+Turns ExperienceRecords into reusable lessons, detects repeated patterns and creates research hypotheses.
 
 ### Auditor Agent
-
-Purpose:
-
-- inspect decision chains;
-- identify missing evidence;
-- detect unauthorized paths;
-- verify lifecycle rules.
+Performs adversarial review of decision chains, permissions, promotion evidence and architecture invariants.
 
 ### Security Agent
-
-Purpose:
-
-- review configuration;
-- detect permission drift;
-- review security alerts;
-- recommend secret rotation;
-- escalate security incidents.
-
-It never receives raw secrets.
+Reviews config, permission drift, dependency/security findings and incidents. Never receives raw secrets.
 
 ## Skill contract
 
-A skill is executable capability, not descriptive prose.
-
 Every skill has:
-
-- skill_id
-- semantic version
-- input schema
-- output schema
-- implementation reference
-- allowed agents
-- required permissions
-- resource limits
-- audit category
-- test suite
-
-## Initial skill examples
+- skill_id and semantic version;
+- typed input schema;
+- typed output schema;
+- implementation reference;
+- allowed_agents;
+- required_permissions;
+- resource/time limits;
+- audit category;
+- test suite.
 
 ### backtest_strategy
-
-Inputs:
-
-- strategy_version
-- dataset_version
-- timeframe
-- fee_model
-- slippage_model
-
-Outputs:
-
-- trade_count
-- CAGR
-- max_drawdown
-- Sharpe
-- Sortino
-- profit_factor
-- expectancy
-- regime_breakdown
-- failure_reasons
+Inputs: strategy_version, dataset_version, timeframe, fee/slippage models.
+Outputs: trade count, return metrics, max drawdown, Sharpe/Sortino, profit factor, expectancy, regime breakdown, failure reasons, reproducibility ref.
 
 ### compare_strategy_versions
-
-Inputs:
-
-- candidate versions
-- validation windows
-- cost model
-
-Outputs:
-
-- comparable metric set
-- statistically relevant differences
-- degradation flags
+Inputs: candidate versions, validation windows, cost model.
+Outputs: normalized comparison, uncertainty/statistical relevance, degradation flags.
 
 ### quantitative_edge_analysis
-
-Inputs:
-
-- feature snapshot
-- model version
-- cost model
-- horizon
-
-Outputs:
-
-- expected_return
-- expected_cost
-- expected_net_edge
-- downside_distribution
-- confidence_quality
+Inputs: feature snapshot, model version, cost model, horizon.
+Outputs: expected gross/net return, cost estimate, downside distribution, edge quality/confidence.
 
 ### inspect_execution_quality
-
-Inputs:
-
-- fills
-- expected prices
-- latency
-- market state
-
-Outputs:
-
-- realized slippage
-- abnormality flags
-- execution-quality report
+Inputs: expected/actual fills, latency, venue/market state.
+Outputs: slippage, reject/latency anomalies, execution-quality report.
 
 ### propose_capital_allocation
+Inputs: performance quality, drawdown, correlations, liquidity, risk budget, regime.
+Outputs: proposal, rationale, constraints. Never hard-cap authority.
 
-Inputs:
+### analyze_trade_experience
+Inputs: ExperienceRecord set.
+Outputs: clustered success/failure patterns, drift signals, research hypotheses.
 
-- strategy performance
-- drawdown
-- correlations
-- risk budget
-- market regime
+### verify_strategy_promotion_evidence
+Inputs: candidate lifecycle state and evidence refs.
+Outputs: pass/fail gaps; never self-authorizes promotion.
 
-Outputs:
+## Permission governance
 
-- proposed allocation
-- rationale
-- constraints
+- Least privilege.
+- Agents cannot change their own permission profiles.
+- Tool acquisition/change is governed and audited.
+- Research agents cannot access live exchange credentials.
+- No unrestricted reasoning tool has raw exchange authority.
+- Security/risk agents cannot disclose secrets to themselves.
 
-The output remains a proposal subject to hard policy.
+## Memory governance
 
-## Permission principle
+Memory types may include working, episodic, research, operational learning and curated knowledge.
 
-Research agents can research.
+Durable memory requires:
+- provenance/source;
+- timestamp/version;
+- confidence/quality where relevant;
+- owning agent;
+- retention class;
+- validation status.
 
-Execution services can execute.
+External web/social/exchange/model/tool output is untrusted data. Embedded prompt-like instructions cannot override repository/system policy.
 
-No agent receives a tool that combines unrestricted reasoning with raw exchange authority.
+Learning from executed trades means ExperienceRecords, derived evidence and candidate research; it does not mean blind mutation/deployment of live code.

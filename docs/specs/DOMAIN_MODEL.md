@@ -2,39 +2,27 @@
 
 ## Design rules
 
-- IDs are globally unique within the platform.
-- Production strategy/model versions are immutable.
-- Financial events are append-only.
-- Important records are tenant-aware even in single-tenant mode.
-- Timestamps are stored in UTC.
-- Monetary values use fixed-precision decimal representations, never binary float for accounting.
+- Globally unique IDs.
+- UTC timestamps.
+- Fixed-precision decimal values for all financial/accounting calculations.
+- Tenant-aware ownership fields where low-cost, even though Enterprise Local has one tenant.
+- Promoted strategy/model versions are immutable.
+- Ledger/audit history is append-only.
+- External credentials are referenced, never stored raw in domain records.
 
-## Core entities
+## Tenant
 
-### Tenant
-
-Fields:
-
-- tenant_id
-- name
-- status
-- created_at
+Fields: tenant_id, name, status, created_at.
 
 Enterprise Local uses one tenant.
 
-### Owner
+## Owner
+
+Fields: owner_id, tenant_id, identity_metadata, status, created_at.
+
+## Agent
 
 Fields:
-
-- owner_id
-- tenant_id
-- identity metadata
-- status
-
-### Agent
-
-Fields:
-
 - agent_id
 - tenant_id
 - agent_type
@@ -42,12 +30,13 @@ Fields:
 - status
 - provider_config_id
 - permission_profile_id
+- memory_policy_id
 - created_at
+- updated_at
 
-### AgentSkill
+## AgentSkill
 
 Fields:
-
 - skill_id
 - version
 - name
@@ -55,38 +44,73 @@ Fields:
 - output_schema
 - required_permissions
 - implementation_ref
+- resource_limits
+- audit_category
 - status
 
-### AgentMemoryRecord
+## AgentMemoryRecord
 
 Fields:
-
 - memory_id
 - agent_id
 - memory_type
 - content_ref
-- source_ref
-- confidence
+- source_refs/provenance
+- confidence_or_quality
+- retention_class
 - created_at
 - supersedes_id
-- retention_class
+- validation_status
 
-### Portfolio
+## ExperienceRecord
 
 Fields:
+- experience_id
+- tenant_id
+- agent_id
+- portfolio_id
+- strategy_version_id
+- model_version_ids
+- market_state_ref
+- regime_ref
+- entry_reason_ref
+- exit_reason_ref
+- risk_state_ref
+- execution_quality_ref
+- outcome_metrics
+- anomaly_refs
+- created_at
 
+## AIProviderConfig
+
+Fields:
+- provider_config_id
+- tenant_id
+- provider_type
+- model_policy
+- effort_or_reasoning_policy
+- timeout_policy
+- fallback_policy
+- credential_ref
+- status
+
+credential_ref points to owner-local secret/auth integration where needed; never raw credentials.
+
+## Portfolio
+
+Fields:
 - portfolio_id
 - tenant_id
 - name
-- mode
-- risk_profile
+- mode: MATH | STRATEGY | RESERVE
+- risk_profile_version_id where applicable
 - status
 - base_currency
+- created_at
 
-### CapitalAllocation
+## CapitalAllocation
 
 Fields:
-
 - allocation_id
 - portfolio_id
 - source
@@ -94,100 +118,104 @@ Fields:
 - effective_at
 - reason
 - approved_by
+- hard_cap_ref
 
-### ExchangeAccount
+## RiskProfileVersion
 
 Fields:
+- risk_profile_version_id
+- profile_name: LOW | MEDIUM | HIGH
+- immutable_parameters
+- owner_absolute_limit_refs
+- lifecycle_status
+- created_at
 
+## ExchangeAccount
+
+Fields:
 - exchange_account_id
 - tenant_id
 - exchange
 - environment
 - secret_ref
-- permissions_snapshot
+- permission_snapshot
+- IP_allowlist_status
 - status
 
-Never store raw API secrets here.
+Raw API secret never lives here.
 
-### Instrument
+## Instrument
 
 Fields:
-
 - instrument_id
 - venue
 - symbol
 - base_asset
 - quote_asset
 - market_type
+- quantity_precision
+- price_precision
+- min_quantity
+- min_notional
 - status
+- venue_metadata_version
 
-### Strategy
+## Strategy / StrategyVersion
 
-Fields:
+Strategy: strategy_id, name, strategy_family, status.
 
-- strategy_id
-- name
-- strategy_family
-- status
-
-### StrategyVersion
-
-Fields:
-
+StrategyVersion:
 - strategy_version_id
 - strategy_id
 - semantic_version
 - artifact_ref
 - config_hash
 - lifecycle_stage
+- validation_evidence_refs
 - created_at
 - immutable_after_promotion
 
-### Model
+## Model / ModelVersion
 
-Fields:
+Model: model_id, name, model_family.
 
-- model_id
-- name
-- model_family
-
-### ModelVersion
-
-Fields:
-
+ModelVersion:
 - model_version_id
 - model_id
 - artifact_ref
 - dataset_version
 - feature_set_version
+- training_config_hash
 - metrics
 - lifecycle_stage
+- validation_evidence_refs
 - created_at
 
-### Experiment
+## Experiment
 
 Fields:
-
 - experiment_id
 - hypothesis_id
 - dataset_ref
+- feature_set_ref
 - config
 - artifact_refs
 - metrics
 - result
+- reproducibility_hash
 - created_at
 
-### TradeIntent
+## TradeIntent
 
 Defined in TRADE_INTENT.md.
 
-### RiskDecision
+## RiskDecision
 
 Fields:
-
 - risk_decision_id
 - intent_id
 - decision
+- risk_effect
 - reason_codes
 - calculated_exposure
 - drawdown_state
@@ -196,10 +224,9 @@ Fields:
 - ruleset_version
 - created_at
 
-### PolicyDecision
+## PolicyDecision
 
 Fields:
-
 - policy_decision_id
 - intent_id
 - actor_id
@@ -208,12 +235,12 @@ Fields:
 - policy_bundle_version
 - created_at
 
-### Order
+## Order
 
 Fields:
-
 - order_id
 - intent_id
+- execution_request_id
 - venue_order_id
 - client_order_id
 - state
@@ -227,10 +254,9 @@ Fields:
 - created_at
 - updated_at
 
-### Fill
+## Fill
 
 Fields:
-
 - fill_id
 - order_id
 - venue_fill_id
@@ -240,12 +266,11 @@ Fields:
 - fee_asset
 - timestamp
 
-### Position
+## Position
 
-For Spot V1 this represents platform-owned inventory/exposure attribution.
+For Spot V1, represents platform-attributed inventory/exposure.
 
 Fields:
-
 - position_id
 - portfolio_id
 - instrument_id
@@ -255,57 +280,50 @@ Fields:
 - realized_pnl
 - updated_at
 
-### LedgerEntry
+## LedgerTransaction / LedgerPosting
 
-Fields:
-
-- ledger_entry_id
+LedgerTransaction:
+- transaction_id
 - tenant_id
 - portfolio_id
-- entry_type
+- transaction_type
+- reason
+- related_order_id/fill_id
+- correction_of_id
+- timestamp
+
+LedgerPosting:
+- posting_id
+- transaction_id
+- account
 - asset
 - amount
-- related_order_id
-- related_fill_id
-- reason
-- timestamp
-- correction_of_id
+- valuation_ref where required
 
-Ledger entries are append-only.
+Append-only. Corrections are compensating transactions.
 
-### Incident
+## Incident
 
-Fields:
+incident_id, severity, category, status, trigger_event_id, summary, opened_at, closed_at.
 
-- incident_id
-- severity
-- category
-- status
-- trigger_event_id
-- summary
-- opened_at
-- closed_at
+## AuditEvent
 
-### AuditEvent
+audit_event_id, actor_id, action, resource_type, resource_id, trace_id, payload_ref, timestamp.
 
-Fields:
+## CertificationState
 
-- audit_event_id
-- actor_id
-- action
-- resource_type
-- resource_id
-- trace_id
-- payload_ref
-- timestamp
+tenant_id, current_level, achieved_at, evidence_refs, blockers, last_reviewed_at.
 
-### CertificationState
+## ProgramCheckpoint
 
-Fields:
+Development/control-plane only:
+- program_id
+- working_branch
+- last_durable_commit
+- current_phase
+- next_action
+- blocker_state
+- usage_state
+- updated_at
 
-- tenant_id
-- current_level
-- achieved_at
-- evidence_refs
-- blockers
-- last_reviewed_at
+ProgramCheckpoint never becomes a trading authority.
