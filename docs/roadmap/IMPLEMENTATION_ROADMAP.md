@@ -27,7 +27,7 @@ Before reinventing infrastructure:
 
 ## Phase 1 — Platform backbone
 
-PostgreSQL, NATS JetStream, audit service, control API, service config/identity, health model and baseline telemetry.
+PostgreSQL, NATS JetStream, audit service, notification service, control API, service config/identity, health model and baseline telemetry.
 
 ## Phase 2 — Market/data platform
 
