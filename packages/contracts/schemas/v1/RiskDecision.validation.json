@@ -1,0 +1,107 @@
+{
+  "$defs": {
+    "RiskEffect": {
+      "enum": [
+        "RISK_INCREASING",
+        "RISK_REDUCING",
+        "RISK_NEUTRAL"
+      ],
+      "title": "RiskEffect",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "calculated_exposure": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Calculated Exposure",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "ALLOW",
+        "DENY"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "drawdown_state": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Drawdown State",
+      "type": "string"
+    },
+    "intent_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "market_health": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNKNOWN"
+      ],
+      "title": "Market Health",
+      "type": "string"
+    },
+    "reason_codes": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Reason Codes",
+      "type": "array"
+    },
+    "reconciliation_health": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNKNOWN"
+      ],
+      "title": "Reconciliation Health",
+      "type": "string"
+    },
+    "risk_decision_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Risk Decision Id",
+      "type": "string"
+    },
+    "risk_effect": {
+      "$ref": "#/$defs/RiskEffect"
+    },
+    "ruleset_version": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Ruleset Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "risk_decision_id",
+    "intent_id",
+    "decision",
+    "risk_effect",
+    "reason_codes",
+    "calculated_exposure",
+    "drawdown_state",
+    "market_health",
+    "reconciliation_health",
+    "ruleset_version",
+    "created_at"
+  ],
+  "title": "RiskDecision",
+  "type": "object"
+}

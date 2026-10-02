@@ -1,0 +1,86 @@
+{
+  "$defs": {
+    "Mode": {
+      "enum": [
+        "MATH",
+        "STRATEGY",
+        "RESERVE"
+      ],
+      "title": "Mode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "base_currency": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Base Currency",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "mode": {
+      "$ref": "#/$defs/Mode"
+    },
+    "name": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "portfolio_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Portfolio Id",
+      "type": "string"
+    },
+    "risk_profile_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Risk Profile Version Id"
+    },
+    "status": {
+      "enum": [
+        "ACTIVE",
+        "PAUSED",
+        "STOPPED"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "portfolio_id",
+    "tenant_id",
+    "name",
+    "mode",
+    "status",
+    "base_currency",
+    "created_at"
+  ],
+  "title": "Portfolio",
+  "type": "object"
+}

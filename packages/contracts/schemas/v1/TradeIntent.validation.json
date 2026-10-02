@@ -1,0 +1,345 @@
+{
+  "$defs": {
+    "ConversionMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "price": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Price",
+          "type": "string"
+        },
+        "price_state_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Price State Ref",
+          "type": "string"
+        },
+        "quantity_step": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Quantity Step",
+          "type": "string"
+        },
+        "rounding": {
+          "const": "DOWN",
+          "title": "Rounding",
+          "type": "string"
+        },
+        "venue_metadata_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Metadata Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "price",
+        "price_state_ref",
+        "venue_metadata_version",
+        "rounding",
+        "quantity_step"
+      ],
+      "title": "ConversionMetadata",
+      "type": "object"
+    },
+    "IntentType": {
+      "enum": [
+        "OPEN",
+        "INCREASE",
+        "REDUCE",
+        "CLOSE",
+        "REBALANCE"
+      ],
+      "title": "IntentType",
+      "type": "string"
+    },
+    "RiskEffect": {
+      "enum": [
+        "RISK_INCREASING",
+        "RISK_REDUCING",
+        "RISK_NEUTRAL"
+      ],
+      "title": "RiskEffect",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "capital_budget_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Capital Budget Ref",
+      "type": "string"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "conversion_metadata": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConversionMetadata"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "expected_edge": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Edge"
+    },
+    "expected_horizon": {
+      "pattern": "^PT([0-9]+H)?([0-9]+M)?([0-9]+S)?$",
+      "title": "Expected Horizon",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "instrument_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Instrument Id",
+      "type": "string"
+    },
+    "intent_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "intent_type": {
+      "$ref": "#/$defs/IntentType"
+    },
+    "market_state_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Market State Ref",
+      "type": "string"
+    },
+    "max_slippage": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Max Slippage",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "MATH",
+        "STRATEGY"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "model_version_ids": {
+      "default": [],
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "title": "Model Version Ids",
+      "type": "array"
+    },
+    "portfolio_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Portfolio Id",
+      "type": "string"
+    },
+    "portfolio_state_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Portfolio State Ref",
+      "type": "string"
+    },
+    "reason_code": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "requested_notional": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Requested Notional"
+    },
+    "requested_quantity": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Requested Quantity"
+    },
+    "risk_effect": {
+      "$ref": "#/$defs/RiskEffect"
+    },
+    "risk_profile_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Risk Profile Version Id"
+    },
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "side": {
+      "enum": [
+        "BUY",
+        "SELL"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "source_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "source_type": {
+      "enum": [
+        "math_engine",
+        "strategy_engine",
+        "owner_manual",
+        "portfolio_rebalance"
+      ],
+      "title": "Source Type",
+      "type": "string"
+    },
+    "strategy_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Strategy Version Id"
+    },
+    "symbol": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Trace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "intent_id",
+    "schema_version",
+    "tenant_id",
+    "portfolio_id",
+    "mode",
+    "source_type",
+    "source_id",
+    "capital_budget_ref",
+    "instrument_id",
+    "symbol",
+    "side",
+    "intent_type",
+    "risk_effect",
+    "expected_horizon",
+    "max_slippage",
+    "reason_code",
+    "evidence_refs",
+    "market_state_ref",
+    "portfolio_state_ref",
+    "created_at",
+    "expires_at",
+    "trace_id"
+  ],
+  "title": "TradeIntent",
+  "type": "object"
+}

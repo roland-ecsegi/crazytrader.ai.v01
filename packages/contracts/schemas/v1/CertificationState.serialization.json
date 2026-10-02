@@ -1,0 +1,64 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "achieved_at": {
+      "format": "date-time",
+      "title": "Achieved At",
+      "type": "string"
+    },
+    "blockers": {
+      "items": {
+        "maxLength": 4096,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Blockers",
+      "type": "array"
+    },
+    "current_level": {
+      "enum": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6"
+      ],
+      "title": "Current Level",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "last_reviewed_at": {
+      "format": "date-time",
+      "title": "Last Reviewed At",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "current_level",
+    "achieved_at",
+    "evidence_refs",
+    "blockers",
+    "last_reviewed_at"
+  ],
+  "title": "CertificationState",
+  "type": "object"
+}

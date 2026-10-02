@@ -1,0 +1,65 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "fee_amount": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Fee Amount",
+      "type": "string"
+    },
+    "fee_asset": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Fee Asset",
+      "type": "string"
+    },
+    "fill_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Fill Id",
+      "type": "string"
+    },
+    "order_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Order Id",
+      "type": "string"
+    },
+    "price": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Price",
+      "type": "string"
+    },
+    "quantity": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Quantity",
+      "type": "string"
+    },
+    "timestamp": {
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "venue_fill_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Venue Fill Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "fill_id",
+    "order_id",
+    "venue_fill_id",
+    "quantity",
+    "price",
+    "fee_amount",
+    "fee_asset",
+    "timestamp"
+  ],
+  "title": "Fill",
+  "type": "object"
+}

@@ -25,3 +25,7 @@ Corrections:
 - documented Codex budget auto-resume limitation truthfully.
 
 Implementation tests: not applicable yet (L0).
+
+## 2026-10-02 — Phase 0 bootstrap gate
+
+PASS. `UV_CACHE_DIR=/tmp/crazytrader-uv-cache make check`: 43 tests; Ruff lint/format; strict mypy (3 modules); 22 validation/serialization schema drift checks; baseline source secret scan. `uv build --out-dir /tmp/crazytrader-build`: wheel/sdist PASS. All eleven required typed foundations included. No network/venue submission code. Adversarial self-review found and repaired decimal notation mismatches, numeric timestamp coercion, zero horizon and event registry construction. Full scanner/SBOM integration remains Phase 14; event producer payload resolution/integrity is not implemented. CI defines equivalent checks; remote execution not yet observed. L0 retained.

@@ -11,3 +11,7 @@
 - An early open-source compatibility/license spike is mandatory before rebuilding mature infrastructure.
 - Current Codex Goals auto-continue only while active/within budget; budget-limit auto-resume cannot be guaranteed by repository code, so the project uses durable checkpoint/resume protocol.
 - Final live canary runs on the owner-controlled local deployment, not Codex Cloud.
+
+## 2026-10-02 — Phase 0 tooling/contracts
+
+Python 3.12 with uv 0.12.19 and hash-locked dependencies; Pydantic frozen/extra-forbidden V1 contracts. Financial strings reject binary floats/nonfinite/excess precision and ambiguous sizing. Evidence-backed event payload references prevent mutable opaque financial payloads; producer schemas/resolution follow in service phases. UI TypeScript tooling deferred to Phase 13; directories are explicit ownership reservations. Validation is not financial authority or certification evidence verification.

@@ -79,3 +79,9 @@ Anything above the boundary may be wrong; anything below must be deterministic, 
 Architecture/specification baseline audited on 2026-10-02. Implementation starts at Phase 0 and, in Autonomous Program Mode, proceeds automatically through the roadmap after each gate passes.
 
 Real-money activation remains impossible before L6 and requires an explicit owner-controlled local credential/activation step.
+
+## Developer setup (Phase 0)
+
+Use Python 3.12 and uv 0.12.19. Run `make setup` then `make check` from the repository root. `uv.lock` pins all Python dependencies. `make schemas` regenerates the checked-in V1 JSON Schemas after an intentional contract change.
+
+See [Phase 0 ExecPlan](docs/plans/phase-0-repository-bootstrap.md), [contracts](packages/contracts/README.md) and [program status](docs/program/STATUS.md). Service/UI directories are ownership boundaries pending their roadmap implementation, not running services. This bootstrap remains L0 and contains no exchange order submission path.

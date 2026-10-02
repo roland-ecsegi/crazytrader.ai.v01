@@ -7,9 +7,10 @@ CrazyTrader.ai — Enterprise Local
 AUTONOMOUS PROGRAM
 
 ## Current phase
-Phase 0 — Repository and contracts
+Phase 0.5 — Open-source compatibility/license spikes
 
 ## Completed
+- Phase 0 repository/toolchain/contracts gate: PASS (43 tests)
 - Architecture V1 baseline
 - 2026-10-02 full conversation/repository audit and specification hardening
 
@@ -20,10 +21,10 @@ L0 — DEVELOPMENT
 `codex/enterprise-local-autonomous` — created and ready for the Codex Master Goal.
 
 ## Last durable commit
-Set by Codex when implementation starts.
+Phase 0 bootstrap checkpoint (resolve with `git log -1`; SHA recorded in next checkpoint).
 
 ## Next action
-Execute Phase 0, then continue autonomously through the audited roadmap.
+Create Phase 0.5 ExecPlan; evaluate approved infrastructure/execution candidates before Phase 1.
 
 ## Blockers
 None for implementation. Future external actions: owner-local Claude authentication validation and Binance L5/L6 secrets/activation.
@@ -32,7 +33,7 @@ None for implementation. Future external actions: owner-local Claude authenticat
 READY. Follow `docs/roadmap/CODEX_RESUME_PROTOCOL.md` if budget-limited.
 
 ## Latest verification
-Documentation audit completed; implementation validation not yet started.
+Phase 0: 43 tests PASS; lint, formatting, strict mypy, 22 schema drift checks and source secret scan PASS; wheel/sdist build PASS. Remote CI run pending.
 
 ## Durable-state rule
 Update this file at every meaningful checkpoint, phase gate, blocker and usage-limit pause.

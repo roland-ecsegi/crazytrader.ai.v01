@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "Lifecycle": {
+      "enum": [
+        "DRAFT",
+        "BACKTESTED",
+        "VALIDATED",
+        "OUT_OF_SAMPLE",
+        "WALK_FORWARD",
+        "PAPER",
+        "SHADOW",
+        "CANARY_ELIGIBLE",
+        "LIVE",
+        "DEGRADED",
+        "SUSPENDED",
+        "RETIRED"
+      ],
+      "title": "Lifecycle",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "artifact_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Artifact Ref",
+      "type": "string"
+    },
+    "config_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Config Hash",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "immutable_after_promotion": {
+      "const": true,
+      "default": true,
+      "title": "Immutable After Promotion",
+      "type": "boolean"
+    },
+    "lifecycle_stage": {
+      "$ref": "#/$defs/Lifecycle"
+    },
+    "semantic_version": {
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Semantic Version",
+      "type": "string"
+    },
+    "strategy_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Strategy Id",
+      "type": "string"
+    },
+    "strategy_version_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Strategy Version Id",
+      "type": "string"
+    },
+    "validation_evidence_refs": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "title": "Validation Evidence Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "strategy_version_id",
+    "strategy_id",
+    "semantic_version",
+    "artifact_ref",
+    "config_hash",
+    "lifecycle_stage",
+    "validation_evidence_refs",
+    "created_at"
+  ],
+  "title": "StrategyVersion",
+  "type": "object"
+}

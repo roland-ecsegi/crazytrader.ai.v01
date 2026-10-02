@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "OrderState": {
+      "enum": [
+        "CREATED",
+        "RISK_PENDING",
+        "AUTHORIZED",
+        "SUBMITTING",
+        "SUBMITTED",
+        "ACKNOWLEDGED",
+        "PARTIALLY_FILLED",
+        "FILLED",
+        "DENIED",
+        "REJECTED",
+        "CANCEL_PENDING",
+        "CANCELLED",
+        "EXPIRED",
+        "UNKNOWN",
+        "RECOVERY_REQUIRED"
+      ],
+      "title": "OrderState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "average_fill_price": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Average Fill Price"
+    },
+    "client_order_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Client Order Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "execution_request_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Execution Request Id",
+      "type": "string"
+    },
+    "filled_quantity": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Filled Quantity",
+      "type": "string"
+    },
+    "intent_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "limit_price": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Limit Price"
+    },
+    "order_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Order Id",
+      "type": "string"
+    },
+    "order_type": {
+      "enum": [
+        "MARKET",
+        "LIMIT"
+      ],
+      "title": "Order Type",
+      "type": "string"
+    },
+    "requested_quantity": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Requested Quantity",
+      "type": "string"
+    },
+    "side": {
+      "enum": [
+        "BUY",
+        "SELL"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/OrderState"
+    },
+    "symbol": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    },
+    "venue_order_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Venue Order Id"
+    }
+  },
+  "required": [
+    "order_id",
+    "intent_id",
+    "execution_request_id",
+    "client_order_id",
+    "state",
+    "symbol",
+    "side",
+    "order_type",
+    "requested_quantity",
+    "filled_quantity",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "Order",
+  "type": "object"
+}
