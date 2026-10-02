@@ -9,7 +9,7 @@ Create the reproducible monorepo/toolchain and freeze initial typed domain/contr
 
 ## Deliverables
 
-Create planned `apps/`, `services/`, `packages/`, `agents/`, `policies/opa/`, `infra/`, `tests/`, and `docs/plans/` structure.
+Create planned `apps/`, `services/` (including `notification`), `packages/`, `agents/`, `policies/opa/`, `infra/`, `tests/`, and `docs/plans/` structure.
 
 Toolchain must be justified in ExecPlan. Preference: Python for trading/research/agent services, TypeScript for custom web UI, reuse Rust indirectly through mature dependencies before custom Rust.
 
