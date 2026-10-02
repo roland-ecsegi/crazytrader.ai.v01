@@ -15,3 +15,7 @@
 ## 2026-10-02 — Phase 0 tooling/contracts
 
 Python 3.12 with uv 0.12.19 and hash-locked dependencies; Pydantic frozen/extra-forbidden V1 contracts. Financial strings reject binary floats/nonfinite/excess precision and ambiguous sizing. Evidence-backed event payload references prevent mutable opaque financial payloads; producer schemas/resolution follow in service phases. UI TypeScript tooling deferred to Phase 13; directories are explicit ownership reservations. Validation is not financial authority or certification evidence verification.
+
+## 2026-10-02 — Open-source adoption gate
+
+See docs/evidence/spikes/ADOPTION.md and exact version/license hashes. Use Nautilus unmodified dynamic dependency for simulation; defer native live submission until UNKNOWN recovery fault proof. Official Binance modular SDK remains venue reference behind deterministic boundary. SeaweedFS Apache-2.0 S3 candidate avoids embedding AGPL object-store core. No secret/bootstrap material used. GitHub connector can publish atomic trees/commits and fast-forward branch when shell Git lacks write credentials.

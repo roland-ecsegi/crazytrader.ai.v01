@@ -1,0 +1,39 @@
+{
+  "certification": "L0",
+  "images": {
+    "clickhouse": "clickhouse/clickhouse-server:25.8.3.66@sha256:3b28daecdf0625bd7dc27d555ae8f39042882045e49b04668ceccdd282f67d9b",
+    "mlflow": "ghcr.io/mlflow/mlflow:v3.4.0@sha256:9c9e24a3fc24a0e9dcc5ba1daa9ebfc59e01b0a23b6eb89a4fdf25b84ad5347c",
+    "nats": "nats:2.11.8-alpine@sha256:71092f77d707a4a81b12aca5096d6b2d2e07ad16aa57c84066940a17af74f61a",
+    "object": "chrislusf/seaweedfs:3.97@sha256:bb05d66d2963b1cc48073190781c3dd29e2c4c88a2ae2986bf58e38c86d89c6e",
+    "opa": "openpolicyagent/opa:1.8.0@sha256:0917dda453560b65798d3c78caed0376c4db0708f1e4df5724058a5dfd412948",
+    "openbao": "openbao/openbao:2.3.2@sha256:afec9f65a7067a22acf24b29f07d2f028353c02cc0fa9c80dfa4e7fab158b373",
+    "postgres": "postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3"
+  },
+  "limitations": [
+    "spike data only",
+    "no production authentication/TLS validation",
+    "no NATS consumer replay test yet",
+    "no OpenBao initialization or secrets",
+    "no exchange calls",
+    "MLflow fixture file backend only"
+  ],
+  "observed": {
+    "clickhouse": "25.8.3.66\t0.1",
+    "mlflow": "3.4.0",
+    "nats": {
+      "jetstream_enabled": true,
+      "version": "2.11.8"
+    },
+    "object": "S3 PUT/GET fixture PASS",
+    "opa": "[\n  false\n]",
+    "openbao": {
+      "initialized": false,
+      "sealed": true,
+      "version": "2.3.2"
+    },
+    "postgres": {
+      "fixture_auth": "trust/internal disposable only",
+      "restart_decimal_persistence": "0.100000000000000000"
+    }
+  }
+}

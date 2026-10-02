@@ -1,0 +1,37 @@
+{
+  "clickhouse": {
+    "license": "Apache-2.0",
+    "sha256": "e276e9cd356772864ed82575f081ef1b8225914c3ac39a03c9112821a7e33f62",
+    "url": "https://raw.githubusercontent.com/ClickHouse/ClickHouse/v25.8.3.66-lts/LICENSE"
+  },
+  "mlflow": {
+    "license": "Apache-2.0",
+    "sha256": "6395355de6f391afff35996a30fb41b189b4991a4cb54993ace35ab69a0bfa28",
+    "url": "https://raw.githubusercontent.com/mlflow/mlflow/v3.4.0/LICENSE.txt"
+  },
+  "nats": {
+    "license": "Apache-2.0",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "url": "https://raw.githubusercontent.com/nats-io/nats-server/v2.11.8/LICENSE"
+  },
+  "opa": {
+    "license": "Apache-2.0",
+    "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+    "url": "https://raw.githubusercontent.com/open-policy-agent/opa/v1.8.0/LICENSE"
+  },
+  "openbao": {
+    "license": "MPL-2.0",
+    "sha256": "d6b1a865f1c8c697d343bd4e0ce61025f91898486a1f00d727f32e8644af77d3",
+    "url": "https://raw.githubusercontent.com/openbao/openbao/v2.3.2/LICENSE"
+  },
+  "postgres": {
+    "license": "PostgreSQL",
+    "sha256": "5ed3ce5c9373dff7f98b1fae7a6c7ccd98df7d734d46d24c1bcebf1240be8307",
+    "url": "https://raw.githubusercontent.com/postgres/postgres/REL_17_6/COPYRIGHT"
+  },
+  "seaweedfs": {
+    "license": "Apache-2.0",
+    "sha256": "d789d433cc11da163273d1e39be2e8fa67642f9a58ef220d3f258fa9c14ef613",
+    "url": "https://raw.githubusercontent.com/seaweedfs/seaweedfs/3.97/LICENSE"
+  }
+}

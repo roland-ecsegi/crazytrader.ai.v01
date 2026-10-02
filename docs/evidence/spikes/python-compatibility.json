@@ -1,0 +1,48 @@
+{
+  "certification": "L0",
+  "execution_hazard": "submission failure can emit REJECTED; UNKNOWN/reconciliation wrapper and injected timeout proof required before live adoption",
+  "offline_checks": [
+    "decimal precision",
+    "stable ID",
+    "Spot instrument fixture",
+    "testnet config",
+    "SDK construction/no retries",
+    "query/filter API presence"
+  ],
+  "packages": {
+    "binance-common": {
+      "license": "MIT",
+      "license_files": [
+        {
+          "file": "binance_common-3.2.0.dist-info/LICENCE",
+          "sha256": "1fb8733fbe1e7001e13db5ba7f07dba109962a234a38836a3ca01a82bbce13d5"
+        }
+      ],
+      "python": ">=3.9,<3.14",
+      "version": "3.2.0"
+    },
+    "binance-sdk-spot": {
+      "license": "MIT",
+      "license_files": [
+        {
+          "file": "binance_sdk_spot-3.0.0.dist-info/licenses/LICENCE",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "python": ">=3.9,<3.14",
+      "version": "3.0.0"
+    },
+    "nautilus-trader": {
+      "license": "LGPL-3.0-or-later",
+      "license_files": [
+        {
+          "file": "nautilus_trader-1.221.0.dist-info/licenses/LICENSE",
+          "sha256": "ee907919ec88c9c017b1f8b608db20960b6598aefcc4fe58820bde955d65ed3c"
+        }
+      ],
+      "python": ">=3.11,<3.14",
+      "version": "1.221.0"
+    }
+  },
+  "venue_calls": 0
+}

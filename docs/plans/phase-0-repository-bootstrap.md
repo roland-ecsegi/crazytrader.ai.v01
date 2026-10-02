@@ -46,7 +46,7 @@ All Phase 0 acceptance criteria in PHASE_0_BOOTSTRAP.md; no claim of infrastruct
 Revert additive bootstrap commit; no runtime state to migrate. Preserve docs/evidence.
 
 ## Resume checkpoint
-Branch codex/enterprise-local-autonomous; baseline c123958. Current step: Phase 0 gate passed. Next: Phase 0.5 compatibility/license ExecPlan and spikes. Uncommitted work: checkpoint documentation only. Blockers: none (network commands require platform escalation). Usage: active. Verification: make check — 43 tests, lint/format/strict types/schema drift/secret scan pass; uv build produced wheel and sdist.
+Branch codex/enterprise-local-autonomous; Phase 0 remote commit b610027 (same validated tree as local 847fdcc). Current step: Phase 0 gate passed. Next: Phase 0.5 compatibility/license ExecPlan and spikes. Uncommitted work: checkpoint documentation only. Blockers: none (network commands require platform escalation). Usage: active. Verification: make check — 43 tests, lint/format/strict types/schema drift/secret scan pass; uv build produced wheel and sdist.
 
 ## Progress log
 2026-10-02: read binding specifications; selected Python contract-first tooling.
