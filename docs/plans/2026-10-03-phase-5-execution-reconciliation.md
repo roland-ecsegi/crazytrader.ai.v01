@@ -76,8 +76,9 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
 review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
-action: sourced SIMULATION BUY fee/slippage funding and selected unmodified Nautilus
-simulation; controlled absence recovery/incident resolution. Bounded fixture account
+action: native simulation source contracts/durable job/result boundary, financial adapter
+and restart proof; then controlled absence recovery/incident resolution. Modeled
+funding and unmodified Nautilus baseline verified. Bounded fixture account
 comparison and mixed custody verified. Above-L0 source/certification assertions stay denied. Actual quoteQty
 accounting and cost attribution implemented with additive contracts. Current certification L0; no Phase5 gate.
 
@@ -162,3 +163,9 @@ Immutable raw partial-source receipts, per-read audit and one critical unchanged
 alert; balances/open/history/fills/cumulative quote/reservation/cost comparison.
 No certification effect or historical latch clearing. Next simulation costs/mature
 Nautilus adapter and controlled recovery; no Phase5 gate.
+
+2026-10-03 simulation funding foundation:155 units/mypy47/114 schemas/build PASS;
+actual quote journal3 cases PASS (1.70s). Explicit model/currency/precision/fee cap;
+no execution grant. Unmodified Nautilus1.221.0 two-run native financial equality PASS;
+raw native source captured. Baseline only, durable financial adapter/recovery next.
+Account checkpointff36e635 hosted CI37133706740 PASS. No Phase5 gate.

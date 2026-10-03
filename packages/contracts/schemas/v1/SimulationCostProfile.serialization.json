@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "fee_asset": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Fee Asset",
+      "type": "string"
+    },
+    "maximum_slippage_bps": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Maximum Slippage Bps",
+      "type": "string"
+    },
+    "profile_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "const": "CONFIGURED_SIMULATION_ASSUMPTION",
+      "default": "CONFIGURED_SIMULATION_ASSUMPTION",
+      "title": "Source",
+      "type": "string"
+    },
+    "taker_fee_bps": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Taker Fee Bps",
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "taker_fee_bps",
+    "maximum_slippage_bps",
+    "fee_asset"
+  ],
+  "title": "SimulationCostProfile",
+  "type": "object"
+}

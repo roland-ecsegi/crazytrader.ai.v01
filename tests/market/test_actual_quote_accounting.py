@@ -99,3 +99,92 @@ def test_quote_precision_receipt_cannot_be_borrowed_from_another_tenant(backbone
             ).fetchone()
             is None
         )
+
+
+def test_modeled_buy_buffers_fund_actual_quote_fee_and_release_unused_cash_without_execution(
+    backbone,
+):
+    from crazytrader_contracts.simulation import SimulationCostProfile
+    from crazytrader_execution.funding import plan_simulation_buy_funding
+    from crazytrader_ledger.commands import release_custody, reserve_custody
+
+    risk, objects, intent, context, config, policy, now = backbone
+    receipt = TradingRuleArchive(risk.store, objects).latest(
+        intent.tenant_id, "SANDBOX", "BTCUSDT", now
+    )
+    costs = SimulationCostProfile(
+        profile_id="fixture-sim-costs",
+        taker_fee_bps="10",
+        maximum_slippage_bps="25",
+        fee_asset="USDT",
+    )
+    plan = plan_simulation_buy_funding(
+        intent.tenant_id,
+        intent.portfolio_id,
+        "order",
+        "USDT",
+        "USDT",
+        Decimal("0.100000000000000001"),
+        Decimal("133.33333333"),
+        Decimal("14"),
+        costs,
+        receipt,
+    )
+    ledger = LedgerStore(risk.store)
+    ledger.append(
+        move(
+            intent.tenant_id + ":plan-fund",
+            intent.tenant_id,
+            intent.tenant_id + ":plan-fund-source",
+            "owner",
+            "fixture-simulation-only",
+            now,
+            intent.portfolio_id,
+            "USDT",
+            "20",
+            "FUNDING",
+        )
+    )
+    reserve = reserve_custody(
+        intent.tenant_id + ":plan-reserve",
+        intent.tenant_id,
+        intent.tenant_id + ":plan-source",
+        "owner",
+        digest(canonical(plan)),
+        now,
+        intent.portfolio_id,
+        "USDT",
+        plan.quote_reservation,
+        "order",
+        Decimal(0),
+        Decimal(20),
+    )
+    assert ledger.append(reserve)
+    assert not ledger.append(reserve)
+    assert ledger.append(quote_transaction(backbone))
+    remaining = ledger.balance(intent.tenant_id, intent.portfolio_id, "RESERVED", "USDT")
+    assert remaining == Decimal("0.03670001")
+    release = release_custody(
+        reserve,
+        remaining,
+        intent.tenant_id + ":plan-release",
+        intent.tenant_id + ":plan-release-source",
+        "owner",
+        "fixture-proven-complete",
+        now,
+    )
+    assert ledger.append(release)
+    assert not ledger.append(release)
+    assert ledger.balance(intent.tenant_id, intent.portfolio_id, "RESERVED", "USDT") == 0
+    assert ledger.balance(intent.tenant_id, intent.portfolio_id, "AVAILABLE", "USDT") == Decimal(
+        "6.65666667"
+    )
+    assert plan.certification_effect == "NONE"
+    with risk.store.connection() as conn:
+        assert (
+            conn.execute(
+                "SELECT count(*) n FROM ct_execution_requests WHERE tenant_id=%s",
+                (intent.tenant_id,),
+            ).fetchone()["n"]
+            == 0
+        )

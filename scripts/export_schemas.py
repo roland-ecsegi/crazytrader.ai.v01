@@ -11,6 +11,7 @@ from crazytrader_contracts import (
     market,
     models,
     risk,
+    simulation,
     venue_fills,
     venue_rules,
 )
@@ -19,6 +20,8 @@ from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    simulation.SimulationCostProfile,
+    simulation.BuyFundingPlan,
     account.VenueAccountRead,
     account.AccountReconciliationReport,
     venue_fills.QuoteFillIdentity,

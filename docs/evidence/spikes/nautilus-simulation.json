@@ -1,0 +1,75 @@
+{
+  "certification": "L0",
+  "certification_effect": "NONE",
+  "cost_source": "instrument fixture taker_fee0.001, not verified venue fees",
+  "data_source": "fixed modeled quote fixture, not observed venue prices",
+  "engine": "unmodified dynamically imported nautilus-trader1.221.0",
+  "first_run": {
+    "balances": {
+      "BTC": "0.9",
+      "USDT": "109.99"
+    },
+    "fills": [
+      {
+        "account_id": "BINANCE-001",
+        "client_order_id": "ct_probe_sell",
+        "commission": "0.01000000 USDT",
+        "currency": "USDT",
+        "event_id": "f43d3b63-7c42-458f-aab0-e350d580aafb",
+        "info": {},
+        "instrument_id": "BTCUSDT.BINANCE",
+        "last_px": "100.00",
+        "last_qty": "0.100000",
+        "liquidity_side": "TAKER",
+        "order_side": "SELL",
+        "order_type": "MARKET",
+        "position_id": "BTCUSDT.BINANCE-ApprovedSimulation-000",
+        "reconciliation": false,
+        "strategy_id": "ApprovedSimulation-000",
+        "trade_id": "BINANCE-1-001",
+        "trader_id": "BACKTESTER-001",
+        "ts_event": 1790985600000000000,
+        "ts_init": 1790985600000000000,
+        "type": "OrderFilled",
+        "venue_order_id": "BINANCE-1-001"
+      }
+    ],
+    "orders": 1
+  },
+  "mode": "SIMULATION",
+  "network_calls": 0,
+  "repeat_financial_facts_identical": true,
+  "scope": "mature engine baseline; durable execution/ledger adapter integration pending",
+  "second_run": {
+    "balances": {
+      "BTC": "0.9",
+      "USDT": "109.99"
+    },
+    "fills": [
+      {
+        "account_id": "BINANCE-001",
+        "client_order_id": "ct_probe_sell",
+        "commission": "0.01000000 USDT",
+        "currency": "USDT",
+        "event_id": "a6e29eaf-a565-42b3-b04d-793bfb4dfaf4",
+        "info": {},
+        "instrument_id": "BTCUSDT.BINANCE",
+        "last_px": "100.00",
+        "last_qty": "0.100000",
+        "liquidity_side": "TAKER",
+        "order_side": "SELL",
+        "order_type": "MARKET",
+        "position_id": "BTCUSDT.BINANCE-ApprovedSimulation-000",
+        "reconciliation": false,
+        "strategy_id": "ApprovedSimulation-000",
+        "trade_id": "BINANCE-1-001",
+        "trader_id": "BACKTESTER-001",
+        "ts_event": 1790985600000000000,
+        "ts_init": 1790985600000000000,
+        "type": "OrderFilled",
+        "venue_order_id": "BINANCE-1-001"
+      }
+    ],
+    "orders": 1
+  }
+}
