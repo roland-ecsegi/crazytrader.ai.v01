@@ -1,5 +1,7 @@
 """Disposable authoritative fixture on actual PostgreSQL; not an exchange simulator."""
 
+import hashlib
+import hmac
 import json
 import socket
 import threading
@@ -10,7 +12,7 @@ from urllib.parse import parse_qs, urlsplit
 
 
 @contextmanager
-def sdk_venue(store, tenant, timeout_after_accept=True):
+def sdk_venue(store, tenant, timeout_after_accept=True, timeout_after_cancel=False):
     with store.connection() as conn:
         conn.execute(
             "CREATE TABLE IF NOT EXISTS ct_test_wire_orders (tenant text NOT NULL, "
@@ -28,15 +30,30 @@ def sdk_venue(store, tenant, timeout_after_accept=True):
             "PRIMARY KEY(tenant,trade_id))"
         )
 
+    with store.connection() as conn:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS ct_test_wire_cancels "
+            "(tenant text NOT NULL, client_id text NOT NULL)"
+        )
+
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass  # no request signatures/auth/query in ordinary logs
 
         def params(self):
-            params = parse_qs(urlsplit(self.path).query)
+            encoded = urlsplit(self.path).query
+            params = parse_qs(encoded)
             length = int(self.headers.get("Content-Length", "0"))
             if length:
-                params.update(parse_qs(self.rfile.read(length).decode()))
+                body = self.rfile.read(length).decode()
+                encoded = encoded + ("&" if encoded else "") + body
+                params.update(parse_qs(body))
+            unsigned = "&".join(
+                part for part in encoded.split("&") if not part.startswith("signature=")
+            )
+            signature = hmac.new(b"fixture", unsigned.encode(), hashlib.sha256).hexdigest()
+            assert self.headers["X-MBX-APIKEY"] == "fixture-only-key"
+            assert hmac.compare_digest(params["signature"][0], signature)
             return {key: values[0] for key, values in params.items()}
 
         def respond(self, body):
@@ -88,6 +105,39 @@ def sdk_venue(store, tenant, timeout_after_accept=True):
                 )
             if timeout_after_accept:
                 time.sleep(0.35)  # SDK request timeout150ms, no retry allowed
+                try:
+                    self.connection.shutdown(socket.SHUT_RDWR)
+                except OSError:
+                    pass
+                self.connection.close()
+            else:
+                self.respond(body)
+
+        def do_DELETE(self):
+            assert urlsplit(self.path).path == "/api/v3/order"
+            params = self.params()
+            client_id = params["origClientOrderId"]
+            with store.connection() as conn:
+                conn.execute(
+                    "INSERT INTO ct_test_wire_cancels(tenant,client_id) VALUES(%s,%s)",
+                    (tenant, client_id),
+                )
+                row = conn.execute(
+                    "SELECT body FROM ct_test_wire_orders WHERE tenant=%s AND client_id=%s",
+                    (tenant, client_id),
+                ).fetchone()
+                if row is None or json.loads(row["body"])["status"] == "FILLED":
+                    self.send_response(400)
+                    self.end_headers()
+                    return
+                body = json.loads(row["body"])
+                body.update(status="CANCELED", origClientOrderId=client_id)
+                conn.execute(
+                    "UPDATE ct_test_wire_orders SET body=%s WHERE tenant=%s AND client_id=%s",
+                    (json.dumps(body), tenant, client_id),
+                )
+            if timeout_after_cancel:
+                time.sleep(0.35)
                 try:
                     self.connection.shutdown(socket.SHUT_RDWR)
                 except OSError:

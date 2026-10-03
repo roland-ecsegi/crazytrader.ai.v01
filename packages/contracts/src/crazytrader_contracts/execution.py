@@ -10,6 +10,7 @@ from pydantic import Field, model_validator
 from .codec import digest
 from .market import Hash, Sequence
 from .models import Contract, Fill, Identifier, NonNegative, OrderState, Positive, Timestamp
+from .risk import CancellationAuthorization, CancellationContext, CancellationRequest
 
 
 class ExecutionRequest(Contract):
@@ -329,3 +330,68 @@ class ExecutionIncident(Contract):
         "TERMINAL_STATE_CONFLICT",
     ]
     occurred_at: Timestamp
+
+
+class CancellationEvaluationRecord(Contract):
+    """Immutable cancellation authority built from the owned execution registry."""
+
+    schema_version: Literal["1"] = "1"
+    execution_request_id: Identifier
+    owner_config_sha256: Hash
+    execution_revision: Sequence
+    request: CancellationRequest
+    context: CancellationContext
+    authorization: CancellationAuthorization
+
+    @model_validator(mode="after")
+    def bound(self) -> Self:
+        from .codec import canonical
+
+        if (
+            self.authorization.request_sha256 != digest(canonical(self.request))
+            or self.authorization.context_sha256 != digest(canonical(self.context))
+            or self.authorization.request_id != self.request.request_id
+            or self.authorization.tenant_id != self.request.tenant_id
+            or self.authorization.actor_id != self.context.actor_id
+            or self.authorization.client_order_id != self.request.client_order_id
+            or self.authorization.order_id != self.request.order_id
+            or self.authorization.origin_intent_id != self.request.origin_intent_id
+            or (
+                self.request.tenant_id,
+                self.request.portfolio_id,
+                self.request.order_id,
+                self.request.client_order_id,
+                self.request.origin_intent_id,
+                self.request.origin_intent_sha256,
+                self.request.symbol,
+                self.request.environment,
+                self.request.execution_mode,
+            )
+            != (
+                self.context.tenant_id,
+                self.context.portfolio_id,
+                self.context.order_id,
+                self.context.client_order_id,
+                self.context.origin_intent_id,
+                self.context.origin_intent_sha256,
+                self.context.symbol,
+                self.context.environment,
+                self.context.execution_mode,
+            )
+        ):
+            raise ValueError("cancellation evaluation evidence mismatch")
+        return self
+
+
+class CancellationReceipt(Contract):
+    schema_version: Literal["1"] = "1"
+    source: Literal["OFFICIAL_SDK_LOOPBACK_FIXTURE"] = "OFFICIAL_SDK_LOOPBACK_FIXTURE"
+    execution_request_id: Identifier
+    cancellation_request_id: Identifier
+    tenant_id: Identifier
+    actor_id: Identifier
+    client_order_id: Identifier
+    authorization_record_sha256: Hash
+    outcome: Literal["OBSERVED", "UNKNOWN"]
+    raw_json: Annotated[str | None, Field(max_length=2_000_000)]
+    observed_at: Timestamp

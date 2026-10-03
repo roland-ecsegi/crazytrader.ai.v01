@@ -1,0 +1,95 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "authorization_record_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Authorization Record Sha256",
+      "type": "string"
+    },
+    "cancellation_request_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Cancellation Request Id",
+      "type": "string"
+    },
+    "client_order_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Client Order Id",
+      "type": "string"
+    },
+    "execution_request_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Execution Request Id",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "OBSERVED",
+        "UNKNOWN"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "raw_json": {
+      "anyOf": [
+        {
+          "maxLength": 2000000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Raw Json"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "const": "OFFICIAL_SDK_LOOPBACK_FIXTURE",
+      "default": "OFFICIAL_SDK_LOOPBACK_FIXTURE",
+      "title": "Source",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "execution_request_id",
+    "cancellation_request_id",
+    "tenant_id",
+    "actor_id",
+    "client_order_id",
+    "authorization_record_sha256",
+    "outcome",
+    "raw_json",
+    "observed_at"
+  ],
+  "title": "CancellationReceipt",
+  "type": "object"
+}

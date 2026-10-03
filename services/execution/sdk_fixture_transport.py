@@ -53,6 +53,10 @@ def main() -> None:
                 new_client_order_id=request["client_order_id"],
                 new_order_resp_type="RESULT",
             )
+        elif raw["action"] == "CANCEL":
+            response = client.rest_api.delete_order(
+                symbol=request["symbol"], orig_client_order_id=request["client_order_id"]
+            )
         elif raw["action"] == "FILLS":
             response = client.rest_api.my_trades(
                 symbol=request["symbol"], order_id=int(raw["venue_order_id"]), limit=1000

@@ -14,6 +14,8 @@ from urllib.parse import urlsplit
 
 from crazytrader_contracts.codec import canonical, digest
 from crazytrader_contracts.execution import (
+    CancellationEvaluationRecord,
+    CancellationReceipt,
     ExecutionRequest,
     VenueFillBatch,
     VenueFillEvidence,
@@ -213,3 +215,72 @@ class SDKFixtureTransport:
             )
         except Exception:
             return VenueFillBatch.model_validate(base)
+
+    def cancel(
+        self, request: ExecutionRequest, record: CancellationEvaluationRecord, now: datetime
+    ) -> CancellationReceipt:
+        request = ExecutionRequest.model_validate(request.model_dump())
+        record = CancellationEvaluationRecord.model_validate(record.model_dump())
+        if request.execution_mode != "SIMULATION" or request.side != "SELL":
+            raise ValueError("fixture cancellation has no signed/live authority")
+        if record.authorization.decision != "ALLOW" or not (
+            record.authorization.evaluated_at <= now < record.authorization.expires_at
+        ):
+            raise ValueError("cancellation authorization expired or denied")
+        if (
+            record.execution_request_id,
+            record.request.client_order_id,
+            record.context.venue_account_ref,
+            record.request.tenant_id,
+        ) != (
+            request.execution_request_id,
+            request.client_order_id,
+            request.venue_account_ref,
+            request.tenant_id,
+        ):
+            raise ValueError("cancellation transport ownership mismatch")
+        raw_json, outcome = None, "UNKNOWN"
+        try:
+            env = {k: v for k, v in os.environ.items() if k in {"PATH", "SYSTEMROOT"}}
+            env.update(NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost")
+            result = subprocess.run(
+                [str(self.sdk_python), str(self.child)],
+                input=json.dumps(
+                    {
+                        "endpoint": self.endpoint,
+                        "action": "CANCEL",
+                        "request": request.model_dump(mode="json"),
+                    }
+                ),
+                env=env,
+                timeout=5,
+                capture_output=True,
+                text=True,
+            )
+            raw = json.loads(result.stdout)
+            if not result.returncode and raw["status"] == "OBSERVED":
+                order = raw["order"]
+                raw_json = json.dumps(order, sort_keys=True, separators=(",", ":"))
+                if len(raw_json) > 2_000_000:
+                    raw_json = None
+                    raise ValueError("oversized cancellation receipt")
+                if (
+                    order.get("origClientOrderId", order.get("clientOrderId")),
+                    order.get("symbol"),
+                ) == (request.client_order_id, request.symbol):
+                    outcome = "OBSERVED"
+        except Exception:
+            pass
+        return CancellationReceipt.model_validate(
+            {
+                "execution_request_id": request.execution_request_id,
+                "cancellation_request_id": record.request.request_id,
+                "tenant_id": request.tenant_id,
+                "actor_id": record.context.actor_id,
+                "client_order_id": request.client_order_id,
+                "authorization_record_sha256": digest(canonical(record)),
+                "outcome": outcome,
+                "raw_json": raw_json,
+                "observed_at": now,
+            }
+        )

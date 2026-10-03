@@ -26,10 +26,10 @@ L0 — DEVELOPMENT
 `codex/enterprise-local-autonomous` — created and ready for the Codex Master Goal.
 
 ## Last durable commit
-6e23475fcf8f83a3c349820202797a77ecb71749 — Phase5 official-SDK recovery milestone; hosted CI37118475454 PASS. Settlement milestone verification follows in this checkpoint.
+5d41b4488cc566abc1fb05370459773f4a8454b2 — Phase5 canonical settlement milestone; hosted CI37124294645 PASS. Owned cancellation follows in this checkpoint.
 
 ## Next action
-Continue docs/plans/2026-10-03-phase-5-execution-reconciliation.md: typed states/stable IDs and atomic protective SIMULATION reservation/single claim are implemented and verified. Official-SDK loopback accepted-timeout/query recovery and pre-T016 review are verified. Canonical fill-ID/price/fee batches, atomic partial-fill/cancel settlement and suspense/incidents implemented;28 actual service tests PASS. Final raw-source tamper hardening PASS, pinned image/non-root import/build PASS. Next authenticated cancellation, actual quote/fee accounting, BUY fee buffers/mixed custody, complete reconciliation/negative gate. Do not repeat Phase0–4. No external blocker for independent simulation/reconciliation implementation.
+Continue docs/plans/2026-10-03-phase-5-execution-reconciliation.md: typed states/stable IDs and atomic protective SIMULATION reservation/single claim are implemented and verified. Official-SDK loopback accepted-timeout/query recovery and pre-T016 review are verified. Canonical fill-ID/price/fee batches, atomic partial-fill/cancel settlement and suspense/incidents implemented;28 actual service tests PASS. Final raw-source tamper hardening PASS, pinned image/non-root import/build PASS. Owned cancellation verified (35 actual tests). Next complete venue rule/source metadata and actual quote/fee accounting, BUY fee buffers/mixed custody, complete reconciliation/negative gate. Do not repeat Phase0–4. No external blocker for independent simulation/reconciliation implementation.
 
 ## Blockers
 None for implementation. Future external actions: owner-local Claude authentication validation and Binance L5/L6 secrets/activation.
@@ -38,6 +38,7 @@ None for implementation. Future external actions: owner-local Claude authenticat
 READY. Follow `docs/roadmap/CODEX_RESUME_PROTOCOL.md` if budget-limited.
 
 ## Latest verification
+Phase5 owned cancellation:35 actual combined tests PASS (119.44s),123 units/mypy40/94 schemas/scan/offline SDK/wheel-sdist PASS. One authorized DELETE, receipt never releases funds; query/complete fills settles remainder. No Phase5 gate.
 Phase5 canonical settlement:actual28 PASS (71.76s);115 repository tests plus8 new raw-source contract regressions PASS (123 total), mypy39,90 schemas; pinned image/non-root execution import/wheel-sdist PASS. Compose smoke failed during disk exhaustion and is not newly certified. Scoped cleanup restored5.7GB. No Phase5 gate.
 Phase5 SDK recovery milestone:115 units, mypy38,84 schemas, scan/SDK offline/wheel-sdist PASS; actual combined market/risk/execution/official-SDK22 PASS (accepted timeout, not-found unresolved, receipt-persistence interruption, restarted query, exact decimal wire). Simulation fixture only, no Phase5 gate.
 Phase5 coordination milestone:114 unit/contract tests PASS, strict mypy35,82 schemas, source scan and wheel/sdist. Actual market/risk/execution17 PASS, actual platform/ledger17 PASS; no Phase5 gate or adapter/reconciliation completion claimed.

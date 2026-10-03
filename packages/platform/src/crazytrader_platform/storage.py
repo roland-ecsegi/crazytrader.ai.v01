@@ -11,6 +11,8 @@ from crazytrader_contracts.codec import digest as digest
 from crazytrader_contracts.events import EventEnvelope
 from crazytrader_contracts.execution import (
     TRANSITION_EVENTS,
+    CancellationEvaluationRecord,
+    CancellationReceipt,
     ExecutionIncident,
     ExecutionTransition,
 )
@@ -50,6 +52,9 @@ PAYLOAD_TYPES: dict[str, type[Contract]] = {
 PAYLOAD_TYPES.update({name: ExecutionTransition for name in TRANSITION_EVENTS.values()})
 PAYLOAD_TYPES["ExecutionPreparationChanged.v1"] = ExecutionTransition
 PAYLOAD_TYPES["ReconciliationCriticalMismatch.v1"] = ExecutionIncident
+PAYLOAD_TYPES["OrderCancellationAuthorized.v1"] = CancellationEvaluationRecord
+PAYLOAD_TYPES["OrderCancellationDenied.v1"] = CancellationEvaluationRecord
+PAYLOAD_TYPES["OrderCancellationReceiptRecorded.v1"] = CancellationReceipt
 
 
 def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
@@ -61,6 +66,21 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         raise ValueError("payload schema mismatch")
     if isinstance(payload, HealthChange):
         source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, CancellationEvaluationRecord):
+        source, occurred = "execution", payload.authorization.evaluated_at
+        if (
+            event.tenant_id != payload.context.tenant_id
+            or event.actor_id != payload.context.actor_id
+        ):
+            raise ValueError("cancellation evaluation ownership mismatch")
+        if (event.event_type == "OrderCancellationAuthorized.v1") != (
+            payload.authorization.decision == "ALLOW"
+        ):
+            raise ValueError("cancellation verdict mismatch")
+    elif isinstance(payload, CancellationReceipt):
+        source, occurred = "execution", payload.observed_at
+        if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
+            raise ValueError("cancellation receipt ownership mismatch")
     elif isinstance(payload, ExecutionIncident):
         source, occurred = "reconciliation", payload.occurred_at
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:

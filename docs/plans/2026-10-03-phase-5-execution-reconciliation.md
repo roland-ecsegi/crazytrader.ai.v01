@@ -56,7 +56,7 @@ idempotency keys and outbox in same transaction as reservation/accounting effect
 - [x] Typed states/requests/venue observations and deterministic transition rules.
 - [x] Atomic durable reservation/authorization and stable request/client identities (protective SIMULATION milestone; BUY/mixed custody still pending).
 - [ ] Internal selected simulation adapter and accepted-timeout/restart proof.
-- [ ] Pre-T016 review DONE; query-open recovery DONE; partial fills/cancel/suspense incidents pending.
+- [x] Pre-T016 review; fixture query-open recovery, partial fills/cancel/suspense incidents and owned cancellation. Full account reconciliation pending.
 - [ ] Full negatives/chaos, adversarial repairs, evidence, publish and advance Phase6.
 
 ## Test plan
@@ -75,9 +75,9 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
-review repairs PASS. Next exact action: authenticated owned-order cancellation through
-current owner policy, durable one-send claim and official SDK loopback DELETE; query
-reconciliation alone may release proven remainder. Then additive actual quote/fee accounting. Current certification L0; no Phase5 gate.
+review repairs PASS. Owned cancellation/one-send claim/query-only settlement verified. Next exact action:
+complete versioned venue rules with raw exchange-info provenance, then additive actual
+quote/fee accounting without modifying published V1 ledger/fill contracts. Current certification L0; no Phase5 gate.
 
 ## Progress log
 2026-10-03: Phase4 completed; pre-T014 review recorded, Phase5 prepared.
@@ -128,3 +128,10 @@ claim authority.28 actual combined tests PASS before final raw-source tamper har
 and reviews/2026-10-03-phase-5-settlement-review.md. Final hardened actual28 tests PASS (71.76s),8 source-contract regressions PASS;
 pinned image build/non-root import and wheel/sdist PASS. Compose smoke failed during
 disk exhaustion; no new runtime smoke claim. Targeted cache cleanup restored5.7GB. No Phase5 gate; continue cancellation and actual quote/fee semantics.
+
+2026-10-03 cancellation milestone:35 actual combined tests PASS (119.44s),123 unit
+tests/mypy40/94 schemas and wheel/sdist PASS. Seven current-policy/ownership/duplicate/
+timeout/crash/audit/fill-race/incident cases. SDK fixture cryptographic HMAC validation.
+Evidence/review in phase-5-cancellation.md and reviews/2026-10-03-phase-5-cancellation-review.md.
+Settlement hosted CI37124294645 PASS. Continue complete venue rules/actual quote amounts,
+BUY fee buffers/mixed custody/full account reconciliation/selected simulation before gate.

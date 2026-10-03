@@ -10,6 +10,8 @@ from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    execution.CancellationEvaluationRecord,
+    execution.CancellationReceipt,
     execution.VenueFillEvidence,
     execution.VenueFillBatch,
     execution.ExecutionIncident,
