@@ -45,6 +45,7 @@ Breaking schema changes require a new schema version.
 - TradeIntentPolicyApproved.v1
 - TradeIntentPolicyDenied.v1
 - TradeIntentExecutionRequested.v1
+- ExecutionPreparationChanged.v1
 
 ## Order events
 

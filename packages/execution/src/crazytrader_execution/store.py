@@ -1,0 +1,394 @@
+"""Durable execution coordination. Only prepared, reserved simulation sends can be claimed.
+
+This milestone has no venue transport. ABOVE-L0 registries, BUY cost buffers, signed
+owner-local adapters, fill/cancel reconciliation remain explicit Phase5 work.
+"""
+
+import json
+from datetime import datetime
+
+import psycopg
+from crazytrader_contracts.codec import canonical, digest
+from crazytrader_contracts.events import EventEnvelope, PayloadReference
+from crazytrader_contracts.execution import (
+    TRANSITION_EVENTS,
+    ExecutionRequest,
+    ExecutionState,
+    ExecutionTransition,
+)
+from crazytrader_contracts.ledger import Account
+from crazytrader_contracts.models import OrderState
+from crazytrader_contracts.risk import RiskEvaluationRecord, VenueSafetyFact
+from crazytrader_ledger.commands import move
+from crazytrader_ledger.store import LedgerStore
+from crazytrader_market.archive import S3Artifacts
+from crazytrader_platform.storage import ConflictError, EventStore
+from crazytrader_risk.store import RiskStore, StateUnavailable
+
+from .state import initial, transition
+
+
+class ExecutionStore:
+    def __init__(self, store: EventStore) -> None:
+        self.store = store
+
+    def _lock(self, conn: psycopg.Connection[dict[str, object]], tenant: str) -> None:
+        conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", ("ledger:" + tenant,))
+
+    def load(self, request_id: str) -> ExecutionState:
+        with self.store.connection() as conn:
+            return self._load(conn, request_id)
+
+    def _load(self, conn: psycopg.Connection[dict[str, object]], request_id: str) -> ExecutionState:
+        row = conn.execute(
+            "SELECT t.body,t.digest FROM ct_execution_current c "
+            "JOIN ct_execution_transitions t USING(transition_id) WHERE c.execution_request_id=%s",
+            (request_id,),
+        ).fetchone()
+        if row is None:
+            raise StateUnavailable("durable execution request unavailable")
+        evidence = ExecutionTransition.model_validate_json(str(row["body"]))
+        if digest(canonical(evidence)) != row["digest"]:
+            raise ConflictError("execution history integrity failure")
+        return evidence.resulting_state
+
+    def _write(
+        self, conn: psycopg.Connection[dict[str, object]], change: ExecutionTransition
+    ) -> None:
+        change = ExecutionTransition.model_validate(change.model_dump())
+        body = canonical(change)
+        conn.execute(
+            "INSERT INTO ct_execution_transitions "
+            "(transition_id,execution_request_id,revision,digest,body) VALUES(%s,%s,%s,%s,%s)",
+            (
+                change.transition_id,
+                change.execution_request_id,
+                change.resulting_state.revision,
+                digest(body),
+                body,
+            ),
+        )
+        if change.previous_state is None:
+            conn.execute(
+                "INSERT INTO ct_execution_current "
+                "(execution_request_id,transition_id,revision,state) "
+                "VALUES(%s,%s,%s,%s)",
+                (
+                    change.execution_request_id,
+                    change.transition_id,
+                    change.resulting_state.revision,
+                    change.resulting_state.state.value,
+                ),
+            )
+        else:
+            updated = conn.execute(
+                "UPDATE ct_execution_current SET transition_id=%s,revision=%s,state=%s "
+                "WHERE execution_request_id=%s AND revision=%s AND state=%s",
+                (
+                    change.transition_id,
+                    change.resulting_state.revision,
+                    change.resulting_state.state.value,
+                    change.execution_request_id,
+                    change.previous_revision,
+                    change.previous_state.value,
+                ),
+            )
+            if updated.rowcount != 1:
+                raise ConflictError("execution predecessor changed")
+        event = EventEnvelope(
+            event_id="execution:" + digest(body),
+            event_type=TRANSITION_EVENTS.get(
+                change.resulting_state.state, "ExecutionPreparationChanged.v1"
+            ),
+            schema_version="1",
+            occurred_at=change.occurred_at,
+            tenant_id=change.tenant_id,
+            actor_id=change.actor_id,
+            source_service="execution",
+            trace_id=change.transition_id,
+            correlation_id=change.execution_request_id,
+            payload=PayloadReference(
+                artifact_ref=digest(body),
+                sha256=digest(body),
+                payload_schema_ref="ExecutionTransition.v1",
+            ),
+        )
+        self.store.append_in_transaction(conn, event, change)
+
+    def prepare(
+        self, request: ExecutionRequest, objects: S3Artifacts, now: datetime
+    ) -> ExecutionState:
+        """Atomically prepare already policy-approved protective simulation."""
+        request = ExecutionRequest.model_validate(request.model_dump())
+        state = initial(request)
+        if (
+            request.execution_mode != "SIMULATION"
+            or request.side != "SELL"
+            or request.order_type != "MARKET"
+        ):
+            raise StateUnavailable("execution mode/order path not yet verified")
+        with self.store.connection() as conn:
+            self._lock(conn, request.tenant_id)
+            existing = conn.execute(
+                "SELECT body FROM ct_execution_requests WHERE execution_request_id=%s",
+                (request.execution_request_id,),
+            ).fetchone()
+            if existing is not None:
+                if str(existing["body"]) != canonical(request):
+                    raise ConflictError("execution request ID content collision")
+                return self._load(conn, request.execution_request_id)
+            row = conn.execute(
+                "SELECT body FROM ct_risk_evaluations WHERE record_digest=%s "
+                "AND tenant_id=%s AND intent_id=%s",
+                (request.risk_record_sha256, request.tenant_id, request.intent_id),
+            ).fetchone()
+            if row is None:
+                raise StateUnavailable("persisted risk and policy evidence unavailable")
+            record = RiskEvaluationRecord.model_validate_json(str(row["body"]))
+            if digest(canonical(record)) != request.risk_record_sha256:
+                raise ConflictError("persisted risk record changed")
+            policy = record.policy
+            risk = record.authorization
+            if (
+                policy is None
+                or policy.decision.decision != "ALLOW"
+                or risk.decision.decision != "ALLOW"
+            ):
+                raise StateUnavailable("execution requires full approved risk and policy")
+            if (
+                request.intent_sha256,
+                request.actor_id,
+                request.portfolio_id,
+                request.symbol,
+                request.quantity,
+                request.metadata_version,
+                request.policy_bundle_sha256,
+                request.expires_at,
+            ) != (
+                risk.intent_sha256,
+                risk.actor_id,
+                record.intent.portfolio_id,
+                record.intent.symbol,
+                risk.quantity,
+                record.context.metadata.metadata_version,
+                policy.policy_bundle_sha256,
+                min(risk.expires_at, policy.expires_at, record.intent.expires_at),
+            ):
+                raise StateUnavailable("execution request differs from exact approved evidence")
+            if (
+                not max(risk.evaluated_at, policy.evaluated_at, request.created_at)
+                <= now
+                < request.expires_at
+            ):
+                raise StateUnavailable("execution approval expired or future")
+            config = RiskStore(self.store).validate_backbone(record.context, objects, now)
+            if (
+                config.config_id != request.owner_config_id
+                or config.policy_bundle_sha256 != request.policy_bundle_sha256
+            ):
+                raise StateUnavailable("owner approval configuration changed")
+            if (
+                request.environment != record.context.metadata.environment
+                or request.side != record.intent.side
+            ):
+                raise StateUnavailable("venue or order direction changed")
+            if request.execution_mode != record.context.execution_mode:
+                raise StateUnavailable("execution mode changed")
+            venue_row = conn.execute(
+                "SELECT body FROM ct_venue_safety_facts WHERE tenant_id=%s "
+                "AND environment=%s AND execution_mode=%s ORDER BY observed_at DESC LIMIT 1",
+                (request.tenant_id, request.environment, request.execution_mode),
+            ).fetchone()
+            if (
+                venue_row is None
+                or VenueSafetyFact.model_validate_json(str(venue_row["body"])).venue_account_ref
+                != request.venue_account_ref
+            ):
+                raise StateUnavailable("execution venue account differs from trusted proof")
+            # Hold checkpoint row against concurrent stream mutation until reservation commits.
+            conn.execute(
+                "SELECT tenant_id FROM ct_market_checkpoints WHERE tenant_id=%s "
+                "AND environment=%s AND symbol=%s FOR SHARE",
+                (request.tenant_id, request.environment, request.symbol),
+            )
+            # Final validation after acquiring the row lock, with all safety/config writers
+            # serialized by the same tenant journal lock. No durable state before this point.
+            RiskStore(self.store).validate_backbone(record.context, objects, now)
+            conn.execute(
+                "INSERT INTO ct_execution_requests "
+                "(execution_request_id,tenant_id,intent_id,order_id,venue_account_ref,"
+                "client_order_id,risk_record_digest,digest,body) "
+                "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                (
+                    request.execution_request_id,
+                    request.tenant_id,
+                    request.intent_id,
+                    request.order_id,
+                    request.venue_account_ref,
+                    request.client_order_id,
+                    request.risk_record_sha256,
+                    digest(canonical(request)),
+                    canonical(request),
+                ),
+            )
+            change = ExecutionTransition(
+                transition_id="transition:" + digest(canonical(state)),
+                tenant_id=request.tenant_id,
+                actor_id=request.actor_id,
+                execution_request_id=request.execution_request_id,
+                order_id=request.order_id,
+                client_order_id=request.client_order_id,
+                previous_state=None,
+                previous_revision=None,
+                resulting_state=state,
+                reason_code="DURABLE_REQUEST_CREATED",
+                evidence_ref=request.risk_record_sha256,
+                occurred_at=request.created_at,
+            )
+            self._write(conn, change)
+            pending = transition(
+                state,
+                OrderState.RISK_PENDING,
+                now,
+                "APPROVED_EVIDENCE_LOADED",
+                request.risk_record_sha256,
+            )
+            self._write(conn, pending)
+            snapshot = record.context.portfolio
+            asset = record.context.metadata.base_asset
+            balance = next(b for b in snapshot.balances if b.asset == asset)
+            # Mixed custody reservations will be modeled explicitly in the next increment;
+            # no implicit transfer or double-counting. Pick one sufficient canonical account.
+            account: Account = "INVENTORY" if balance.inventory >= request.quantity else "AVAILABLE"
+            amount = balance.inventory if account == "INVENTORY" else balance.available
+            if amount < request.quantity:
+                raise StateUnavailable(
+                    "single custody account cannot safely reserve requested quantity"
+                )
+            tx = move(
+                "reserve:" + request.execution_request_id,
+                request.tenant_id,
+                "reserve-source:" + request.execution_request_id,
+                request.actor_id,
+                request.risk_record_sha256,
+                now,
+                request.portfolio_id,
+                asset,
+                request.quantity,
+                "RESERVATION",
+                request.order_id,
+                reserve_account=account,
+            )
+            LedgerStore(self.store).append_in_transaction(conn, tx)
+            conn.execute(
+                "INSERT INTO ct_execution_reservations "
+                "(execution_request_id,reservation_tx_id,reserve_asset,reserve_account,reserve_amount,"
+                "ledger_head_sha256,safety_sha256,checkpoint_sha256) "
+                "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
+                (
+                    request.execution_request_id,
+                    tx.transaction_id,
+                    asset,
+                    account,
+                    request.quantity,
+                    self._journal_head(conn, request.tenant_id),
+                    self._safety(conn, request.tenant_id),
+                    self._checkpoint(conn, request),
+                ),
+            )
+            authorized = transition(
+                pending.resulting_state,
+                OrderState.AUTHORIZED,
+                now,
+                "POLICY_APPROVED_FUNDS_RESERVED",
+                tx.transaction_id,
+            )
+            self._write(conn, authorized)
+            return authorized.resulting_state
+
+    def _journal_head(self, conn: psycopg.Connection[dict[str, object]], tenant: str) -> str:
+        rows = conn.execute(
+            "SELECT digest FROM ct_ledger_transactions WHERE tenant_id=%s "
+            "ORDER BY recorded_at,transaction_id",
+            (tenant,),
+        ).fetchall()
+        return digest(json.dumps([str(row["digest"]) for row in rows], separators=(",", ":")))
+
+    def _safety(self, conn: psycopg.Connection[dict[str, object]], tenant: str) -> str:
+        # Conservative: any owner/safety update invalidates the prepared send.
+        rows = conn.execute(
+            "SELECT digest FROM ct_risk_source_facts WHERE tenant_id=%s UNION ALL "
+            "SELECT digest FROM ct_venue_safety_facts WHERE tenant_id=%s ORDER BY digest",
+            (tenant, tenant),
+        ).fetchall()
+        return digest(json.dumps([str(row["digest"]) for row in rows], separators=(",", ":")))
+
+    def _checkpoint(
+        self, conn: psycopg.Connection[dict[str, object]], request: ExecutionRequest
+    ) -> str:
+        row = conn.execute(
+            "SELECT body FROM ct_market_checkpoints WHERE tenant_id=%s AND environment=%s "
+            "AND symbol=%s FOR SHARE",
+            (request.tenant_id, request.environment, request.symbol),
+        ).fetchone()
+        if row is None:
+            raise StateUnavailable("final market checkpoint missing")
+        return digest(str(row["body"]))
+
+    def claim_submission(self, request_id: str, now: datetime) -> ExecutionState | None:
+        """Return a single fenced claim. Already-started send never grants another claim."""
+        current = self.load(request_id)
+        request = current.request
+        with self.store.connection() as conn:
+            self._lock(conn, request.tenant_id)
+            current = self._load(conn, request_id)
+            if current.state != OrderState.AUTHORIZED:
+                return None
+            if request.execution_mode != "SIMULATION":
+                raise StateUnavailable("signed transport is not enabled")
+            proof = conn.execute(
+                "SELECT * FROM ct_execution_reservations WHERE execution_request_id=%s",
+                (request_id,),
+            ).fetchone()
+            if proof is None:
+                raise StateUnavailable("submission reservation missing")
+            config = RiskStore(self.store).configuration(request.tenant_id, request.actor_id)
+            if config.config_id != request.owner_config_id:
+                raise StateUnavailable("submission owner configuration changed")
+            if (
+                proof["ledger_head_sha256"],
+                proof["safety_sha256"],
+                proof["checkpoint_sha256"],
+            ) != (
+                self._journal_head(conn, request.tenant_id),
+                self._safety(conn, request.tenant_id),
+                self._checkpoint(conn, request),
+            ):
+                raise StateUnavailable("state changed after authorization/reservation")
+            change = transition(
+                current,
+                OrderState.SUBMITTING,
+                now,
+                "SINGLE_DURABLE_SUBMISSION_CLAIM",
+                str(proof["reservation_tx_id"]),
+            )
+            self._write(conn, change)
+            return change.resulting_state
+
+    def recover_interrupted_submission(self, request_id: str, now: datetime) -> ExecutionState:
+        """Startup cannot know whether a persisted SUBMITTING send reached the venue."""
+        current = self.load(request_id)
+        with self.store.connection() as conn:
+            self._lock(conn, current.request.tenant_id)
+            current = self._load(conn, request_id)
+            if current.state != OrderState.SUBMITTING:
+                return current
+            unknown = transition(
+                current,
+                OrderState.UNKNOWN,
+                now,
+                "PROCESS_INTERRUPTED_DURING_SUBMISSION",
+                "startup:" + request_id,
+            )
+            self._write(conn, unknown)
+            return unknown.resulting_state

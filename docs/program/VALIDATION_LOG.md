@@ -88,3 +88,15 @@ unknown exposure/P&L, stale/future state, unavailable price, no-short pending SE
 L0/L5 LIVE denial and conservative step conversion tested. Cancellation/state-loader/
 audit persistence remain next tasks. No order capability or elapsed certification.
 Phase3 hosted CI37111641894 PASS atca085cd33135bd337b5b79de27d1bbf5aa11f17a.
+
+
+## 2026-10-03 — Phase4 gate and Phase5 coordination milestone
+Phase4 gate PASS:109 units, actual OPA38, actual platform/ledger17 and actual
+market/risk13, mypy31,76 schemas, source scan and wheel/sdist. Published722a914;
+hosted CI37116292477 PASS. Review/source expiry/accounting/config activation/
+terminal replay repairs in evidence. L0 remains, no external blocker.
+Phase5 milestone PASS (not phase gate):114 units, mypy35,82 schemas, SDK offline,
+source scan, wheel/sdist; actual OPA+market/risk/execution17 (4 execution), actual
+platform/ledger17. Concurrent replay/claim gives one reservation and one claim;
+restart SUBMITTING -> UNKNOWN, no resend; atomic audit-failure rollback; expired/
+changed account/config/evidence denied. No transport or reconciliation yet.

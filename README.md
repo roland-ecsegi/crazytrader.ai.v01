@@ -96,3 +96,10 @@ proof denies; current trusted certification boundary is L0. Cancellation contrac
 manage an original immutable intent and stable owned order; actual registry comes
 in Phase5. No exchange submission endpoint or live capability. See Phase4 evidence
 and active Phase5 ExecPlan. Production scoped roles/TLS remain Phase14.
+
+Phase5 coordination milestone: immutable execution requests/transitions, stable
+client IDs, atomic journal reservation and one submission claim for approved
+protective SIMULATION requests. Restart in SUBMITTING becomes UNKNOWN with funds
+reserved. This is internal coordination, with no exchange transport yet. BUY cost
+buffers, mixed custody, reconciliation, partial fills and cancel settlement remain
+the active Phase5 plan.

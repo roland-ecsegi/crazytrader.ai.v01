@@ -45,6 +45,10 @@ class RiskStore:
         config = OwnerRiskConfiguration.model_validate(config.model_dump())
         body = canonical(config)
         with self.store.connection() as conn:
+            conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",
+                ("ledger:" + config.tenant_id,),
+            )
             row = conn.execute(
                 "SELECT digest FROM ct_risk_configs WHERE config_id=%s", (config.config_id,)
             ).fetchone()
@@ -80,6 +84,10 @@ class RiskStore:
         fact = VenueSafetyFact.model_validate(fact.model_dump())
         body = canonical(fact)
         with self.store.connection() as conn:
+            conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",
+                ("ledger:" + fact.tenant_id,),
+            )
             inserted = conn.execute(
                 "INSERT INTO ct_venue_safety_facts "
                 "(digest,tenant_id,environment,execution_mode,body,observed_at) "
@@ -111,6 +119,10 @@ class RiskStore:
         observed = fact.occurred_at if isinstance(fact, OperatingControls) else fact.observed_at
         body = canonical(fact)
         with self.store.connection() as conn:
+            conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",
+                ("ledger:" + fact.tenant_id,),
+            )
             inserted = conn.execute(
                 "INSERT INTO ct_risk_source_facts "
                 "(digest,tenant_id,resource_id,source_service,schema_ref,body,observed_at) "

@@ -1,0 +1,387 @@
+{
+  "$defs": {
+    "ExecutionRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "client_order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Client Order Id",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "environment": {
+          "enum": [
+            "SANDBOX",
+            "PUBLIC"
+          ],
+          "title": "Environment",
+          "type": "string"
+        },
+        "execution_mode": {
+          "enum": [
+            "SIMULATION",
+            "TESTNET",
+            "PAPER",
+            "SHADOW",
+            "LIVE"
+          ],
+          "title": "Execution Mode",
+          "type": "string"
+        },
+        "execution_request_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Execution Request Id",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "intent_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Intent Id",
+          "type": "string"
+        },
+        "intent_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Intent Sha256",
+          "type": "string"
+        },
+        "limit_price": {
+          "anyOf": [
+            {
+              "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Limit Price"
+        },
+        "metadata_version": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Metadata Version",
+          "type": "string"
+        },
+        "order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "order_type": {
+          "enum": [
+            "MARKET",
+            "LIMIT"
+          ],
+          "title": "Order Type",
+          "type": "string"
+        },
+        "owner_config_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Owner Config Id",
+          "type": "string"
+        },
+        "policy_bundle_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Policy Bundle Sha256",
+          "type": "string"
+        },
+        "portfolio_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Portfolio Id",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        },
+        "risk_record_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Risk Record Sha256",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "side": {
+          "enum": [
+            "BUY",
+            "SELL"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "symbol": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "tenant_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "venue_account_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Account Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "execution_request_id",
+        "order_id",
+        "tenant_id",
+        "portfolio_id",
+        "actor_id",
+        "intent_id",
+        "intent_sha256",
+        "risk_record_sha256",
+        "owner_config_id",
+        "policy_bundle_sha256",
+        "client_order_id",
+        "venue_account_ref",
+        "symbol",
+        "side",
+        "order_type",
+        "quantity",
+        "limit_price",
+        "metadata_version",
+        "execution_mode",
+        "environment",
+        "created_at",
+        "expires_at"
+      ],
+      "title": "ExecutionRequest",
+      "type": "object"
+    },
+    "ExecutionState": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "filled_quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Filled Quantity",
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/ExecutionRequest"
+        },
+        "revision": {
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/OrderState"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "venue_order_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Venue Order Id"
+        }
+      },
+      "required": [
+        "request",
+        "revision",
+        "state",
+        "filled_quantity",
+        "venue_order_id",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "ExecutionState",
+      "type": "object"
+    },
+    "OrderState": {
+      "enum": [
+        "CREATED",
+        "RISK_PENDING",
+        "AUTHORIZED",
+        "SUBMITTING",
+        "SUBMITTED",
+        "ACKNOWLEDGED",
+        "PARTIALLY_FILLED",
+        "FILLED",
+        "DENIED",
+        "REJECTED",
+        "CANCEL_PENDING",
+        "CANCELLED",
+        "EXPIRED",
+        "UNKNOWN",
+        "RECOVERY_REQUIRED"
+      ],
+      "title": "OrderState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "client_order_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Client Order Id",
+      "type": "string"
+    },
+    "evidence_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Evidence Ref",
+      "type": "string"
+    },
+    "execution_request_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Execution Request Id",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "order_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Order Id",
+      "type": "string"
+    },
+    "previous_revision": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Previous Revision"
+    },
+    "previous_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OrderState"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reason_code": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "resulting_state": {
+      "$ref": "#/$defs/ExecutionState"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "transition_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Transition Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "transition_id",
+    "tenant_id",
+    "actor_id",
+    "execution_request_id",
+    "order_id",
+    "client_order_id",
+    "previous_state",
+    "previous_revision",
+    "resulting_state",
+    "reason_code",
+    "evidence_ref",
+    "occurred_at"
+  ],
+  "title": "ExecutionTransition",
+  "type": "object"
+}

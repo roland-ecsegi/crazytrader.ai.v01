@@ -53,8 +53,8 @@ idempotency keys and outbox in same transaction as reservation/accounting effect
 
 ## Implementation steps
 - [x] Read durable Phase4 gate and pre-T014 adversarial review.
-- [ ] Typed states/requests/venue observations and deterministic transition rules.
-- [ ] Atomic durable reservation/authorization and stable request/client identities.
+- [x] Typed states/requests/venue observations and deterministic transition rules.
+- [x] Atomic durable reservation/authorization and stable request/client identities (protective SIMULATION milestone; BUY/mixed custody still pending).
 - [ ] Internal selected simulation adapter and accepted-timeout/restart proof.
 - [ ] Pre-T016 review, reconciliation/partial fills/cancel/suspense incidents.
 - [ ] Full negatives/chaos, adversarial repairs, evidence, publish and advance Phase6.
@@ -87,3 +87,16 @@ must not prevent independent simulation/reconciliation engineering.
 
 ## Completion summary
 Pending implementation.
+
+
+2026-10-03 coordination milestone: explicit contracts/state transitions and canonical
+stable client IDs; shared LedgerStore.append_in_transaction, durable request/transition
+history and CAS pointer; tenant serialization, source/config/checkpoint recheck and
+atomic protective simulation reservation. One SUBMITTING claim only, startup maps
+interrupted send to UNKNOWN and retains funds. Actual OPA/journal/source17 tests
+(4 execution) plus platform/ledger17 PASS.114 unit/contract tests, mypy35,82 schemas,
+source scan, wheel/sdist PASS. No transport, reconciliation, partial-fill settlement,
+BUY cost buffer, mixed custody or Phase5 gate claim. Next exact action: isolated
+mature official-SDK fixture-only signed POST/query with accepted-then-timeout, then
+mandatory pre-T016 review and canonical recovery/accounting. Phase4 remote722a914,
+hosted CI37116292477 PASS.

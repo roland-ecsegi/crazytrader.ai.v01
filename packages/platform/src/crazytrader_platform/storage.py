@@ -9,6 +9,7 @@ import psycopg
 from crazytrader_contracts.codec import canonical as canonical
 from crazytrader_contracts.codec import digest as digest
 from crazytrader_contracts.events import EventEnvelope
+from crazytrader_contracts.execution import TRANSITION_EVENTS, ExecutionTransition
 from crazytrader_contracts.ledger import LedgerTransaction
 from crazytrader_contracts.market import BookDelta, MarketCandle, MarketStatus, MarketTrade
 from crazytrader_contracts.models import Contract, Identifier, Timestamp
@@ -42,6 +43,9 @@ PAYLOAD_TYPES: dict[str, type[Contract]] = {
     "MarketSequenceGapDetected.v1": MarketStatus,
 }
 
+PAYLOAD_TYPES.update({name: ExecutionTransition for name in TRANSITION_EVENTS.values()})
+PAYLOAD_TYPES["ExecutionPreparationChanged.v1"] = ExecutionTransition
+
 
 def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
     expected_type = PAYLOAD_TYPES.get(event.event_type)
@@ -52,6 +56,15 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         raise ValueError("payload schema mismatch")
     if isinstance(payload, HealthChange):
         source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, ExecutionTransition):
+        source, occurred = "execution", payload.occurred_at
+        if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
+            raise ValueError("execution event ownership mismatch")
+        expected = TRANSITION_EVENTS.get(
+            payload.resulting_state.state, "ExecutionPreparationChanged.v1"
+        )
+        if event.event_type != expected:
+            raise ValueError("execution event state mismatch")
     elif isinstance(payload, RiskBoundaryRejection):
         source, occurred = "risk-engine", payload.occurred_at
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:

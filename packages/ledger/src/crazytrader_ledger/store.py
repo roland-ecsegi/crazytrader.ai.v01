@@ -3,6 +3,7 @@
 from datetime import datetime
 from decimal import Decimal, localcontext
 
+import psycopg
 from crazytrader_contracts.events import EventEnvelope, PayloadReference
 from crazytrader_contracts.ledger import Account, AssetBalance, LedgerTransaction, PortfolioSnapshot
 from crazytrader_contracts.models import Portfolio
@@ -53,6 +54,14 @@ class LedgerStore:
 
     def append(self, transaction: LedgerTransaction) -> bool:
         transaction = LedgerTransaction.model_validate(transaction.model_dump())
+        with self.store.connection() as conn:
+            return self.append_in_transaction(conn, transaction)
+
+    def append_in_transaction(
+        self, conn: psycopg.Connection[dict[str, object]], transaction: LedgerTransaction
+    ) -> bool:
+        """Shared transaction for execution reservation/fill plus its durable state."""
+        transaction = LedgerTransaction.model_validate(transaction.model_dump())
         body = canonical(transaction)
         fingerprint = digest(body)
         event = EventEnvelope(
@@ -71,93 +80,92 @@ class LedgerStore:
                 payload_schema_ref="LedgerTransaction.v1",
             ),
         )
-        with self.store.connection() as conn:
-            # Tenant-wide serialization is intentionally conservative for Enterprise Local.
+        # Tenant-wide serialization is intentionally conservative for Enterprise Local.
+        conn.execute(
+            "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",
+            ("ledger:" + transaction.tenant_id,),
+        )
+        previous = conn.execute(
+            "SELECT transaction_id,digest FROM ct_ledger_transactions WHERE "
+            "transaction_id=%s OR (tenant_id=%s AND source_event_id=%s) "
+            "OR (tenant_id=%s AND transaction_type='FILL' AND related_fill_id=%s) "
+            "OR (tenant_id=%s AND transaction_type='RESERVATION' AND related_order_id=%s) "
+            "OR (tenant_id=%s AND correction_of_id=%s)",
+            (
+                transaction.transaction_id,
+                transaction.tenant_id,
+                transaction.source_event_id,
+                transaction.tenant_id,
+                transaction.related_fill_id if transaction.transaction_type == "FILL" else None,
+                transaction.tenant_id,
+                transaction.related_order_id
+                if transaction.transaction_type == "RESERVATION"
+                else None,
+                transaction.tenant_id,
+                transaction.correction_of_id,
+            ),
+        ).fetchall()
+        if previous:
+            if len(previous) != 1 or previous[0] != {
+                "transaction_id": transaction.transaction_id,
+                "digest": fingerprint,
+            }:
+                raise ConflictError("transaction/source ID content collision")
+            return False
+        conn.execute(
+            "INSERT INTO ct_ledger_transactions "
+            "(transaction_id,tenant_id,source_event_id,digest,body,transaction_type,"
+            "correction_of_id,related_order_id,related_fill_id) "
+            "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            (
+                transaction.transaction_id,
+                transaction.tenant_id,
+                transaction.source_event_id,
+                fingerprint,
+                body,
+                transaction.transaction_type,
+                transaction.correction_of_id,
+                transaction.related_order_id,
+                transaction.related_fill_id,
+            ),
+        )
+        for posting in transaction.postings:
             conn.execute(
-                "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",
-                ("ledger:" + transaction.tenant_id,),
-            )
-            previous = conn.execute(
-                "SELECT transaction_id,digest FROM ct_ledger_transactions WHERE "
-                "transaction_id=%s OR (tenant_id=%s AND source_event_id=%s) "
-                "OR (tenant_id=%s AND transaction_type='FILL' AND related_fill_id=%s) "
-                "OR (tenant_id=%s AND transaction_type='RESERVATION' AND related_order_id=%s) "
-                "OR (tenant_id=%s AND correction_of_id=%s)",
+                "INSERT INTO ct_ledger_postings "
+                "(posting_id,transaction_id,tenant_id,portfolio_id,account,asset,amount,"
+                "valuation_ref) "
+                "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
+                    posting.posting_id,
                     transaction.transaction_id,
                     transaction.tenant_id,
-                    transaction.source_event_id,
-                    transaction.tenant_id,
-                    transaction.related_fill_id if transaction.transaction_type == "FILL" else None,
-                    transaction.tenant_id,
-                    transaction.related_order_id
-                    if transaction.transaction_type == "RESERVATION"
-                    else None,
-                    transaction.tenant_id,
-                    transaction.correction_of_id,
-                ),
-            ).fetchall()
-            if previous:
-                if len(previous) != 1 or previous[0] != {
-                    "transaction_id": transaction.transaction_id,
-                    "digest": fingerprint,
-                }:
-                    raise ConflictError("transaction/source ID content collision")
-                return False
-            conn.execute(
-                "INSERT INTO ct_ledger_transactions "
-                "(transaction_id,tenant_id,source_event_id,digest,body,transaction_type,"
-                "correction_of_id,related_order_id,related_fill_id) "
-                "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                (
-                    transaction.transaction_id,
-                    transaction.tenant_id,
-                    transaction.source_event_id,
-                    fingerprint,
-                    body,
-                    transaction.transaction_type,
-                    transaction.correction_of_id,
-                    transaction.related_order_id,
-                    transaction.related_fill_id,
+                    posting.portfolio_id,
+                    posting.account,
+                    posting.asset,
+                    posting.amount,
+                    posting.valuation_ref,
                 ),
             )
-            for posting in transaction.postings:
-                conn.execute(
-                    "INSERT INTO ct_ledger_postings "
-                    "(posting_id,transaction_id,tenant_id,portfolio_id,account,asset,amount,"
-                    "valuation_ref) "
-                    "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
-                    (
-                        posting.posting_id,
-                        transaction.transaction_id,
-                        transaction.tenant_id,
-                        posting.portfolio_id,
-                        posting.account,
-                        posting.asset,
-                        posting.amount,
-                        posting.valuation_ref,
-                    ),
-                )
-            negative = conn.execute(
-                "SELECT 1 FROM ct_ledger_postings WHERE tenant_id=%s "
-                "AND account IN ('AVAILABLE','RESERVED','INVENTORY') "
-                "GROUP BY portfolio_id,account,asset HAVING sum(amount)<0 LIMIT 1",
-                (transaction.tenant_id,),
-            ).fetchone()
-            if negative:
-                raise InsufficientFunds("insufficient controlled account funds")
-            negative_reservation = conn.execute(
-                "SELECT 1 FROM ct_ledger_postings p "
-                "JOIN ct_ledger_transactions t USING(transaction_id) "
-                "WHERE p.tenant_id=%s AND p.account='RESERVED' "
-                "GROUP BY p.portfolio_id,p.asset,t.related_order_id "
-                "HAVING sum(p.amount)<0 OR t.related_order_id IS NULL LIMIT 1",
-                (transaction.tenant_id,),
-            ).fetchone()
-            if negative_reservation:
-                raise InsufficientFunds("insufficient order-attributed reservation")
-            self.store.append_in_transaction(conn, event, transaction)
-            return True
+        negative = conn.execute(
+            "SELECT 1 FROM ct_ledger_postings WHERE tenant_id=%s "
+            "AND account IN ('AVAILABLE','RESERVED','INVENTORY') "
+            "GROUP BY portfolio_id,account,asset HAVING sum(amount)<0 LIMIT 1",
+            (transaction.tenant_id,),
+        ).fetchone()
+        if negative:
+            raise InsufficientFunds("insufficient controlled account funds")
+        negative_reservation = conn.execute(
+            "SELECT 1 FROM ct_ledger_postings p "
+            "JOIN ct_ledger_transactions t USING(transaction_id) "
+            "WHERE p.tenant_id=%s AND p.account='RESERVED' "
+            "GROUP BY p.portfolio_id,p.asset,t.related_order_id "
+            "HAVING sum(p.amount)<0 OR t.related_order_id IS NULL LIMIT 1",
+            (transaction.tenant_id,),
+        ).fetchone()
+        if negative_reservation:
+            raise InsufficientFunds("insufficient order-attributed reservation")
+        self.store.append_in_transaction(conn, event, transaction)
+        return True
 
     def history(self, tenant: str) -> tuple[LedgerTransaction, ...]:
         with self.store.connection() as conn:

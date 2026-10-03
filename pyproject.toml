@@ -29,7 +29,7 @@ requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["packages/contracts/src/crazytrader_contracts", "packages/platform/src/crazytrader_platform", "packages/market/src/crazytrader_market", "packages/ledger/src/crazytrader_ledger", "packages/risk/src/crazytrader_risk"]
+packages = ["packages/contracts/src/crazytrader_contracts", "packages/platform/src/crazytrader_platform", "packages/market/src/crazytrader_market", "packages/ledger/src/crazytrader_ledger", "packages/risk/src/crazytrader_risk", "packages/execution/src/crazytrader_execution"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

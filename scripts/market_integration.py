@@ -1,11 +1,16 @@
 """Exact-digest disposable market stores, loopback only, no venue credentials."""
 
+import json
 import os
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from pathlib import Path
+
+import httpx
+from crazytrader_contracts.codec import digest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "infra/spikes"))
 from platform_probe import IMAGES, docker  # noqa: E402
@@ -14,6 +19,8 @@ from platform_probe import IMAGES, docker  # noqa: E402
 def main() -> None:
     prefix = "ct-market-" + uuid.uuid4().hex[:8]
     names = [prefix + "-" + key for key in ("postgres", "clickhouse", "object")]
+    names.append(prefix + "-opa")
+    bundle_directory = tempfile.TemporaryDirectory(prefix="ct-market-policy-")
     network = prefix + "-network"
     docker("network", "create", network)
     try:
@@ -66,12 +73,44 @@ def main() -> None:
             "-dir=/data",
             "-ip=object",
         )
+        policy = Path("infra/policy/authorization.rego")
+        policy.chmod(0o644)
+        data = Path(bundle_directory.name) / "bundle.json"
+        data.write_text(
+            json.dumps(
+                {
+                    "bundle": {
+                        "version": "spot-policy.v1",
+                        "policy_sha256": digest(policy.read_text()),
+                    }
+                }
+            )
+        )
+        data.chmod(0o644)
+        docker(
+            "create",
+            "--name",
+            names[3],
+            "-p",
+            "127.0.0.1::8181",
+            IMAGES["opa"],
+            "run",
+            "--server",
+            "--addr=0.0.0.0:8181",
+            "/policy.rego",
+            "/bundle.json",
+        )
+        docker("cp", str(policy), names[3] + ":/policy.rego")
+        docker("cp", str(data), names[3] + ":/bundle.json")
+        docker("start", names[3])
+        opa_port = docker("port", names[3], "8181/tcp").stdout.strip().rsplit(":", 1)[1]
         ports = [
             docker("port", n, p).stdout.strip().rsplit(":", 1)[1]
-            for n, p in zip(names, ("5432/tcp", "8123/tcp", "8333/tcp"), strict=True)
+            for n, p in zip(names[:3], ("5432/tcp", "8123/tcp", "8333/tcp"), strict=True)
         ]
         env = dict(os.environ)
         env.update(
+            CT_TEST_OPA_URL=f"http://127.0.0.1:{opa_port}",
             CT_TEST_DSN=f"postgresql://postgres@127.0.0.1:{ports[0]}/postgres",
             CT_TEST_CH_PORT=ports[1],
             CT_TEST_CH_CONTAINER=names[1],
@@ -97,7 +136,16 @@ def main() -> None:
             s3 = docker(
                 "exec", names[2], "wget", "-Y", "off", "-qO-", "http://127.0.0.1:8333", check=False
             )
-            if pg.returncode == ch.returncode == s3.returncode == 0:
+            try:
+                opa_ready = (
+                    httpx.get(
+                        env["CT_TEST_OPA_URL"] + "/health", timeout=1, trust_env=False
+                    ).status_code
+                    == 200
+                )
+            except httpx.HTTPError:
+                opa_ready = False
+            if pg.returncode == ch.returncode == s3.returncode == 0 and opa_ready:
                 break
             time.sleep(0.5)
         else:
@@ -117,6 +165,7 @@ def main() -> None:
         for name in reversed(names):
             docker("rm", "-fv", name, check=False)
         docker("network", "rm", network, check=False)
+        bundle_directory.cleanup()
 
 
 if __name__ == "__main__":
