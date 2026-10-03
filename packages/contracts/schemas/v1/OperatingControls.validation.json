@@ -1,0 +1,85 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "control_version": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Control Version",
+      "type": "string"
+    },
+    "kill_scope": {
+      "enum": [
+        "NONE",
+        "NEW_ORDERS",
+        "CANCEL_ONLY",
+        "FLATTEN_APPROVED"
+      ],
+      "title": "Kill Scope",
+      "type": "string"
+    },
+    "mode_enabled": {
+      "title": "Mode Enabled",
+      "type": "boolean"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "owner_authority_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Owner Authority Ref",
+      "type": "string"
+    },
+    "portfolio_enabled": {
+      "title": "Portfolio Enabled",
+      "type": "boolean"
+    },
+    "portfolio_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Portfolio Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_service": {
+      "const": "control-api",
+      "default": "control-api",
+      "title": "Source Service",
+      "type": "string"
+    },
+    "strategy_enabled": {
+      "title": "Strategy Enabled",
+      "type": "boolean"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "control_version",
+    "tenant_id",
+    "portfolio_id",
+    "owner_authority_ref",
+    "kill_scope",
+    "mode_enabled",
+    "portfolio_enabled",
+    "strategy_enabled",
+    "occurred_at"
+  ],
+  "title": "OperatingControls",
+  "type": "object"
+}

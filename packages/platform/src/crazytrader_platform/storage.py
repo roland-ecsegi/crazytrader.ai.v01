@@ -1,17 +1,18 @@
 """Transactional event/audit state. Failure never silently falls back to memory."""
 
-import hashlib
-import json
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Literal
 
 import psycopg
+from crazytrader_contracts.codec import canonical as canonical
+from crazytrader_contracts.codec import digest as digest
 from crazytrader_contracts.events import EventEnvelope
 from crazytrader_contracts.ledger import LedgerTransaction
 from crazytrader_contracts.market import BookDelta, MarketCandle, MarketStatus, MarketTrade
 from crazytrader_contracts.models import Contract, Identifier, Timestamp
+from crazytrader_contracts.risk import PolicyAuthorization, RiskAuthorization, RiskBoundaryRejection
 from opentelemetry import trace
 from psycopg.rows import dict_row
 
@@ -31,6 +32,11 @@ PAYLOAD_TYPES: dict[str, type[Contract]] = {
     "MarketCandleClosed.v1": MarketCandle,
     "MarketBookUpdated.v1": BookDelta,
     "LedgerEntryAppended.v1": LedgerTransaction,
+    "RiskDecisionDenied.v1": RiskBoundaryRejection,
+    "TradeIntentRiskApproved.v1": RiskAuthorization,
+    "TradeIntentRiskDenied.v1": RiskAuthorization,
+    "TradeIntentPolicyApproved.v1": PolicyAuthorization,
+    "TradeIntentPolicyDenied.v1": PolicyAuthorization,
     "MarketDataStale.v1": MarketStatus,
     "MarketDataRecovered.v1": MarketStatus,
     "MarketSequenceGapDetected.v1": MarketStatus,
@@ -46,6 +52,18 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         raise ValueError("payload schema mismatch")
     if isinstance(payload, HealthChange):
         source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, RiskBoundaryRejection):
+        source, occurred = "risk-engine", payload.occurred_at
+        if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
+            raise ValueError("boundary denial ownership mismatch")
+    elif isinstance(payload, (RiskAuthorization, PolicyAuthorization)):
+        risk = payload if isinstance(payload, RiskAuthorization) else payload.risk_authorization
+        source = "risk-engine" if isinstance(payload, RiskAuthorization) else "policy-engine"
+        occurred = payload.evaluated_at
+        if event.tenant_id != risk.tenant_id or event.actor_id != risk.actor_id:
+            raise ValueError("decision ownership mismatch")
+        if ("Approved" in event.event_type) != (payload.decision.decision == "ALLOW"):
+            raise ValueError("decision event verdict mismatch")
     elif isinstance(payload, LedgerTransaction):
         source, occurred = "ledger", payload.timestamp
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
@@ -67,14 +85,6 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
     if event.source_service != source or event.occurred_at != occurred:
         raise ValueError("payload/envelope provenance mismatch")
     return payload
-
-
-def canonical(model: Contract) -> str:
-    return json.dumps(model.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
-
-
-def digest(body: str) -> str:
-    return hashlib.sha256(body.encode()).hexdigest()
 
 
 class ConflictError(ValueError):

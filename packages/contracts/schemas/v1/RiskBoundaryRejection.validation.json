@@ -1,0 +1,61 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "intent_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Intent Id",
+      "type": "string"
+    },
+    "intent_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Intent Sha256",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "reason_code": {
+      "enum": [
+        "AUTHENTICATED_ACTOR_REQUIRED",
+        "TRUSTED_STATE_UNAVAILABLE",
+        "POLICY_CONFIGURATION_MISMATCH"
+      ],
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "actor_id",
+    "intent_id",
+    "intent_sha256",
+    "reason_code",
+    "occurred_at"
+  ],
+  "title": "RiskBoundaryRejection",
+  "type": "object"
+}

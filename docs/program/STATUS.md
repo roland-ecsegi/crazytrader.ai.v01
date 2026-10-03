@@ -7,9 +7,10 @@ CrazyTrader.ai — Enterprise Local
 AUTONOMOUS PROGRAM
 
 ## Current phase
-Phase 4 — Hard Risk + OPA
+Phase 5 — Execution + reconciliation
 
 ## Completed
+- Phase 4 hard-risk/OPA foundation gate: PASS (109 unit/contract tests, OPA38, platform/ledger17, market/risk13); L0, no execution authority
 - Phase 3 accounting gate: PASS (74 unit/contract tests total; 8 actual ledger tests plus platform/market regression)
 - Phase 2 local market/data gate: PASS (63 unit/contract tests, 2 real market-store tests, actual public metadata/trade/depth reads)
 - Phase 1 platform backbone gate: PASS (44 unit/contract tests; 8 real integration tests; actual container runtime smoke)
@@ -25,10 +26,10 @@ L0 — DEVELOPMENT
 `codex/enterprise-local-autonomous` — created and ready for the Codex Master Goal.
 
 ## Last durable commit
-ca085cd33135bd337b5b79de27d1bbf5aa11f17a — Phase3 ledger gate published; hosted CI37111641894 PASS.
+5ccfb0ede5f8393ca9540e8b8fb0cd224f35928c — previous Phase4 milestone. This checkpoint records final Phase4 gate and starts Phase5; publication hash is Git HEAD.
 
 ## Next action
-Continue active docs/plans/2026-10-03-phase-4-hard-risk-opa.md from its implementation milestone: typed cancellation policy/proof, trusted state/permissions and immutable risk/policy audit persistence. Deterministic29 tests and actual OPA HTTP/local-CLI36 tests PASS; no Phase4 gate claimed. Pre-T012 review recorded. Do not repeat Phase0–3 or completed risk evaluator/OPA work.
+Continue docs/plans/2026-10-03-phase-5-execution-reconciliation.md: typed execution states/requests and durable authorized reservation. Pre-T014 adversarial review recorded. Do not repeat Phase0–4. No external blocker for independent simulation/reconciliation implementation.
 
 ## Blockers
 None for implementation. Future external actions: owner-local Claude authentication validation and Binance L5/L6 secrets/activation.

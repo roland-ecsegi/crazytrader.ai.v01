@@ -1,0 +1,114 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "client_order_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Client Order Id",
+      "type": "string"
+    },
+    "context_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Context Sha256",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "ALLOW",
+        "DENY"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "evaluated_at": {
+      "format": "date-time",
+      "title": "Evaluated At",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "order_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Order Id",
+      "type": "string"
+    },
+    "origin_intent_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Origin Intent Id",
+      "type": "string"
+    },
+    "policy_bundle_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Policy Bundle Sha256",
+      "type": "string"
+    },
+    "reason_codes": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Reason Codes",
+      "type": "array"
+    },
+    "request_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "request_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Request Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "tenant_id",
+    "actor_id",
+    "order_id",
+    "client_order_id",
+    "origin_intent_id",
+    "request_sha256",
+    "context_sha256",
+    "policy_bundle_sha256",
+    "decision",
+    "reason_codes",
+    "evaluated_at",
+    "expires_at"
+  ],
+  "title": "CancellationAuthorization",
+  "type": "object"
+}

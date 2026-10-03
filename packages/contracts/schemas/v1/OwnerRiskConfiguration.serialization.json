@@ -1,0 +1,258 @@
+{
+  "$defs": {
+    "RiskLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "max_daily_loss": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Daily Loss",
+          "type": "string"
+        },
+        "max_drawdown": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Drawdown",
+          "type": "string"
+        },
+        "max_orders_per_window": {
+          "minimum": 0,
+          "title": "Max Orders Per Window",
+          "type": "integer"
+        },
+        "max_positions": {
+          "minimum": 0,
+          "title": "Max Positions",
+          "type": "integer"
+        },
+        "max_slippage": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Slippage",
+          "type": "string"
+        },
+        "max_spread": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Spread",
+          "type": "string"
+        },
+        "metadata_max_age_seconds": {
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Metadata Max Age Seconds",
+          "type": "integer"
+        },
+        "min_liquidity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Min Liquidity",
+          "type": "string"
+        },
+        "mode_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Mode Cap",
+          "type": "string"
+        },
+        "order_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Order Cap",
+          "type": "string"
+        },
+        "order_window_seconds": {
+          "maximum": 86400,
+          "minimum": 1,
+          "title": "Order Window Seconds",
+          "type": "integer"
+        },
+        "portfolio_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Portfolio Cap",
+          "type": "string"
+        },
+        "state_max_age_seconds": {
+          "maximum": 30,
+          "minimum": 1,
+          "title": "State Max Age Seconds",
+          "type": "integer"
+        },
+        "strategy_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Strategy Cap",
+          "type": "string"
+        },
+        "symbol_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Symbol Cap",
+          "type": "string"
+        },
+        "total_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Total Cap",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "total_cap",
+        "mode_cap",
+        "portfolio_cap",
+        "strategy_cap",
+        "symbol_cap",
+        "order_cap",
+        "max_positions",
+        "max_orders_per_window",
+        "order_window_seconds",
+        "max_daily_loss",
+        "max_drawdown",
+        "min_liquidity",
+        "max_spread",
+        "max_slippage",
+        "metadata_max_age_seconds",
+        "state_max_age_seconds"
+      ],
+      "title": "RiskLimits",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "actor_permissions": {
+      "items": {
+        "enum": [
+          "risk.increase",
+          "risk.reduce",
+          "order.cancel",
+          "live.activate"
+        ],
+        "type": "string"
+      },
+      "title": "Actor Permissions",
+      "type": "array"
+    },
+    "config_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Config Id",
+      "type": "string"
+    },
+    "execution_mode": {
+      "enum": [
+        "SIMULATION",
+        "TESTNET",
+        "PAPER",
+        "SHADOW",
+        "LIVE"
+      ],
+      "title": "Execution Mode",
+      "type": "string"
+    },
+    "offline_protective_authorized": {
+      "title": "Offline Protective Authorized",
+      "type": "boolean"
+    },
+    "owner_authority_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Owner Authority Ref",
+      "type": "string"
+    },
+    "owner_limits": {
+      "$ref": "#/$defs/RiskLimits"
+    },
+    "owner_live_activated": {
+      "title": "Owner Live Activated",
+      "type": "boolean"
+    },
+    "policy_bundle_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Policy Bundle Sha256",
+      "type": "string"
+    },
+    "profile_limits": {
+      "$ref": "#/$defs/RiskLimits"
+    },
+    "profile_name": {
+      "anyOf": [
+        {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Profile Name"
+    },
+    "risk_profile_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Risk Profile Version Id"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "symbol_allowlist": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "title": "Symbol Allowlist",
+      "type": "array"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "config_id",
+    "tenant_id",
+    "actor_id",
+    "owner_authority_ref",
+    "owner_limits",
+    "profile_limits",
+    "risk_profile_version_id",
+    "profile_name",
+    "execution_mode",
+    "symbol_allowlist",
+    "actor_permissions",
+    "owner_live_activated",
+    "offline_protective_authorized",
+    "policy_bundle_sha256"
+  ],
+  "title": "OwnerRiskConfiguration",
+  "type": "object"
+}

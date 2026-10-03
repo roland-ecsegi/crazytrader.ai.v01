@@ -102,9 +102,9 @@ def test_malformed_response_never_authorizes(monkeypatch, result):
 
 @pytest.mark.skipif(not os.getenv("CT_TEST_OPA_BINARY"), reason="pinned local OPA required")
 def test_actual_local_opa_preserves_approved_reduction_during_http_outage():
-    from crazytrader_risk.policy import LocalReductionPolicy, PolicyRouter
+    from crazytrader_risk.policy import LocalProtectivePolicy, PolicyRouter
 
-    local = LocalReductionPolicy(
+    local = LocalProtectivePolicy(
         Path(os.environ["CT_TEST_OPA_BINARY"]),
         os.environ["CT_TEST_OPA_BINARY_SHA256"],
         POLICY,
@@ -136,7 +136,7 @@ def test_actual_local_opa_preserves_approved_reduction_during_http_outage():
         ).decision.decision
         == "DENY"
     )
-    disabled = LocalReductionPolicy(
+    disabled = LocalProtectivePolicy(
         Path(os.environ["CT_TEST_OPA_BINARY"]),
         os.environ["CT_TEST_OPA_BINARY_SHA256"],
         POLICY,

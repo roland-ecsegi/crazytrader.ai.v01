@@ -1,0 +1,83 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "evidence_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Evidence Ref",
+      "type": "string"
+    },
+    "liquidity": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Liquidity"
+    },
+    "metadata_version": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Metadata Version",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_service": {
+      "const": "market-data",
+      "default": "market-data",
+      "title": "Source Service",
+      "type": "string"
+    },
+    "spread": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Spread"
+    },
+    "symbol": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "symbol",
+    "metadata_version",
+    "liquidity",
+    "spread",
+    "observed_at",
+    "evidence_ref"
+  ],
+  "title": "MarketSafetyFact",
+  "type": "object"
+}

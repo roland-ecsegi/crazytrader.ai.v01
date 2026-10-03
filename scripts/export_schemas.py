@@ -10,7 +10,18 @@ from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    risk.RiskBoundaryRejection,
     risk.RiskEvaluationDecision,
+    risk.CancellationRequest,
+    risk.CancellationContext,
+    risk.CancellationAuthorization,
+    risk.PolicyAuthorization,
+    risk.OwnerRiskConfiguration,
+    risk.VenueSafetyFact,
+    risk.RiskEvaluationRecord,
+    risk.PortfolioSafetyFact,
+    risk.MarketSafetyFact,
+    risk.OperatingControls,
     risk.RiskLimits,
     risk.RiskContext,
     risk.RiskAuthorization,

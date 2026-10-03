@@ -87,10 +87,10 @@ cannot be reused. Break formats only with a new version.
 - [x] Read binding risk/intent/mode/certification contracts and design boundaries.
 - [x] Record pre-T012 autonomous adversarial architecture/security review and resolve findings.
 - [x] Implement typed limits/context/bound evidence and deterministic classifier/evaluator.
-- [ ] Implement scoped kill controls and dedicated bounded reduction/cancel path.
+- [x] Implement scoped kill controls and dedicated bounded reduction/cancel path.
 - [x] Implement versioned Rego authorization bundle and actual OPA integration.
-- [ ] Verify negative matrix, outage behavior, immutable replay and audit.
-- [ ] Final adversarial pass, durable publication, continue Phase 5 review/execution.
+- [x] Verify negative matrix, outage behavior, immutable replay and audit.
+- [x] Final adversarial pass, durable publication, continue Phase 5 review/execution.
 
 ## Test plan
 make check/integration; table-driven increasing/reducing/mismatch/certification/
@@ -140,3 +140,14 @@ DENY is never overridden; unsafe/increasing proposals deny during outage. Contex
 and full authorization are re-evaluated/bound; expiry uses earliest source lifetime.
 Legacy RiskDecision.v1 remains unchanged; new RiskEvaluationDecision.v1 explicitly
 represents unknown drawdown/exposure, avoiding fabricated zero metrics.
+
+
+2026-10-03 gate:109 unit/contract tests, actual OPA38, actual platform/ledger17,
+actual market/risk13, mypy31,76 schemas, source scan and wheel/sdist. Cancellation
+maintenance binds original intent/client ID; LocalProtectivePolicy verifies same
+Rego and pinned OPA binary, owner opt-in required. Internal RiskService accepts only
+intent/authenticated actor, validates owner config, journal/head, archive/checkpoint,
+service safety facts and persistent owner controls, and emits immutable outcomes.
+Config activation SQL history, source identity conflicts and terminal decision
+replay are protected. Above-L0/lifecycle claims deny pending verified registries.
+Adversarial review/evidence recorded. Advance Phase5; do not repeat this gate.

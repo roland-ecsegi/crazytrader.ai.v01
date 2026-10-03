@@ -1,0 +1,208 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "accounting_health": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNKNOWN"
+      ],
+      "title": "Accounting Health",
+      "type": "string"
+    },
+    "active_positions": {
+      "minimum": 0,
+      "title": "Active Positions",
+      "type": "integer"
+    },
+    "daily_loss": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Daily Loss"
+    },
+    "drawdown": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Drawdown"
+    },
+    "evidence_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Evidence Ref",
+      "type": "string"
+    },
+    "ledger_head_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Ledger Head Sha256",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "MATH",
+        "STRATEGY"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "mode_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Mode Exposure"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "orders_in_window": {
+      "minimum": 0,
+      "title": "Orders In Window",
+      "type": "integer"
+    },
+    "portfolio_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Portfolio Exposure"
+    },
+    "portfolio_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Portfolio Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_service": {
+      "const": "portfolio-engine",
+      "default": "portfolio-engine",
+      "title": "Source Service",
+      "type": "string"
+    },
+    "strategy_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Strategy Exposure"
+    },
+    "strategy_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Strategy Version Id"
+    },
+    "symbol": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "symbol_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Symbol Exposure"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "total_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Total Exposure"
+    },
+    "window_started_at": {
+      "format": "date-time",
+      "title": "Window Started At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "portfolio_id",
+    "ledger_head_sha256",
+    "mode",
+    "symbol",
+    "strategy_version_id",
+    "accounting_health",
+    "total_exposure",
+    "mode_exposure",
+    "portfolio_exposure",
+    "strategy_exposure",
+    "symbol_exposure",
+    "active_positions",
+    "orders_in_window",
+    "window_started_at",
+    "daily_loss",
+    "drawdown",
+    "observed_at",
+    "evidence_ref"
+  ],
+  "title": "PortfolioSafetyFact",
+  "type": "object"
+}

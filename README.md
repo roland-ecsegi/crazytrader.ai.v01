@@ -85,3 +85,14 @@ Real-money activation remains impossible before L6 and requires an explicit owne
 Use Python 3.12 and uv 0.12.19. Run `make setup` then `make check` from the repository root. `uv.lock` pins all Python dependencies. `make schemas` regenerates the checked-in V1 JSON Schemas after an intentional contract change.
 
 See [Phase 0 ExecPlan](docs/plans/phase-0-repository-bootstrap.md), [contracts](packages/contracts/README.md) and [program status](docs/program/STATUS.md). Service/UI directories are ownership boundaries pending their roadmap implementation, not running services. This bootstrap remains L0 and contains no exchange order submission path.
+
+
+Phase4 risk boundary: deterministic `crazytrader_risk.engine`, adopted OPA bundle,
+HTTP policy client and opt-in same-policy local protective fallback. Internal
+`RiskService` accepts intent/authenticated actor, not agent-supplied context. It
+loads owner configuration and journal/archive/service/control proofs, then persists
+risk/policy evidence and audit outbox. Missing source/config/lifecycle/certification
+proof denies; current trusted certification boundary is L0. Cancellation contracts
+manage an original immutable intent and stable owned order; actual registry comes
+in Phase5. No exchange submission endpoint or live capability. See Phase4 evidence
+and active Phase5 ExecPlan. Production scoped roles/TLS remain Phase14.
