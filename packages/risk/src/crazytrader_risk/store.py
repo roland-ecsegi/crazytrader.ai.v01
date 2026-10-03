@@ -199,6 +199,15 @@ class RiskStore:
             or context.model_lifecycles
         ):
             raise StateUnavailable("lifecycle registry not yet verified")
+        with self.store.connection() as conn:
+            incident = conn.execute(
+                "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s LIMIT 1",
+                (context.tenant_id,),
+            ).fetchone()
+            if incident is not None and context.accounting_health == "HEALTHY":
+                raise StateUnavailable(
+                    "unsettled venue truth prevents healthy accounting assertion"
+                )
         snapshot = LedgerStore(self.store).snapshot(
             context.tenant_id, context.portfolio.portfolio_id, context.portfolio.as_of
         )

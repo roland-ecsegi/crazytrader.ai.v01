@@ -74,8 +74,10 @@ Stop new submissions, retain reservations/immutable history, reconcile unresolve
 stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollback.
 
 ## Resume checkpoint
-Phase4 gate publication pending. Next exact action: typed execution state machine
-and durable request contract before implementing the adapter. Current certification L0.
+Phase5 SDK milestone published at6e23475; canonical settlement and final source
+review repairs PASS. Next exact action: authenticated owned-order cancellation through
+current owner policy, durable one-send claim and official SDK loopback DELETE; query
+reconciliation alone may release proven remainder. Then additive actual quote/fee accounting. Current certification L0; no Phase5 gate.
 
 ## Progress log
 2026-10-03: Phase4 completed; pre-T014 review recorded, Phase5 prepared.
@@ -116,3 +118,13 @@ hash bind immutable observations.22 actual combined-store/SDK tests PASS;115 uni
 mypy38,84 schemas, scan/SDK offline/wheel-sdist PASS. Pre-T016 review recorded before
 reconciliation implementation. Next: canonical fill batches, exact atomic accounting,
 cancel remainder, suspense and incident containment. Actual SDK redirect-to-second-server test PASS (no follow/no credential forwarding). No phase gate/live certification.
+
+
+2026-10-03 settlement milestone: canonical scoped fill identities and immutable raw
+source/query proof; atomic partial/full accounting and proven cancel remainder release;
+savepoint preserves suspense/incidents on unowned fee/conflict; incident latches risk and
+claim authority.28 actual combined tests PASS before final raw-source tamper hardening;
+115 units/mypy39/90 schemas PASS. Review and scope in docs/evidence/phase-5-fill-settlement.md
+and reviews/2026-10-03-phase-5-settlement-review.md. Final hardened actual28 tests PASS (71.76s),8 source-contract regressions PASS;
+pinned image build/non-root import and wheel/sdist PASS. Compose smoke failed during
+disk exhaustion; no new runtime smoke claim. Targeted cache cleanup restored5.7GB. No Phase5 gate; continue cancellation and actual quote/fee semantics.

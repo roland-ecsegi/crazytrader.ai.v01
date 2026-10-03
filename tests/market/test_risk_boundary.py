@@ -271,7 +271,7 @@ def test_trusted_context_replay_audit_and_restart(backbone):
         )
     events = [
         e
-        for e in risk.store.pending()
+        for e in risk.store.pending(limit=1000)
         if e.tenant_id == intent.tenant_id and e.source_service in {"risk-engine", "policy-engine"}
     ]
     assert len(events) == 2

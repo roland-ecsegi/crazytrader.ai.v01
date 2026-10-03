@@ -9,7 +9,11 @@ import psycopg
 from crazytrader_contracts.codec import canonical as canonical
 from crazytrader_contracts.codec import digest as digest
 from crazytrader_contracts.events import EventEnvelope
-from crazytrader_contracts.execution import TRANSITION_EVENTS, ExecutionTransition
+from crazytrader_contracts.execution import (
+    TRANSITION_EVENTS,
+    ExecutionIncident,
+    ExecutionTransition,
+)
 from crazytrader_contracts.ledger import LedgerTransaction
 from crazytrader_contracts.market import BookDelta, MarketCandle, MarketStatus, MarketTrade
 from crazytrader_contracts.models import Contract, Identifier, Timestamp
@@ -45,6 +49,7 @@ PAYLOAD_TYPES: dict[str, type[Contract]] = {
 
 PAYLOAD_TYPES.update({name: ExecutionTransition for name in TRANSITION_EVENTS.values()})
 PAYLOAD_TYPES["ExecutionPreparationChanged.v1"] = ExecutionTransition
+PAYLOAD_TYPES["ReconciliationCriticalMismatch.v1"] = ExecutionIncident
 
 
 def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
@@ -56,6 +61,10 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         raise ValueError("payload schema mismatch")
     if isinstance(payload, HealthChange):
         source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, ExecutionIncident):
+        source, occurred = "reconciliation", payload.occurred_at
+        if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
+            raise ValueError("reconciliation incident ownership mismatch")
     elif isinstance(payload, ExecutionTransition):
         source, occurred = "execution", payload.occurred_at
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
@@ -238,7 +247,9 @@ class EventStore:
                     event.payload.sha256,
                 ),
             )
-            if isinstance(payload, (HealthChange, MarketStatus)) and payload.health != "HEALTHY":
+            if isinstance(payload, ExecutionIncident) or (
+                isinstance(payload, (HealthChange, MarketStatus)) and payload.health != "HEALTHY"
+            ):
                 conn.execute(
                     "INSERT INTO ct_notifications(event_id,status) VALUES (%s,'PENDING')",
                     (event.event_id,),

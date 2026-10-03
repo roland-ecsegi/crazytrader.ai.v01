@@ -1,0 +1,83 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "blocks_new_risk": {
+      "const": true,
+      "default": true,
+      "title": "Blocks New Risk",
+      "type": "boolean"
+    },
+    "execution_request_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Execution Request Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "reason_code": {
+      "enum": [
+        "UNPROVEN_FILL_BATCH",
+        "ACCOUNTING_ATTRIBUTION_FAILED",
+        "FILL_ID_CONFLICT",
+        "CUMULATIVE_MISMATCH",
+        "TERMINAL_STATE_CONFLICT"
+      ],
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "severity": {
+      "const": "CRITICAL",
+      "default": "CRITICAL",
+      "title": "Severity",
+      "type": "string"
+    },
+    "source_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Digest",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "incident_id",
+    "tenant_id",
+    "actor_id",
+    "execution_request_id",
+    "source_digest",
+    "reason_code",
+    "occurred_at"
+  ],
+  "title": "ExecutionIncident",
+  "type": "object"
+}

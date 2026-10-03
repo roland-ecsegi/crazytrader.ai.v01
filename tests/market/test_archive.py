@@ -190,7 +190,7 @@ def test_worker_checkpoint_event_provenance_and_old_conflict():
     assert worker.monitor.health(now) == "HEALTHY"
     events = [
         e
-        for e in store.pending()
+        for e in store.pending(limit=1000)
         if e.tenant_id == "worker-fixture" and e.event_type == "MarketTradeReceived.v1"
     ]
     assert len(events) == 2

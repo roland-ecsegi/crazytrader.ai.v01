@@ -90,7 +90,7 @@ def test_atomic_reservation_duplicate_claim_and_restart_unknown(backbone):
     )
     events = [
         e
-        for e in risk.store.pending()
+        for e in risk.store.pending(limit=1000)
         if e.tenant_id == intent.tenant_id and e.source_service == "execution"
     ]
     assert len(events) == 5

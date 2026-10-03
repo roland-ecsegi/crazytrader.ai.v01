@@ -6,13 +6,20 @@ No Binance URLs, no owner-local auth, no API/agent endpoint. Phase5 wire proof o
 import json
 import os
 import subprocess
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
+from decimal import localcontext
 from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
 from crazytrader_contracts.codec import canonical, digest
-from crazytrader_contracts.execution import ExecutionRequest, VenueOrderObservation
+from crazytrader_contracts.execution import (
+    ExecutionRequest,
+    VenueFillBatch,
+    VenueFillEvidence,
+    VenueOrderObservation,
+)
+from crazytrader_contracts.models import Fill, decimal_input
 
 
 class SDKFixtureTransport:
@@ -104,3 +111,105 @@ class SDKFixtureTransport:
 
     def query(self, request: ExecutionRequest, now: datetime) -> VenueOrderObservation:
         return self._call(request, "QUERY", now)
+
+    def fills(
+        self, request: ExecutionRequest, observation: VenueOrderObservation, now: datetime
+    ) -> VenueFillBatch:
+        request = ExecutionRequest.model_validate(request.model_dump())
+        if request.execution_mode != "SIMULATION" or request.side != "SELL":
+            raise ValueError("fixture fills have no real-money authority")
+        observation = VenueOrderObservation.model_validate(observation.model_dump())
+        venue_id = observation.venue_order_id
+        if venue_id is None:
+            raise ValueError("canonical fills require an identified query order")
+        base = {
+            "order_observation": observation,
+            "tenant_id": request.tenant_id,
+            "venue_account_ref": request.venue_account_ref,
+            "execution_request_id": request.execution_request_id,
+            "request_sha256": digest(canonical(request)),
+            "client_order_id": request.client_order_id,
+            "venue_order_id": venue_id,
+            "symbol": request.symbol,
+            "side": request.side,
+            "observed_at": now,
+            "raw_json": None,
+            "available": False,
+            "complete": False,
+            "fills": (),
+        }
+        try:
+            env = {key: value for key, value in os.environ.items() if key in {"PATH", "SYSTEMROOT"}}
+            env.update(NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost")
+            result = subprocess.run(
+                [str(self.sdk_python), str(self.child)],
+                input=json.dumps(
+                    {
+                        "endpoint": self.endpoint,
+                        "action": "FILLS",
+                        "request": request.model_dump(mode="json"),
+                        "venue_order_id": venue_id,
+                    }
+                ),
+                env=env,
+                timeout=5,
+                capture_output=True,
+                text=True,
+            )
+            raw = json.loads(result.stdout)
+            if (
+                result.returncode
+                or raw["status"] != "OBSERVED"
+                or not isinstance(raw["fills"], list)
+            ):
+                raise ValueError("fill source unavailable")
+            rows = raw["fills"]
+            base["raw_json"] = json.dumps(rows, sort_keys=True, separators=(",", ":"))
+            fills = []
+            for row in rows:
+                if any(type(row.get(name)) is not int for name in ("id", "orderId", "time")):
+                    raise ValueError("integer venue IDs and UTC epoch milliseconds required")
+                if type(row.get("isBuyer")) is not bool or row["isBuyer"] is not False:
+                    raise ValueError("fill direction mismatch")
+                if row["symbol"] != request.symbol or str(row["orderId"]) != venue_id:
+                    raise ValueError("fill order identity mismatch")
+                scope = digest(
+                    json.dumps(
+                        [request.tenant_id, request.venue_account_ref, request.symbol, row["id"]],
+                        separators=(",", ":"),
+                    )
+                )
+                with localcontext() as exact:
+                    exact.prec = 100
+                    quantity, price = decimal_input(row["qty"]), decimal_input(row["price"])
+                    if decimal_input(row["quoteQty"]) != quantity * price:
+                        raise ValueError("fill quote amount mismatch")
+                fill = Fill(
+                    fill_id="fill:" + scope,
+                    order_id=request.order_id,
+                    venue_fill_id="vfill:" + scope,
+                    quantity=quantity,
+                    price=price,
+                    fee_amount=row["commission"],
+                    fee_asset=row["commissionAsset"],
+                    timestamp=datetime(1970, 1, 1, tzinfo=UTC)
+                    + timedelta(milliseconds=row["time"]),
+                )
+                fills.append(
+                    VenueFillEvidence(
+                        tenant_id=request.tenant_id,
+                        venue_account_ref=request.venue_account_ref,
+                        execution_request_id=request.execution_request_id,
+                        client_order_id=request.client_order_id,
+                        venue_order_id=venue_id,
+                        symbol=request.symbol,
+                        side=request.side,
+                        raw_trade_id=row["id"],
+                        fill=fill,
+                    )
+                )
+            return VenueFillBatch.model_validate(
+                base | {"available": True, "complete": len(rows) < 1000, "fills": tuple(fills)}
+            )
+        except Exception:
+            return VenueFillBatch.model_validate(base)

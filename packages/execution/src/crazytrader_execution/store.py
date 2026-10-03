@@ -130,6 +130,12 @@ class ExecutionStore:
             raise StateUnavailable("execution mode/order path not yet verified")
         with self.store.connection() as conn:
             self._lock(conn, request.tenant_id)
+            incident = conn.execute(
+                "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s LIMIT 1",
+                (request.tenant_id,),
+            ).fetchone()
+            if incident is not None:
+                raise StateUnavailable("canonical reconciliation incident blocks unproven exposure")
             existing = conn.execute(
                 "SELECT body FROM ct_execution_requests WHERE execution_request_id=%s",
                 (request.execution_request_id,),
@@ -319,8 +325,10 @@ class ExecutionStore:
         # Conservative: any owner/safety update invalidates the prepared send.
         rows = conn.execute(
             "SELECT digest FROM ct_risk_source_facts WHERE tenant_id=%s UNION ALL "
-            "SELECT digest FROM ct_venue_safety_facts WHERE tenant_id=%s ORDER BY digest",
-            (tenant, tenant),
+            "SELECT digest FROM ct_venue_safety_facts WHERE tenant_id=%s UNION ALL "
+            "SELECT encode(sha256(convert_to(body,'UTF8')),'hex') digest "
+            "FROM ct_reconciliation_incidents WHERE tenant_id=%s ORDER BY digest",
+            (tenant, tenant, tenant),
         ).fetchall()
         return digest(json.dumps([str(row["digest"]) for row in rows], separators=(",", ":")))
 
@@ -523,7 +531,11 @@ class ExecutionStore:
             if current.state != OrderState.RECOVERY_REQUIRED:
                 # Replay cannot repeat transitions or infer a second send.
                 return current
-            if observation.status != "NEW" or observation.filled_quantity != 0:
+            if (
+                observation.status != "NEW"
+                or observation.filled_quantity != 0
+                or current.filled_quantity != 0
+            ):
                 # Persist actual known truth, keep unresolved and funds reserved. The next
                 # accounting increment records/settles full fill evidence and incidents.
                 return current

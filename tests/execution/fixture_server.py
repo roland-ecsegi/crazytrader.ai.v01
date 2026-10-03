@@ -21,6 +21,13 @@ def sdk_venue(store, tenant, timeout_after_accept=True):
             "(tenant text NOT NULL, client_id text NOT NULL)"
         )
 
+    with store.connection() as conn:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS ct_test_wire_fills "
+            "(tenant text NOT NULL, trade_id bigint NOT NULL, body text NOT NULL, "
+            "PRIMARY KEY(tenant,trade_id))"
+        )
+
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass  # no request signatures/auth/query in ordinary logs
@@ -90,8 +97,18 @@ def sdk_venue(store, tenant, timeout_after_accept=True):
                 self.respond(body)
 
         def do_GET(self):
-            assert urlsplit(self.path).path == "/api/v3/order"
             params = self.params()
+            if urlsplit(self.path).path == "/api/v3/myTrades":
+                assert params["signature"]
+                with store.connection() as conn:
+                    rows = conn.execute(
+                        "SELECT body FROM ct_test_wire_fills WHERE tenant=%s "
+                        "AND body::jsonb->>'orderId'=%s ORDER BY trade_id",
+                        (tenant, params["orderId"]),
+                    ).fetchall()
+                self.respond([json.loads(row["body"]) for row in rows])
+                return
+            assert urlsplit(self.path).path == "/api/v3/order"
             assert params["signature"]
             with store.connection() as conn:
                 row = conn.execute(
