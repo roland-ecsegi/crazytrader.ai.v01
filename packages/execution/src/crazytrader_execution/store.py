@@ -1,7 +1,7 @@
 """Durable execution coordination. Only prepared, reserved simulation sends can be claimed.
 
 Official-SDK loopback submission/query/cancel and exact fixture settlement are verified.
-Above-L0 registries, BUY cost buffers, actual quote amounts, full account reconciliation
+Above-L0 registries, BUY cost buffers, full account reconciliation
 and signed owner-local adapters remain explicit engineering work.
 """
 
@@ -21,7 +21,7 @@ from crazytrader_contracts.execution import (
 from crazytrader_contracts.ledger import Account
 from crazytrader_contracts.models import OrderState
 from crazytrader_contracts.risk import RiskEvaluationRecord, VenueSafetyFact
-from crazytrader_ledger.commands import move
+from crazytrader_ledger.commands import reserve_custody
 from crazytrader_ledger.store import LedgerStore
 from crazytrader_market.adapter import normalize_metadata
 from crazytrader_market.archive import S3Artifacts
@@ -269,15 +269,10 @@ class ExecutionStore:
             snapshot = record.context.portfolio
             asset = record.context.metadata.base_asset
             balance = next(b for b in snapshot.balances if b.asset == asset)
-            # Mixed custody reservations will be modeled explicitly in the next increment;
-            # no implicit transfer or double-counting. Pick one sufficient canonical account.
-            account: Account = "INVENTORY" if balance.inventory >= request.quantity else "AVAILABLE"
-            amount = balance.inventory if account == "INVENTORY" else balance.available
-            if amount < request.quantity:
-                raise StateUnavailable(
-                    "single custody account cannot safely reserve requested quantity"
-                )
-            tx = move(
+            # Canonical postings retain both original custody sources. The legacy
+            # reserve_account column is a compatibility hint, never release authority.
+            account: Account = "INVENTORY" if balance.inventory else "AVAILABLE"
+            tx = reserve_custody(
                 "reserve:" + request.execution_request_id,
                 request.tenant_id,
                 "reserve-source:" + request.execution_request_id,
@@ -287,9 +282,9 @@ class ExecutionStore:
                 request.portfolio_id,
                 asset,
                 request.quantity,
-                "RESERVATION",
                 request.order_id,
-                reserve_account=account,
+                balance.inventory,
+                balance.available,
             )
             LedgerStore(self.store).append_in_transaction(conn, tx)
             conn.execute(

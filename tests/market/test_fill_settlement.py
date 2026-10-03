@@ -367,3 +367,32 @@ def test_inconsistent_actual_quote_remains_unposted_source_and_reservation(backb
                 ).fetchone()["reason_code"]
                 == "UNPROVEN_FILL_BATCH"
             )
+
+
+@pytest.mark.parametrize("backbone", ["mixed-custody"], indirect=True)
+def test_mixed_custody_reserves_once_and_cancel_restores_exact_original_sources(backbone):
+    risk, objects, intent, context, config, policy, now = backbone
+    with sdk_venue(risk.store, intent.tenant_id, timeout_after_accept=False) as endpoint:
+        execution, request, reconciler = ready(backbone, endpoint)
+        ledger = LedgerStore(risk.store)
+        assert ledger.balance(intent.tenant_id, intent.portfolio_id, "INVENTORY", "BTC") == 0
+        assert ledger.balance(intent.tenant_id, intent.portfolio_id, "AVAILABLE", "BTC") == 0
+        assert execution.prepare(request, objects, now).state == OrderState.ACKNOWLEDGED
+        set_truth(risk.store, request, [fill(request, now)], "CANCELED")
+        terminal = reconciler.reconcile(request.execution_request_id)
+        assert terminal.state == OrderState.CANCELLED
+        assert ledger.balance(intent.tenant_id, intent.portfolio_id, "RESERVED", "BTC") == 0
+        assert ledger.balance(intent.tenant_id, intent.portfolio_id, "INVENTORY", "BTC") == Decimal(
+            "0.02"
+        )
+        assert ledger.balance(intent.tenant_id, intent.portfolio_id, "AVAILABLE", "BTC") == Decimal(
+            "0.04"
+        )
+        assert reconciler.reconcile(request.execution_request_id) == terminal
+        with risk.store.connection() as conn:
+            count = conn.execute(
+                "SELECT count(*) n FROM ct_ledger_transactions WHERE tenant_id=%s "
+                "AND transaction_type='RELEASE'",
+                (intent.tenant_id,),
+            ).fetchone()["n"]
+        assert count == 1

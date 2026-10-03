@@ -5,6 +5,7 @@ import os
 import subprocess
 import uuid
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 
 import psycopg
@@ -40,7 +41,7 @@ pytestmark = pytest.mark.skipif(not os.getenv("CT_TEST_S3"), reason="actual mark
 
 
 @pytest.fixture
-def backbone():
+def backbone(request):
     now = datetime.now(UTC)
     tenant = "risk:" + uuid.uuid4().hex
     store = EventStore(os.environ["CT_TEST_DSN"])
@@ -143,6 +144,44 @@ def backbone():
             "FUNDING",
         )
     )
+    if getattr(request, "param", None) == "mixed-custody":
+        from crazytrader_contracts.ledger import LedgerTransaction
+        from crazytrader_ledger.commands import posting
+
+        # Explicit immutable same-asset custody movements before publishing safety.
+        ledger.append(
+            LedgerTransaction(
+                transaction_id=tenant + ":custody",
+                tenant_id=tenant,
+                source_event_id=tenant + ":custody-source",
+                actor_id="owner",
+                transaction_type="TRANSFER",
+                reason="fixture-custody",
+                provenance_ref="fixture",
+                timestamp=now,
+                postings=(
+                    posting(
+                        tenant + ":custody",
+                        "from",
+                        intent.portfolio_id,
+                        "AVAILABLE",
+                        "BTC",
+                        Decimal("-0.96"),
+                    ),
+                    posting(
+                        tenant + ":custody",
+                        "inventory",
+                        intent.portfolio_id,
+                        "INVENTORY",
+                        "BTC",
+                        Decimal("0.06"),
+                    ),
+                    posting(
+                        tenant + ":custody", "external", None, "EXTERNAL", "BTC", Decimal("0.9")
+                    ),
+                ),
+            )
+        )
     checkpoint = worker.monitor.checkpoint
     market = original.market.model_copy(
         update={

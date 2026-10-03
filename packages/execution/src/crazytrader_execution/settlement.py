@@ -19,11 +19,11 @@ from crazytrader_contracts.execution import (
     VenueOrderObservation,
     VenueQuoteFillBatch,
 )
-from crazytrader_contracts.ledger import Account, JournalTransaction
+from crazytrader_contracts.ledger import JournalTransaction, LedgerTransaction
 from crazytrader_contracts.models import OrderState
 from crazytrader_contracts.risk import RiskEvaluationRecord
 from crazytrader_contracts.venue_fills import VenueQuoteFill
-from crazytrader_ledger.commands import account_actual_quote_fill, account_fill, move
+from crazytrader_ledger.commands import account_actual_quote_fill, account_fill, release_custody
 from crazytrader_ledger.store import InsufficientFunds, LedgerStore
 from crazytrader_platform.storage import ConflictError
 from crazytrader_risk.store import StateUnavailable
@@ -377,29 +377,36 @@ class FillSettlement:
                             raise StateUnavailable("exact remaining reservation unavailable")
                         remaining = remaining_row["balance"]
                         if remaining > 0:
-                            account_value = proof["reserve_account"]
-                            account: Account
-                            if account_value == "AVAILABLE":
-                                account = "AVAILABLE"
-                            elif account_value == "INVENTORY":
-                                account = "INVENTORY"
-                            else:
-                                raise ValueError("invalid reservation custody proof")
-                            if account not in {"AVAILABLE", "INVENTORY"}:
-                                raise ValueError("invalid reservation custody proof")
-                            release = move(
+                            original_row = conn.execute(
+                                "SELECT body,digest FROM ct_ledger_transactions "
+                                "WHERE transaction_id=%s",
+                                (proof["reservation_tx_id"],),
+                            ).fetchone()
+                            if original_row is None:
+                                raise StateUnavailable("original reservation custody unavailable")
+                            original = LedgerTransaction.model_validate_json(
+                                str(original_row["body"])
+                            )
+                            if digest(canonical(original)) != original_row["digest"] or (
+                                original.tenant_id != request.tenant_id
+                                or original.related_order_id != request.order_id
+                                or any(
+                                    p.portfolio_id != request.portfolio_id
+                                    or p.asset != proof["reserve_asset"]
+                                    for p in original.postings
+                                )
+                            ):
+                                raise StateUnavailable(
+                                    "original reservation custody proof mismatch"
+                                )
+                            release = release_custody(
+                                original,
+                                remaining,
                                 "terminal-release:" + request.execution_request_id,
-                                request.tenant_id,
                                 "terminal-release-source:" + request.execution_request_id,
                                 request.actor_id,
                                 "venue-fill-batch:" + digest(body),
                                 batch.observed_at,
-                                request.portfolio_id,
-                                str(proof["reserve_asset"]),
-                                remaining,
-                                "RELEASE",
-                                request.order_id,
-                                reserve_account=account,
                             )
                             LedgerStore(self.store).append_in_transaction(conn, release)
                     elif observation.status == "PARTIALLY_FILLED" and 0 < total < request.quantity:

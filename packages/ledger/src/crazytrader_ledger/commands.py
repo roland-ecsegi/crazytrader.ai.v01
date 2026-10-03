@@ -329,3 +329,106 @@ def account_actual_quote_fill(
         base_asset=base,
         quote_asset=quote,
     )
+
+
+def reserve_custody(
+    transaction_id: str,
+    tenant: str,
+    source_event: str,
+    actor: str,
+    provenance: str,
+    now: datetime,
+    portfolio: str,
+    asset: str,
+    quantity: Decimal,
+    order: str,
+    inventory: Decimal,
+    available: Decimal,
+) -> LedgerTransaction:
+    """Reserve one quantity atomically, consuming INVENTORY before AVAILABLE."""
+    quantity = positive(quantity)
+    inventory, available = decimal_input(inventory), decimal_input(available)
+    if inventory < 0 or available < 0:
+        raise ValueError("nonnegative custody balances required")
+    with localcontext() as exact:
+        exact.prec = 100
+        held = min(inventory, quantity)
+        cash = quantity - held
+    if cash > available:
+        raise ValueError("insufficient combined custody")
+    rows = [posting(transaction_id, "reserved", portfolio, "RESERVED", asset, quantity)]
+    allocations: tuple[tuple[Account, Decimal], ...] = (("INVENTORY", held), ("AVAILABLE", cash))
+    for account, amount in allocations:
+        if amount:
+            rows.append(posting(transaction_id, account, portfolio, account, asset, negate(amount)))
+    return LedgerTransaction(
+        transaction_id=transaction_id,
+        tenant_id=tenant,
+        source_event_id=source_event,
+        actor_id=actor,
+        transaction_type="RESERVATION",
+        reason="RESERVATION",
+        provenance_ref=provenance,
+        timestamp=now,
+        related_order_id=order,
+        postings=tuple(rows),
+    )
+
+
+def release_custody(
+    original: LedgerTransaction,
+    remaining: Decimal,
+    transaction_id: str,
+    source_event: str,
+    actor: str,
+    provenance: str,
+    now: datetime,
+) -> LedgerTransaction:
+    """Restore unconsumed custody from the immutable original reservation postings."""
+    original = LedgerTransaction.model_validate(original.model_dump())
+    remaining = positive(remaining)
+    if original.transaction_type != "RESERVATION" or original.related_order_id is None:
+        raise ValueError("original reservation required")
+    rows = original.postings
+    assets, portfolios = {p.asset for p in rows}, {p.portfolio_id for p in rows}
+    if len(assets) != 1 or len(portfolios) != 1 or None in portfolios:
+        raise ValueError("single owned reservation custody required")
+    if any(p.account not in {"INVENTORY", "AVAILABLE", "RESERVED"} for p in rows):
+        raise ValueError("invalid reservation custody")
+    with localcontext() as exact:
+        exact.prec = 100
+        reserved = sum((p.amount for p in rows if p.account == "RESERVED"), Decimal(0))
+        held = -sum((p.amount for p in rows if p.account == "INVENTORY"), Decimal(0))
+        available = -sum((p.amount for p in rows if p.account == "AVAILABLE"), Decimal(0))
+        if reserved <= 0 or held < 0 or available < 0 or held + available != reserved:
+            raise ValueError("invalid reservation allocation")
+        if any((p.amount <= 0) != (p.account != "RESERVED") for p in rows):
+            raise ValueError("reservation allocation direction mismatch")
+        if remaining > reserved:
+            raise ValueError("remaining exceeds original reservation")
+        consumed = reserved - remaining
+        held_left = max(Decimal(0), held - consumed)
+        available_left = remaining - held_left
+    portfolio, asset = next(iter(portfolios)), next(iter(assets))
+    postings = [
+        posting(transaction_id, "reserved", portfolio, "RESERVED", asset, negate(remaining))
+    ]
+    allocations: tuple[tuple[Account, Decimal], ...] = (
+        ("INVENTORY", held_left),
+        ("AVAILABLE", available_left),
+    )
+    for account, amount in allocations:
+        if amount:
+            postings.append(posting(transaction_id, account, portfolio, account, asset, amount))
+    return LedgerTransaction(
+        transaction_id=transaction_id,
+        tenant_id=original.tenant_id,
+        source_event_id=source_event,
+        actor_id=actor,
+        transaction_type="RELEASE",
+        reason="RELEASE",
+        provenance_ref=provenance,
+        timestamp=now,
+        related_order_id=original.related_order_id,
+        postings=tuple(postings),
+    )
