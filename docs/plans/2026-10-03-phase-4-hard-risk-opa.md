@@ -86,9 +86,9 @@ cannot be reused. Break formats only with a new version.
 ## Implementation steps
 - [x] Read binding risk/intent/mode/certification contracts and design boundaries.
 - [x] Record pre-T012 autonomous adversarial architecture/security review and resolve findings.
-- [ ] Implement typed limits/context/bound evidence and deterministic classifier/evaluator.
+- [x] Implement typed limits/context/bound evidence and deterministic classifier/evaluator.
 - [ ] Implement scoped kill controls and dedicated bounded reduction/cancel path.
-- [ ] Implement versioned Rego authorization bundle and actual OPA integration.
+- [x] Implement versioned Rego authorization bundle and actual OPA integration.
 - [ ] Verify negative matrix, outage behavior, immutable replay and audit.
 - [ ] Final adversarial pass, durable publication, continue Phase 5 review/execution.
 
@@ -110,13 +110,16 @@ reader with old schema support. Keep last verified owner-authorized protective
 policy locally; never use outage to broaden permissions or fabricate current state.
 
 ## Resume checkpoint
-Branch codex/enterprise-local-autonomous. Current durable checkpoint Phase2
-866efded6d3d5e4778d2f17a1b2f0bc446bb7a5d; Phase3 local gate PASS/publication in progress. Phase4
-is design/review only. Next exact action after Phase3 pass: record the mandatory pre-T012
-adversarial review, then typed limits/context and negative classification tests.
-No current external blocker. Future live/canary invariant conflict needs an accepted
-owner ADR before real-money gates; continue all independent engineering first.
-Usage active, no routine transition approval required.
+Branch codex/enterprise-local-autonomous. Last published Phase3
+ca085cd33135bd337b5b79de27d1bbf5aa11f17a, hosted CI37111641894 PASS.
+Current Phase4 milestone: typed owner/profile limits, explicit unknown risk evidence,
+Spot classifier/evaluator with29 tests, bound Rego/HTTP client and same-policy local
+OPA reduction fallback with36 actual integration tests PASS. No phase gate claimed.
+Next exact action: typed cancel-only proof/policy, trusted state/permission adapter
+and immutable risk/policy audit persistence, then full negative gate/self-review.
+Milestone publication in progress; no external blocker, usage active. No venue
+mutation capability or production context endpoint exists. Future live authority
+conflict remains recorded; continue independent engineering before owner ADR.
 
 ## Progress log
 2026-10-03: Risk specification/design prepared while Phase3 final checks run.
@@ -129,3 +132,11 @@ risk while explicit bounded reduction remains available where venue state permit
 
 ## Completion summary
 Pending implementation and mandatory review.
+
+2026-10-03 milestone: 29 deterministic risk cases plus actual OPA HTTP/CLI integration
+(36 PASS). HTTPX0.28.1 metadata license is BSD-3-Clause. Local fallback is disabled
+by default, hashes binary/code/data and runs the same Rego, reduction only. Network
+DENY is never overridden; unsafe/increasing proposals deny during outage. Context
+and full authorization are re-evaluated/bound; expiry uses earliest source lifetime.
+Legacy RiskDecision.v1 remains unchanged; new RiskEvaluationDecision.v1 explicitly
+represents unknown drawdown/exposure, avoiding fabricated zero metrics.

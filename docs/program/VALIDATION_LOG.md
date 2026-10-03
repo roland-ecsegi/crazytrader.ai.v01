@@ -77,3 +77,14 @@ production roles and trading authorization remain later gates. L0 retained.
 Mandatory pre-T012 architecture/security pass recorded; continue Phase4.
 
 Phase2 hosted run37109997716 PASS, implementation866efded6d3d5e4778d2f17a1b2f0bc446bb7a5d.
+
+## 2026-10-03 — Phase4 evaluator/OPA milestone (not phase gate)
+
+29 deterministic cases PASS; actual OPA HTTP and image-derived SHA-pinned local
+OPA36 tests PASS. Permission/symbol/expiry denies, strict malformed-reply denial,
+forged ALLOW rejection, explicit degraded reduction, no offline increasing risk,
+owner-disabled local fallback and HTTP outage verified. Owner/system cap minima,
+unknown exposure/P&L, stale/future state, unavailable price, no-short pending SELL,
+L0/L5 LIVE denial and conservative step conversion tested. Cancellation/state-loader/
+audit persistence remain next tasks. No order capability or elapsed certification.
+Phase3 hosted CI37111641894 PASS atca085cd33135bd337b5b79de27d1bbf5aa11f17a.

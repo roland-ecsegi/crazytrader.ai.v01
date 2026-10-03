@@ -25,10 +25,10 @@ L0 — DEVELOPMENT
 `codex/enterprise-local-autonomous` — created and ready for the Codex Master Goal.
 
 ## Last durable commit
-866efded6d3d5e4778d2f17a1b2f0bc446bb7a5d — Phase 2 local gate implementation published; hosted CI pending observation.
+ca085cd33135bd337b5b79de27d1bbf5aa11f17a — Phase3 ledger gate published; hosted CI37111641894 PASS.
 
 ## Next action
-Execute docs/plans/2026-10-03-phase-4-hard-risk-opa.md. Mandatory pre-T012 autonomous architecture/security pass recorded in docs/evidence/reviews/2026-10-03-pre-T012.md. Implement trusted typed limits/context and independent Spot risk classification/negative tests, then OPA policy/outage tests. Phase3 gate publication in progress; continue autonomously.
+Continue active docs/plans/2026-10-03-phase-4-hard-risk-opa.md from its implementation milestone: typed cancellation policy/proof, trusted state/permissions and immutable risk/policy audit persistence. Deterministic29 tests and actual OPA HTTP/local-CLI36 tests PASS; no Phase4 gate claimed. Pre-T012 review recorded. Do not repeat Phase0–3 or completed risk evaluator/OPA work.
 
 ## Blockers
 None for implementation. Future external actions: owner-local Claude authentication validation and Binance L5/L6 secrets/activation.

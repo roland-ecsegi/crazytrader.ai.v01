@@ -1,0 +1,950 @@
+{
+  "$defs": {
+    "AssetBalance": {
+      "additionalProperties": false,
+      "properties": {
+        "asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Asset",
+          "type": "string"
+        },
+        "available": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Available",
+          "type": "string"
+        },
+        "fees": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Fees",
+          "type": "string"
+        },
+        "inventory": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Inventory",
+          "type": "string"
+        },
+        "reserved": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Reserved",
+          "type": "string"
+        },
+        "total_held": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Total Held",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset",
+        "available",
+        "reserved",
+        "inventory",
+        "fees",
+        "total_held"
+      ],
+      "title": "AssetBalance",
+      "type": "object"
+    },
+    "CertificationState": {
+      "additionalProperties": false,
+      "properties": {
+        "achieved_at": {
+          "format": "date-time",
+          "title": "Achieved At",
+          "type": "string"
+        },
+        "blockers": {
+          "items": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Blockers",
+          "type": "array"
+        },
+        "current_level": {
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3",
+            "L4",
+            "L5",
+            "L6"
+          ],
+          "title": "Current Level",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:@/-]+$",
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "last_reviewed_at": {
+          "format": "date-time",
+          "title": "Last Reviewed At",
+          "type": "string"
+        },
+        "tenant_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Tenant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "current_level",
+        "achieved_at",
+        "evidence_refs",
+        "blockers",
+        "last_reviewed_at"
+      ],
+      "title": "CertificationState",
+      "type": "object"
+    },
+    "InstrumentMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "base_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Base Asset",
+          "type": "string"
+        },
+        "environment": {
+          "enum": [
+            "SANDBOX",
+            "PUBLIC"
+          ],
+          "title": "Environment",
+          "type": "string"
+        },
+        "market_type": {
+          "const": "SPOT",
+          "default": "SPOT",
+          "title": "Market Type",
+          "type": "string"
+        },
+        "max_quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Quantity",
+          "type": "string"
+        },
+        "metadata_version": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Metadata Version",
+          "type": "string"
+        },
+        "min_notional": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Min Notional",
+          "type": "string"
+        },
+        "min_quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Min Quantity",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "quantity_step": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Quantity Step",
+          "type": "string"
+        },
+        "quote_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Quote Asset",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "TRADING",
+            "HALT",
+            "BREAK"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "symbol": {
+          "pattern": "^[A-Z0-9]{2,30}$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "tick_size": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Tick Size",
+          "type": "string"
+        },
+        "venue": {
+          "const": "BINANCE",
+          "default": "BINANCE",
+          "title": "Venue",
+          "type": "string"
+        }
+      },
+      "required": [
+        "environment",
+        "symbol",
+        "base_asset",
+        "quote_asset",
+        "status",
+        "tick_size",
+        "quantity_step",
+        "min_quantity",
+        "max_quantity",
+        "min_notional",
+        "metadata_version",
+        "observed_at"
+      ],
+      "title": "InstrumentMetadata",
+      "type": "object"
+    },
+    "Lifecycle": {
+      "enum": [
+        "DRAFT",
+        "BACKTESTED",
+        "VALIDATED",
+        "OUT_OF_SAMPLE",
+        "WALK_FORWARD",
+        "PAPER",
+        "SHADOW",
+        "CANARY_ELIGIBLE",
+        "LIVE",
+        "DEGRADED",
+        "SUSPENDED",
+        "RETIRED"
+      ],
+      "title": "Lifecycle",
+      "type": "string"
+    },
+    "MarketStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "environment": {
+          "enum": [
+            "SANDBOX",
+            "PUBLIC"
+          ],
+          "title": "Environment",
+          "type": "string"
+        },
+        "gap_target": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Gap Target"
+        },
+        "health": {
+          "enum": [
+            "HEALTHY",
+            "DEGRADED",
+            "UNKNOWN"
+          ],
+          "title": "Health",
+          "type": "string"
+        },
+        "last_exchange_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Exchange At"
+        },
+        "last_received_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Received At"
+        },
+        "last_trade_id": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Trade Id"
+        },
+        "metadata_version": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Metadata Version",
+          "type": "string"
+        },
+        "occurred_at": {
+          "format": "date-time",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "reason_code": {
+          "enum": [
+            "FRESH",
+            "STALE_OR_DISCONNECTED",
+            "SEQUENCE_GAP",
+            "CONTENT_CONFLICT",
+            "NO_OBSERVATIONS"
+          ],
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "symbol": {
+          "pattern": "^[A-Z0-9]{2,30}$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "venue": {
+          "const": "BINANCE",
+          "default": "BINANCE",
+          "title": "Venue",
+          "type": "string"
+        }
+      },
+      "required": [
+        "environment",
+        "symbol",
+        "metadata_version",
+        "health",
+        "reason_code",
+        "occurred_at",
+        "last_trade_id",
+        "gap_target",
+        "last_exchange_at",
+        "last_received_at"
+      ],
+      "title": "MarketStatus",
+      "type": "object"
+    },
+    "PortfolioSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "balances": {
+          "items": {
+            "$ref": "#/$defs/AssetBalance"
+          },
+          "title": "Balances",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "MATH",
+            "STRATEGY",
+            "RESERVE"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "portfolio_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Portfolio Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "tenant_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Tenant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "portfolio_id",
+        "mode",
+        "as_of",
+        "balances"
+      ],
+      "title": "PortfolioSnapshot",
+      "type": "object"
+    },
+    "RiskLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "max_daily_loss": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Daily Loss",
+          "type": "string"
+        },
+        "max_drawdown": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Drawdown",
+          "type": "string"
+        },
+        "max_orders_per_window": {
+          "minimum": 0,
+          "title": "Max Orders Per Window",
+          "type": "integer"
+        },
+        "max_positions": {
+          "minimum": 0,
+          "title": "Max Positions",
+          "type": "integer"
+        },
+        "max_slippage": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Slippage",
+          "type": "string"
+        },
+        "max_spread": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Max Spread",
+          "type": "string"
+        },
+        "metadata_max_age_seconds": {
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Metadata Max Age Seconds",
+          "type": "integer"
+        },
+        "min_liquidity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Min Liquidity",
+          "type": "string"
+        },
+        "mode_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Mode Cap",
+          "type": "string"
+        },
+        "order_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Order Cap",
+          "type": "string"
+        },
+        "order_window_seconds": {
+          "maximum": 86400,
+          "minimum": 1,
+          "title": "Order Window Seconds",
+          "type": "integer"
+        },
+        "portfolio_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Portfolio Cap",
+          "type": "string"
+        },
+        "state_max_age_seconds": {
+          "maximum": 30,
+          "minimum": 1,
+          "title": "State Max Age Seconds",
+          "type": "integer"
+        },
+        "strategy_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Strategy Cap",
+          "type": "string"
+        },
+        "symbol_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Symbol Cap",
+          "type": "string"
+        },
+        "total_cap": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Total Cap",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "total_cap",
+        "mode_cap",
+        "portfolio_cap",
+        "strategy_cap",
+        "symbol_cap",
+        "order_cap",
+        "max_positions",
+        "max_orders_per_window",
+        "order_window_seconds",
+        "max_daily_loss",
+        "max_drawdown",
+        "min_liquidity",
+        "max_spread",
+        "max_slippage",
+        "metadata_max_age_seconds",
+        "state_max_age_seconds"
+      ],
+      "title": "RiskLimits",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "accounting_health": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNKNOWN"
+      ],
+      "title": "Accounting Health",
+      "type": "string"
+    },
+    "active_positions": {
+      "minimum": 0,
+      "title": "Active Positions",
+      "type": "integer"
+    },
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "budget_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Budget Ref",
+      "type": "string"
+    },
+    "certification": {
+      "$ref": "#/$defs/CertificationState"
+    },
+    "context_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Context Id",
+      "type": "string"
+    },
+    "daily_loss": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Daily Loss"
+    },
+    "drawdown": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Drawdown"
+    },
+    "execution_mode": {
+      "enum": [
+        "SIMULATION",
+        "TESTNET",
+        "PAPER",
+        "SHADOW",
+        "LIVE"
+      ],
+      "title": "Execution Mode",
+      "type": "string"
+    },
+    "instrument_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Instrument Id",
+      "type": "string"
+    },
+    "intent_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Intent Sha256",
+      "type": "string"
+    },
+    "kill_scope": {
+      "enum": [
+        "NONE",
+        "NEW_ORDERS",
+        "CANCEL_ONLY",
+        "FLATTEN_APPROVED"
+      ],
+      "title": "Kill Scope",
+      "type": "string"
+    },
+    "liquidity": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Liquidity"
+    },
+    "market": {
+      "$ref": "#/$defs/MarketStatus"
+    },
+    "market_state_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Market State Ref",
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/InstrumentMetadata"
+    },
+    "mode_enabled": {
+      "title": "Mode Enabled",
+      "type": "boolean"
+    },
+    "mode_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Mode Exposure"
+    },
+    "model_lifecycles": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Lifecycle"
+      },
+      "title": "Model Lifecycles",
+      "type": "array"
+    },
+    "model_version_ids": {
+      "default": [],
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "title": "Model Version Ids",
+      "type": "array"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "orders_in_window": {
+      "minimum": 0,
+      "title": "Orders In Window",
+      "type": "integer"
+    },
+    "owner_limits": {
+      "$ref": "#/$defs/RiskLimits"
+    },
+    "owner_live_activated": {
+      "default": false,
+      "title": "Owner Live Activated",
+      "type": "boolean"
+    },
+    "owner_reduction_authorized": {
+      "default": false,
+      "title": "Owner Reduction Authorized",
+      "type": "boolean"
+    },
+    "pending_sell_quantity": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Pending Sell Quantity",
+      "type": "string"
+    },
+    "portfolio": {
+      "$ref": "#/$defs/PortfolioSnapshot"
+    },
+    "portfolio_enabled": {
+      "title": "Portfolio Enabled",
+      "type": "boolean"
+    },
+    "portfolio_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Portfolio Exposure"
+    },
+    "portfolio_state_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Portfolio State Ref",
+      "type": "string"
+    },
+    "price": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Price"
+    },
+    "profile_limits": {
+      "$ref": "#/$defs/RiskLimits"
+    },
+    "profile_name": {
+      "anyOf": [
+        {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Profile Name"
+    },
+    "reconciliation_health": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNKNOWN"
+      ],
+      "title": "Reconciliation Health",
+      "type": "string"
+    },
+    "risk_profile_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Risk Profile Version Id"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "spread": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Spread"
+    },
+    "strategy_enabled": {
+      "title": "Strategy Enabled",
+      "type": "boolean"
+    },
+    "strategy_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Strategy Exposure"
+    },
+    "strategy_lifecycle": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Lifecycle"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "strategy_version_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Strategy Version Id"
+    },
+    "symbol_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Symbol Exposure"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "total_exposure": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Total Exposure"
+    },
+    "venue_health": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNKNOWN"
+      ],
+      "title": "Venue Health",
+      "type": "string"
+    },
+    "window_started_at": {
+      "format": "date-time",
+      "title": "Window Started At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "context_id",
+    "intent_sha256",
+    "tenant_id",
+    "portfolio",
+    "portfolio_state_ref",
+    "market_state_ref",
+    "budget_ref",
+    "instrument_id",
+    "metadata",
+    "market",
+    "price",
+    "observed_at",
+    "certification",
+    "execution_mode",
+    "actor_id",
+    "owner_limits",
+    "profile_limits",
+    "total_exposure",
+    "mode_exposure",
+    "portfolio_exposure",
+    "strategy_exposure",
+    "symbol_exposure",
+    "pending_sell_quantity",
+    "active_positions",
+    "orders_in_window",
+    "window_started_at",
+    "daily_loss",
+    "drawdown",
+    "liquidity",
+    "spread",
+    "venue_health",
+    "reconciliation_health",
+    "accounting_health",
+    "kill_scope",
+    "mode_enabled",
+    "portfolio_enabled",
+    "strategy_enabled"
+  ],
+  "title": "RiskContext",
+  "type": "object"
+}
