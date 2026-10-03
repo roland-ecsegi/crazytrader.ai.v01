@@ -11,6 +11,7 @@ from fractions import Fraction
 
 from crazytrader_contracts.ledger import (
     JournalTransaction,
+    NativeFillLedgerTransaction,
     PositionAttribution,
     VenueFillLedgerTransaction,
 )
@@ -56,6 +57,8 @@ def positions(
         gross = (
             Fraction(tx.quote_evidence.quote_quantity)
             if isinstance(tx, VenueFillLedgerTransaction)
+            else Fraction(tx.native_evidence.quote_quantity)
+            if isinstance(tx, NativeFillLedgerTransaction)
             else Fraction(fill.quantity) * Fraction(fill.price)
         )
         if tx.fill_side == "BUY":

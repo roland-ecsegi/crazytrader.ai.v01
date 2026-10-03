@@ -19,9 +19,14 @@ from crazytrader_contracts.execution import (
     NativeSimulationAdmission,
     NativeSimulationResultRecord,
 )
-from crazytrader_contracts.ledger import LedgerTransaction, VenueFillLedgerTransaction
+from crazytrader_contracts.ledger import (
+    LedgerTransaction,
+    NativeFillLedgerTransaction,
+    VenueFillLedgerTransaction,
+)
 from crazytrader_contracts.market import BookDelta, MarketCandle, MarketStatus, MarketTrade
 from crazytrader_contracts.models import Contract, Identifier, Timestamp
+from crazytrader_contracts.native_fills import NativeSimulationIncident
 from crazytrader_contracts.risk import PolicyAuthorization, RiskAuthorization, RiskBoundaryRejection
 from opentelemetry import trace
 from psycopg.rows import dict_row
@@ -37,6 +42,8 @@ class HealthChange(Contract):
 
 
 PAYLOAD_TYPES: dict[str, type[Contract]] = {
+    "NativeSimulationCriticalMismatch.v1": NativeSimulationIncident,
+    "LedgerNativeFillAppended.v1": NativeFillLedgerTransaction,
     "NativeSimulationAdmitted.v1": NativeSimulationAdmission,
     "NativeSimulationReceiptRecorded.v1": NativeSimulationResultRecord,
     "AccountReconciliationChecked.v1": AccountReconciliationReport,
@@ -110,7 +117,7 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
             (event.event_type == "AccountReconciliationMatched.v1") != (payload.status == "MATCHED")
         ):
             raise ValueError("account reconciliation verdict mismatch")
-    elif isinstance(payload, ExecutionIncident):
+    elif isinstance(payload, (ExecutionIncident, NativeSimulationIncident)):
         source, occurred = "reconciliation", payload.occurred_at
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
             raise ValueError("reconciliation incident ownership mismatch")
@@ -135,7 +142,9 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
             raise ValueError("decision ownership mismatch")
         if ("Approved" in event.event_type) != (payload.decision.decision == "ALLOW"):
             raise ValueError("decision event verdict mismatch")
-    elif isinstance(payload, (LedgerTransaction, VenueFillLedgerTransaction)):
+    elif isinstance(
+        payload, (LedgerTransaction, VenueFillLedgerTransaction, NativeFillLedgerTransaction)
+    ):
         source, occurred = "ledger", payload.timestamp
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
             raise ValueError("ledger event ownership mismatch")
@@ -297,7 +306,7 @@ class EventStore:
                 ),
             )
             if (
-                isinstance(payload, ExecutionIncident)
+                isinstance(payload, (ExecutionIncident, NativeSimulationIncident))
                 or (
                     isinstance(payload, AccountReconciliationReport)
                     and event.event_type == "AccountReconciliationMismatch.v1"

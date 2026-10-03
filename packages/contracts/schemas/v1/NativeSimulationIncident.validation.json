@@ -1,0 +1,68 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "execution_request_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Execution Request Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "reason": {
+      "enum": [
+        "SOURCE_UNAVAILABLE",
+        "FINANCIAL_ATTRIBUTION_FAILED"
+      ],
+      "title": "Reason",
+      "type": "string"
+    },
+    "receipt_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Receipt Digest",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "incident_id",
+    "tenant_id",
+    "actor_id",
+    "execution_request_id",
+    "receipt_digest",
+    "reason",
+    "occurred_at"
+  ],
+  "title": "NativeSimulationIncident",
+  "type": "object"
+}

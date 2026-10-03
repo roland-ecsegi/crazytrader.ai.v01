@@ -78,6 +78,8 @@ Breaking schema changes require a new schema version.
 - PositionClosed.v1
 - LedgerEntryAppended.v1
 - LedgerVenueFillAppended.v1
+- LedgerNativeFillAppended.v1
+- NativeSimulationCriticalMismatch.v1
 
 ## Risk events
 

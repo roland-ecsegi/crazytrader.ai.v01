@@ -142,8 +142,9 @@ class ExecutionStore:
                 "USING(execution_request_id) WHERE n.tenant_id=%s "
                 "AND c.state IN('SUBMITTING','SUBMITTED','UNKNOWN','RECOVERY_REQUIRED') "
                 "AND NOT EXISTS(SELECT 1 FROM ct_native_simulation_postings p "
-                "WHERE p.execution_request_id=n.execution_request_id) LIMIT 1",
-                (request.tenant_id, request.tenant_id, request.tenant_id),
+                "WHERE p.execution_request_id=n.execution_request_id) UNION ALL "
+                "SELECT 1 FROM ct_native_simulation_incidents WHERE tenant_id=%s LIMIT 1",
+                (request.tenant_id, request.tenant_id, request.tenant_id, request.tenant_id),
             ).fetchone()
             if incident is not None:
                 raise StateUnavailable("canonical reconciliation incident blocks unproven exposure")
@@ -339,8 +340,15 @@ class ExecutionStore:
             "SELECT encode(sha256(convert_to(body,'UTF8')),'hex') digest "
             "FROM ct_reconciliation_incidents WHERE tenant_id=%s UNION ALL "
             "SELECT digest FROM ct_account_reconciliation_reports WHERE tenant_id=%s "
-            "AND blocks_new_risk ORDER BY digest",
-            (tenant, tenant, tenant, tenant, tenant),
+            "AND blocks_new_risk UNION ALL "
+            "SELECT digest FROM ct_native_simulation_incidents WHERE tenant_id=%s UNION ALL "
+            "SELECT t.digest FROM ct_native_simulation_jobs n JOIN ct_execution_current c "
+            "USING(execution_request_id) JOIN ct_execution_transitions t USING(transition_id) "
+            "WHERE n.tenant_id=%s AND c.state IN('SUBMITTING','SUBMITTED',"
+            "'UNKNOWN','RECOVERY_REQUIRED') "
+            "AND NOT EXISTS(SELECT 1 FROM ct_native_simulation_postings p "
+            "WHERE p.execution_request_id=n.execution_request_id) ORDER BY digest",
+            (tenant, tenant, tenant, tenant, tenant, tenant, tenant),
         ).fetchall()
         return digest(json.dumps([str(row["digest"]) for row in rows], separators=(",", ":")))
 

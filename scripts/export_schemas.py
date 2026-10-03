@@ -10,6 +10,7 @@ from crazytrader_contracts import (
     ledger,
     market,
     models,
+    native_fills,
     risk,
     simulation,
     venue_fills,
@@ -20,6 +21,9 @@ from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    native_fills.NativeSimulationFill,
+    native_fills.NativeSimulationIncident,
+    ledger.NativeFillLedgerTransaction,
     execution.NativeSimulationResultRecord,
     execution.NativeSimulationAdmission,
     simulation.NativeSimulationJob,

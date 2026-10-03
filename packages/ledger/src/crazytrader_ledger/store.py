@@ -5,10 +5,12 @@ from decimal import Decimal, localcontext
 
 import psycopg
 from crazytrader_contracts.events import EventEnvelope, PayloadReference
+from crazytrader_contracts.execution import NativeSimulationResultRecord
 from crazytrader_contracts.ledger import (
     Account,
     AssetBalance,
     JournalTransaction,
+    NativeFillLedgerTransaction,
     PortfolioSnapshot,
     VenueFillLedgerTransaction,
 )
@@ -74,6 +76,33 @@ class LedgerStore:
         transaction = JOURNAL.validate_python(transaction.model_dump())
         body = canonical(transaction)
         fingerprint = digest(body)
+        if isinstance(transaction, NativeFillLedgerTransaction):
+            job = transaction.native_evidence.receipt.job
+            rows = conn.execute(
+                "SELECT body,digest FROM ct_native_simulation_receipts "
+                "WHERE execution_request_id=%s AND available",
+                (job.execution_request_id,),
+            ).fetchall()
+            owned = False
+            for native_row in rows:
+                source = NativeSimulationResultRecord.model_validate_json(str(native_row["body"]))
+                if digest(canonical(source)) != native_row["digest"]:
+                    raise ConflictError("native durable financial source corrupted")
+                if source.receipt == transaction.native_evidence.receipt:
+                    symbol = job.venue_rules.rules.symbol_record()
+                    owned = (
+                        transaction.tenant_id == job.tenant_id
+                        and transaction.actor_id == source.admission.actor_id
+                        and transaction.base_asset == symbol["baseAsset"]
+                        and transaction.quote_asset == symbol["quoteAsset"]
+                        and transaction.related_order_id == job.order_id
+                        and transaction.timestamp == job.event_at
+                        and all(
+                            p.portfolio_id in {None, job.portfolio_id} for p in transaction.postings
+                        )
+                    )
+            if not owned:
+                raise ConflictError("native fill requires original owned durable source")
         if isinstance(transaction, VenueFillLedgerTransaction):
             row = conn.execute(
                 "SELECT body,digest FROM ct_venue_rule_receipts WHERE digest=%s",
@@ -100,7 +129,9 @@ class LedgerStore:
         event = EventEnvelope(
             event_id="ledger:" + digest(transaction.transaction_id),
             event_type=(
-                "LedgerVenueFillAppended.v1"
+                "LedgerNativeFillAppended.v1"
+                if isinstance(transaction, NativeFillLedgerTransaction)
+                else "LedgerVenueFillAppended.v1"
                 if isinstance(transaction, VenueFillLedgerTransaction)
                 else "LedgerEntryAppended.v1"
             ),

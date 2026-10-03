@@ -139,3 +139,47 @@ def test_compensating_subquantum_cash_and_fee_cannot_fake_native_precision(tmp_p
     altered["raw_json"] = json.dumps(raw)
     with pytest.raises(ValueError, match="native actual cash"):
         NativeSimulationReceipt.model_validate(altered)
+
+
+def test_native_financial_fill_uses_cash_source_and_rejects_amount_or_side_tamper(tmp_path):
+    from crazytrader_contracts.native_fills import NativeSimulationFill, sourced_fill
+    from crazytrader_ledger.commands import account_native_fill
+
+    receipt = transport(tmp_path).simulate(job())
+    fill, gross = sourced_fill(receipt)
+    assert gross == Decimal("10")
+    with pytest.raises(ValueError, match="raw cash/event"):
+        NativeSimulationFill(receipt=receipt, fill=fill, quote_quantity="9.99")
+    evidence = NativeSimulationFill(receipt=receipt, fill=fill, quote_quantity=gross)
+    with pytest.raises(ValueError, match="evidence mismatch"):
+        account_native_fill(
+            "tx",
+            "tenant",
+            "source",
+            "actor",
+            "native",
+            fill.timestamp,
+            "portfolio",
+            "BUY",
+            "BTC",
+            "USDT",
+            evidence,
+            "native",
+        )
+    tx = account_native_fill(
+        "tx",
+        "tenant",
+        "source",
+        "actor",
+        "native",
+        fill.timestamp,
+        "portfolio",
+        "SELL",
+        "BTC",
+        "USDT",
+        evidence,
+        "native",
+    )
+    assert sum(
+        p.amount for p in tx.postings if p.asset == "USDT" and p.account == "AVAILABLE"
+    ) == Decimal("9.99")

@@ -16,7 +16,7 @@ Mandatory pre-T016 separate review before reconciliation implementation.
 ## Current state
 Phase0–4 foundation implemented at L0. Immutable journal, market archive/checkpoint,
 owner config, typed risk/policy evidence and internal trust boundary exist. Above-L0
-source assertions deny pending verified certification registry. No order adapter.
+source assertions deny pending verified certification registry. Selected native simulation and SDK fixture adapters implemented during Phase5.
 
 ## Proposed design
 Contract-first explicit state/observation/ownership evidence, append-only transition
@@ -54,9 +54,9 @@ idempotency keys and outbox in same transaction as reservation/accounting effect
 ## Implementation steps
 - [x] Read durable Phase4 gate and pre-T014 adversarial review.
 - [x] Typed states/requests/venue observations and deterministic transition rules.
-- [x] Atomic durable reservation/authorization and stable request/client identities (protective SIMULATION milestone; BUY/mixed custody still pending).
-- [ ] Internal selected simulation adapter and accepted-timeout/restart proof.
-- [x] Pre-T016 review; fixture query-open recovery, partial fills/cancel/suspense incidents and owned cancellation. Full account reconciliation pending.
+- [x] Atomic durable reservation/authorization and stable request/client identities (protective SIMULATION and mixed custody verified; modeled BUY fee buffers verified, execution authority remains denied at L0).
+- [x] Internal unmodified native simulation financial adapter and official SDK fixture accepted-timeout/restart proof.
+- [x] Pre-T016 review; fixture query-open recovery, partial fills/cancel/suspense incidents and owned cancellation. Bounded source-first fixture account comparison verified; controlled recovery/resolution pending.
 - [ ] Full negatives/chaos, adversarial repairs, evidence, publish and advance Phase6.
 
 ## Test plan
@@ -76,8 +76,9 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
 review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
-action: PostgreSQL native job/request binding, native financial journal/state/incident
-adapter and restart proof; native source/worker/file boundary verified; then controlled absence recovery/incident resolution. Modeled
+action: unsent expiry and controlled absence recovery/incident resolution. Native
+job/request binding, financial journal/state/incidents, worker/source and restart
+proof verified. Modeled
 funding and unmodified Nautilus baseline verified. Bounded fixture account
 comparison and mixed custody verified. Above-L0 source/certification assertions stay denied. Actual quoteQty
 accounting and cost attribution implemented with additive contracts. Current certification L0; no Phase5 gate.
@@ -182,3 +183,8 @@ binding, account backend fencing, concurrent dispatch and source recovery after
 persistence interruption. Financial-proof placeholder denies inserts; UNKNOWN retains
 custody. Evidence/separate root review committed. Next native journal/state/incidents;
 no Phase5 gate.
+
+2026-10-03 native financial:69 full actual cases PASS (234.94s). Actual native cash/fee
+source, additive journal, deferred PostgreSQL atomic completion, crash/duplicate
+recovery and critical incidents. Final13 native cases PASS (27.88s),17 platform/ledger PASS (7.50s),164 units/
+mypy51/128 schemas/scan/offline SDK/wheel-sdist PASS; no Phase5 gate. Next unsent expiry/controlled absence/resolution.

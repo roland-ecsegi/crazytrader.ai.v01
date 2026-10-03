@@ -6,6 +6,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, model_validator
 
 from .models import Contract, Fill, Identifier, Money, NonNegative, Timestamp
+from .native_fills import NativeSimulationFill
 from .venue_fills import VenueQuoteFill
 
 Account = Literal[
@@ -239,8 +240,45 @@ class VenueFillLedgerTransaction(Contract):
         return self
 
 
+class NativeFillLedgerTransaction(Contract):
+    schema_version: Literal["1"] = "1"
+    transaction_id: Identifier
+    tenant_id: Identifier
+    source_event_id: Identifier
+    actor_id: Identifier
+    transaction_type: Literal["FILL"] = "FILL"
+    reason: Identifier
+    provenance_ref: Identifier
+    related_order_id: Identifier | None = None
+    related_fill_id: Identifier | None = None
+    correction_of_id: Identifier | None = None
+    fill_data: Fill | None = None
+    fill_side: Literal["BUY", "SELL"] | None = None
+    base_asset: Identifier | None = None
+    quote_asset: Identifier | None = None
+    timestamp: Timestamp
+    postings: Annotated[tuple[LedgerPosting, ...], Field(min_length=2, max_length=100)]
+
+    native_evidence: NativeSimulationFill
+
+    @model_validator(mode="after")
+    def balanced(self) -> Self:
+        evidence = self.native_evidence
+        if (
+            self.tenant_id != evidence.receipt.job.tenant_id
+            or self.fill_data != evidence.fill
+            or self.fill_side != evidence.receipt.job.side
+        ):
+            raise ValueError("native simulation journal evidence mismatch")
+        if self.transaction_type != "FILL":
+            raise ValueError("native simulation evidence only authorizes fill accounting")
+        _validate_journal(self, evidence.quote_quantity)
+        return self
+
+
 def _validate_journal(
-    self: LedgerTransaction | VenueFillLedgerTransaction, actual_quote: Decimal | None
+    self: LedgerTransaction | VenueFillLedgerTransaction | NativeFillLedgerTransaction,
+    actual_quote: Decimal | None,
 ) -> None:
     if len({p.posting_id for p in self.postings}) != len(self.postings):
         raise ValueError("duplicate posting ID")
@@ -343,4 +381,4 @@ def _validate_journal(
         raise ValueError("fill accounting fields only for fill transactions")
 
 
-JournalTransaction = LedgerTransaction | VenueFillLedgerTransaction
+JournalTransaction = LedgerTransaction | VenueFillLedgerTransaction | NativeFillLedgerTransaction

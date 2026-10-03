@@ -52,6 +52,8 @@ EVENT_TYPES: frozenset[str] = frozenset(
         "PositionClosed.v1",
         "LedgerEntryAppended.v1",
         "LedgerVenueFillAppended.v1",
+        "LedgerNativeFillAppended.v1",
+        "NativeSimulationCriticalMismatch.v1",
         "RiskWarningRaised.v1",
         "RiskDecisionDenied.v1",
         "DailyLossLimitReached.v1",
