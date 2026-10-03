@@ -26,10 +26,10 @@ L0 — DEVELOPMENT
 `codex/enterprise-local-autonomous` — created and ready for the Codex Master Goal.
 
 ## Last durable commit
-722a914d0cbc1cdb05598a2323b2df72c9fad5db — Phase4 gate published; hosted CI37116292477 PASS. This commit adds the Phase5 durable coordination milestone.
+7cdc0c60b16d05935ff2f005684e781de5bfe6fc — Phase5 coordination milestone; hosted CI37117415054 PASS. This commit adds official-SDK timeout/query recovery evidence.
 
 ## Next action
-Continue docs/plans/2026-10-03-phase-5-execution-reconciliation.md: typed states/stable IDs and atomic protective SIMULATION reservation/single claim are implemented and verified. Next: official-SDK loopback accepted-timeout proof, pre-T016 review, canonical reconciliation observations and recovery, partial-fill/cancel accounting. Pre-T014 review recorded. Do not repeat Phase0–4. No external blocker for independent simulation/reconciliation implementation.
+Continue docs/plans/2026-10-03-phase-5-execution-reconciliation.md: typed states/stable IDs and atomic protective SIMULATION reservation/single claim are implemented and verified. Official-SDK loopback accepted-timeout/query recovery and pre-T016 review are verified. Next: canonical fill-ID/price/fee batches, atomic partial-fill/cancel settlement, suspense/incidents on known unposted truth; then BUY fee buffers/mixed custody, complete reconciliation/negative gate. Do not repeat Phase0–4. No external blocker for independent simulation/reconciliation implementation.
 
 ## Blockers
 None for implementation. Future external actions: owner-local Claude authentication validation and Binance L5/L6 secrets/activation.
@@ -38,6 +38,7 @@ None for implementation. Future external actions: owner-local Claude authenticat
 READY. Follow `docs/roadmap/CODEX_RESUME_PROTOCOL.md` if budget-limited.
 
 ## Latest verification
+Phase5 SDK recovery milestone:115 units, mypy38,84 schemas, scan/SDK offline/wheel-sdist PASS; actual combined market/risk/execution/official-SDK22 PASS (accepted timeout, not-found unresolved, receipt-persistence interruption, restarted query, exact decimal wire). Simulation fixture only, no Phase5 gate.
 Phase5 coordination milestone:114 unit/contract tests PASS, strict mypy35,82 schemas, source scan and wheel/sdist. Actual market/risk/execution17 PASS, actual platform/ledger17 PASS; no Phase5 gate or adapter/reconciliation completion claimed.
 Phase4 gate:109 units, OPA38, platform/ledger17, market/risk13, mypy31,76 schemas and wheel/sdist PASS; hosted CI37116292477 PASS.
 Phase3 make check/integration PASS: 73 unit tests plus subsequent unchecked-copy regression =74 total; mypy23 modules, 46 schema artifacts, source scan; 17 platform/ledger actual tests (8 ledger), 2 market integration tests; wheel/sdist PASS. Phase2 hosted CI run37109997716 PASS at866efded.

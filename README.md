@@ -103,3 +103,10 @@ protective SIMULATION requests. Restart in SUBMITTING becomes UNKNOWN with funds
 reserved. This is internal coordination, with no exchange transport yet. BUY cost
 buffers, mixed custody, reconciliation, partial fills and cancel settlement remain
 the active Phase5 plan.
+
+The official Spot SDK fixture now proves signed dummy-auth accepted-timeout and
+query recovery after restart with one submitted order and exact decimal strings.
+Fixed literal-loopback endpoints, no inherited credentials, retries0 and no redirects;
+it cannot contact Binance or act as production live/simulation certification. Query
+not-found remains unresolved; recovered open order alone does not grant full-account
+health. Fill settlement, cancel and suspense accounting remain active Phase5 work.

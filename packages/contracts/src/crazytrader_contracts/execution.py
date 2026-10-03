@@ -134,3 +134,35 @@ TRANSITION_EVENTS = {
     OrderState.REJECTED: "OrderRejected.v1",
     OrderState.EXPIRED: "OrderExpired.v1",
 }
+
+
+class VenueOrderObservation(Contract):
+    """Mature SDK fixture observation; no claim of external venue certification."""
+
+    schema_version: Literal["1"] = "1"
+    source: Literal["OFFICIAL_SDK_LOOPBACK_FIXTURE"] = "OFFICIAL_SDK_LOOPBACK_FIXTURE"
+    action: Literal["SUBMIT", "QUERY"]
+    tenant_id: Identifier
+    venue_account_ref: Identifier
+    execution_request_id: Identifier
+    request_sha256: Hash
+    client_order_id: Identifier
+    venue_order_id: Identifier | None
+    symbol: Identifier
+    side: Literal["BUY", "SELL"]
+    requested_quantity: Positive
+    filled_quantity: NonNegative
+    status: Literal[
+        "UNKNOWN", "NEW", "PARTIALLY_FILLED", "FILLED", "CANCELED", "REJECTED", "EXPIRED"
+    ]
+    observed_at: Timestamp
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        if self.status != "UNKNOWN" and self.venue_order_id is None:
+            raise ValueError("observed order requires a verified venue ID")
+        if self.filled_quantity > self.requested_quantity:
+            raise ValueError("venue overfill requires incident")
+        if self.status == "FILLED" and self.filled_quantity != self.requested_quantity:
+            raise ValueError("venue FILLED quantity mismatch")
+        return self

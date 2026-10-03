@@ -56,7 +56,7 @@ idempotency keys and outbox in same transaction as reservation/accounting effect
 - [x] Typed states/requests/venue observations and deterministic transition rules.
 - [x] Atomic durable reservation/authorization and stable request/client identities (protective SIMULATION milestone; BUY/mixed custody still pending).
 - [ ] Internal selected simulation adapter and accepted-timeout/restart proof.
-- [ ] Pre-T016 review, reconciliation/partial fills/cancel/suspense incidents.
+- [ ] Pre-T016 review DONE; query-open recovery DONE; partial fills/cancel/suspense incidents pending.
 - [ ] Full negatives/chaos, adversarial repairs, evidence, publish and advance Phase6.
 
 ## Test plan
@@ -100,3 +100,19 @@ BUY cost buffer, mixed custody or Phase5 gate claim. Next exact action: isolated
 mature official-SDK fixture-only signed POST/query with accepted-then-timeout, then
 mandatory pre-T016 review and canonical recovery/accounting. Phase4 remote722a914,
 hosted CI37116292477 PASS.
+
+
+2026-10-03 official SDK recovery milestone: fixed dummy-auth literal-loopback child
+uses the already locked Spot SDK3.0/common3.2 without float conversion or automatic
+retry. SDK-generated float annotation accepts exact decimal string; actual wire
+0.100000000000000001 PASS. It cannot inherit owner credentials, accept live modes,
+target Binance or follow redirects. Accepted-before-timeout fixture commits venue
+truth in real PostgreSQL; UNKNOWN records preserve reservation and duplicate delivery
+cannot send again. Query after both object/HTTP restart finds one stable order;
+query-only reconciler recovers ACKNOWLEDGED, not full-account health. No-order query
+stays RECOVERY_REQUIRED, no retry/release. Receipt persistence interruption likewise
+recovers one existing order. Typed source action SUBMIT/QUERY and exact account/request
+hash bind immutable observations.22 actual combined-store/SDK tests PASS;115 units,
+mypy38,84 schemas, scan/SDK offline/wheel-sdist PASS. Pre-T016 review recorded before
+reconciliation implementation. Next: canonical fill batches, exact atomic accounting,
+cancel remainder, suspense and incident containment. Actual SDK redirect-to-second-server test PASS (no follow/no credential forwarding). No phase gate/live certification.

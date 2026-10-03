@@ -100,3 +100,16 @@ source scan, wheel/sdist; actual OPA+market/risk/execution17 (4 execution), actu
 platform/ledger17. Concurrent replay/claim gives one reservation and one claim;
 restart SUBMITTING -> UNKNOWN, no resend; atomic audit-failure rollback; expired/
 changed account/config/evidence denied. No transport or reconciliation yet.
+
+
+## 2026-10-03 — Phase5 official SDK UNKNOWN recovery milestone
+115 units, mypy38,84 schemas, scan/offline SDK and build PASS. Actual combined
+market/risk/execution/SDK22 PASS: signed dummy-auth POST commits fixture order before
+timeout -> UNKNOWN; zero retries; restarted SDK query finds stable ID; query-only
+recovery -> ACKNOWLEDGED; not-found remains unresolved, funds reserved; crash after
+accepted response/before local receipt persistence gives one total submission.
+Exact decimal string wire proof PASS despite generated SDK float annotations.
+Parent/child reject non-literal-loopback endpoints and real-money modes, strip
+credentials, use fixed dummy auth; redirects disabled. No production simulator,
+real Binance credentials/orders, L4 observation or complete Phase5 claim.
+Coordination7cdc0c6 hosted CI37117415054 PASS. Pre-T016 review recorded.

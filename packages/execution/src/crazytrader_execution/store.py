@@ -15,6 +15,7 @@ from crazytrader_contracts.execution import (
     ExecutionRequest,
     ExecutionState,
     ExecutionTransition,
+    VenueOrderObservation,
 )
 from crazytrader_contracts.ledger import Account
 from crazytrader_contracts.models import OrderState
@@ -392,3 +393,147 @@ class ExecutionStore:
             )
             self._write(conn, unknown)
             return unknown.resulting_state
+
+    def record_submission(self, observation: VenueOrderObservation) -> ExecutionState:
+        """Fixture-only observation after the single send; fill settlement is separate."""
+        observation = VenueOrderObservation.model_validate(observation.model_dump())
+        current = self.load(observation.execution_request_id)
+        request = current.request
+        if request.execution_mode != "SIMULATION" or observation.action != "SUBMIT":
+            raise StateUnavailable("fixture submission observation scope mismatch")
+        if (
+            observation.tenant_id,
+            observation.venue_account_ref,
+            observation.request_sha256,
+            observation.client_order_id,
+            observation.symbol,
+            observation.side,
+            observation.requested_quantity,
+        ) != (
+            request.tenant_id,
+            request.venue_account_ref,
+            digest(canonical(request)),
+            request.client_order_id,
+            request.symbol,
+            request.side,
+            request.quantity,
+        ):
+            raise StateUnavailable("submission observation ownership/identity mismatch")
+        body = canonical(observation)
+        with self.store.connection() as conn:
+            self._lock(conn, request.tenant_id)
+            current = self._load(conn, request.execution_request_id)
+            existing = conn.execute(
+                "SELECT body FROM ct_execution_observations WHERE digest=%s", (digest(body),)
+            ).fetchone()
+            if existing is not None:
+                if str(existing["body"]) != body:
+                    raise ConflictError("submission observation hash collision")
+                return current
+            if current.state != OrderState.SUBMITTING:
+                raise StateUnavailable("submission outcome requires outstanding single claim")
+            conn.execute(
+                "INSERT INTO ct_execution_observations "
+                "(digest,execution_request_id,body,observed_at) VALUES(%s,%s,%s,%s)",
+                (digest(body), request.execution_request_id, body, observation.observed_at),
+            )
+            # A fill/cancel/reject in the first response still needs canonical settlement;
+            # record truth but retain reservation and require reconciliation in this increment.
+            target = (
+                OrderState.SUBMITTED
+                if observation.status == "NEW" and observation.filled_quantity == 0
+                else OrderState.UNKNOWN
+            )
+            change = transition(
+                current,
+                target,
+                observation.observed_at,
+                "VENUE_ACK_RECEIVED"
+                if target == OrderState.SUBMITTED
+                else "AMBIGUOUS_OR_UNSETTLED_SUBMISSION",
+                "observation:" + digest(body),
+                venue_id=observation.venue_order_id,
+            )
+            self._write(conn, change)
+            return change.resulting_state
+
+    def start_recovery(self, request_id: str, now: datetime) -> ExecutionState:
+        """Recover unresolved sends via query only. No path back to SUBMITTING."""
+        current = self.load(request_id)
+        with self.store.connection() as conn:
+            self._lock(conn, current.request.tenant_id)
+            current = self._load(conn, request_id)
+            if current.state in {OrderState.SUBMITTING, OrderState.SUBMITTED}:
+                unknown = transition(
+                    current,
+                    OrderState.UNKNOWN,
+                    now,
+                    "RECONCILE_UNRESOLVED_SUBMISSION",
+                    "recovery:" + request_id,
+                )
+                self._write(conn, unknown)
+                current = unknown.resulting_state
+            if current.state == OrderState.UNKNOWN:
+                recovery = transition(
+                    current,
+                    OrderState.RECOVERY_REQUIRED,
+                    now,
+                    "QUERY_STABLE_CLIENT_ID",
+                    "recovery:" + request_id,
+                )
+                self._write(conn, recovery)
+                return recovery.resulting_state
+            return current
+
+    def recover_open_order(self, observation: VenueOrderObservation) -> ExecutionState:
+        """Only a query-proven unfilled open fixture order; no inferred settlement/absence."""
+        observation = VenueOrderObservation.model_validate(observation.model_dump())
+        current = self.load(observation.execution_request_id)
+        request = current.request
+        if request.execution_mode != "SIMULATION" or observation.action != "QUERY":
+            raise StateUnavailable("fixture recovery observation scope mismatch")
+        if (
+            observation.tenant_id,
+            observation.venue_account_ref,
+            observation.request_sha256,
+            observation.client_order_id,
+            observation.symbol,
+            observation.side,
+            observation.requested_quantity,
+        ) != (
+            request.tenant_id,
+            request.venue_account_ref,
+            digest(canonical(request)),
+            request.client_order_id,
+            request.symbol,
+            request.side,
+            request.quantity,
+        ):
+            raise StateUnavailable("recovery observation ownership/identity mismatch")
+        body = canonical(observation)
+        with self.store.connection() as conn:
+            self._lock(conn, request.tenant_id)
+            current = self._load(conn, request.execution_request_id)
+            conn.execute(
+                "INSERT INTO ct_execution_observations "
+                "(digest,execution_request_id,body,observed_at) VALUES(%s,%s,%s,%s) "
+                "ON CONFLICT DO NOTHING",
+                (digest(body), request.execution_request_id, body, observation.observed_at),
+            )
+            if current.state != OrderState.RECOVERY_REQUIRED:
+                # Replay cannot repeat transitions or infer a second send.
+                return current
+            if observation.status != "NEW" or observation.filled_quantity != 0:
+                # Persist actual known truth, keep unresolved and funds reserved. The next
+                # accounting increment records/settles full fill evidence and incidents.
+                return current
+            change = transition(
+                current,
+                OrderState.ACKNOWLEDGED,
+                observation.observed_at,
+                "QUERY_PROVED_EXISTING_OPEN_ORDER",
+                "reconciliation:" + digest(body),
+                venue_id=observation.venue_order_id,
+            )
+            self._write(conn, change)
+            return change.resulting_state

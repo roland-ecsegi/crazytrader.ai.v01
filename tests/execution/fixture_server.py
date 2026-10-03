@@ -1,0 +1,124 @@
+"""Disposable authoritative fixture on actual PostgreSQL; not an exchange simulator."""
+
+import json
+import socket
+import threading
+import time
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlsplit
+
+
+@contextmanager
+def sdk_venue(store, tenant, timeout_after_accept=True):
+    with store.connection() as conn:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS ct_test_wire_orders (tenant text NOT NULL, "
+            "client_id text NOT NULL, body text NOT NULL, PRIMARY KEY(tenant,client_id))"
+        )
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS ct_test_wire_posts "
+            "(tenant text NOT NULL, client_id text NOT NULL)"
+        )
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass  # no request signatures/auth/query in ordinary logs
+
+        def params(self):
+            params = parse_qs(urlsplit(self.path).query)
+            length = int(self.headers.get("Content-Length", "0"))
+            if length:
+                params.update(parse_qs(self.rfile.read(length).decode()))
+            return {key: values[0] for key, values in params.items()}
+
+        def respond(self, body):
+            encoded = json.dumps(body).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.end_headers()
+            try:
+                self.wfile.write(encoded)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+
+        def do_POST(self):
+            assert urlsplit(self.path).path == "/api/v3/order"
+            assert self.headers["X-MBX-APIKEY"] == "fixture-only-key"
+            params = self.params()
+            assert params["signature"]
+            client_id = params["newClientOrderId"]
+            body = {
+                "symbol": params["symbol"],
+                "orderId": 101,
+                "orderListId": -1,
+                "clientOrderId": client_id,
+                "transactTime": 1790985600000,
+                "price": "0",
+                "origQty": params["quantity"],
+                "executedQty": "0",
+                "cummulativeQuoteQty": "0",
+                "status": "NEW",
+                "timeInForce": "GTC",
+                "type": params["type"],
+                "side": params["side"],
+                "fills": [],
+                "workingTime": 1790985600000,
+                "selfTradePreventionMode": "NONE",
+            }
+            # Actual venue-side commit happens before timeout. New server instance
+            # after application/fixture restart queries the same authoritative row.
+            with store.connection() as conn:
+                conn.execute(
+                    "INSERT INTO ct_test_wire_posts(tenant,client_id) VALUES(%s,%s)",
+                    (tenant, client_id),
+                )
+                conn.execute(
+                    "INSERT INTO ct_test_wire_orders(tenant,client_id,body) "
+                    "VALUES(%s,%s,%s) ON CONFLICT DO NOTHING",
+                    (tenant, client_id, json.dumps(body)),
+                )
+            if timeout_after_accept:
+                time.sleep(0.35)  # SDK request timeout150ms, no retry allowed
+                try:
+                    self.connection.shutdown(socket.SHUT_RDWR)
+                except OSError:
+                    pass
+                self.connection.close()
+            else:
+                self.respond(body)
+
+        def do_GET(self):
+            assert urlsplit(self.path).path == "/api/v3/order"
+            params = self.params()
+            assert params["signature"]
+            with store.connection() as conn:
+                row = conn.execute(
+                    "SELECT body FROM ct_test_wire_orders WHERE tenant=%s AND client_id=%s",
+                    (tenant, params["origClientOrderId"]),
+                ).fetchone()
+            if row is None:
+                self.send_response(400)
+                self.end_headers()
+                return
+            body = json.loads(row["body"])
+            body.update(
+                time=1790985600000,
+                updateTime=1790985600000,
+                isWorking=True,
+                origQuoteOrderQty="0",
+                icebergQty="0",
+                stopPrice="0",
+            )
+            self.respond(body)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
