@@ -143,3 +143,14 @@ Python/SQL claim reference. Concurrent/audit/expiry/backend-choice fences; no ba
 for legacy unknown. Original late sender zero wire. Environment/netrc/redirect fallback
 disabled, test-only injected netrc sends no auth. Query reads bounded1000ms; send/cancel
 150ms faults and zero SDK retries preserved. No financial absence release/retry or gate.
+
+2026-10-03 Phase5 elapsed-window fixture absence closure: final10 actual cases PASS
+(97.37s), initial5 PASS (36.17s), expanded27 PASS with one mixed-custody fixture
+balance mismatch (130.64s), repaired matching fixture/final9 PASS (83.42s).
+Final deferred snapshot guard checks exact pre-release ledger/config/state head,
+original bound claim, elapsed captured server clock and whole custody. Injected
+ledger mutation and audit failure roll back financial/state effects, retaining
+sources. Four added unit contract negatives PASS (0.57s). Platform/ledger17 PASS
+(7.30s). Full100 attempt failed migration setup on SQL CASE parsing; repaired
+expression verified by final10, no full100 PASS claim. Final182 repository tests/mypy58/140 schemas/scan/offline SDK and wheel-sdist PASS. L0/no Phase5 gate. Guarded-dispatch hosted CI37148092071 and absence
+assessment hosted CI37143473972 PASS.

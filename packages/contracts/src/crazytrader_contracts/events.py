@@ -56,6 +56,7 @@ EVENT_TYPES: frozenset[str] = frozenset(
         "NativeSimulationCriticalMismatch.v1",
         "UnsentExecutionExpired.v1",
         "FixtureAbsenceAssessed.v1",
+        "FixtureAbsenceClosed.v1",
         "FixtureDispatchBound.v1",
         "RiskWarningRaised.v1",
         "RiskDecisionDenied.v1",

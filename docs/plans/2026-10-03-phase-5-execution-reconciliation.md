@@ -76,7 +76,7 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
 review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
-action: source-bound elapsed-window absence release/controlled retry. Original
+action: publish verified elapsed-window absence closure, then controlled retry. Original
 send deadline/guard binding and fixture acceptance/read linearization verified, and append-only incident resolution. Bounded signed fixture
 absence assessment has no financial effect.
 Unsent expiry verified. Native
@@ -212,3 +212,13 @@ backend choice. Original late sender stays UNKNOWN/no wire; legacy requests are 
 backfilled.22 repaired cases PASS (66.83s),20 final fill/deadline/SDK PASS (111.11s),
 178 units/mypy56/138 schemas/scan/offline SDK PASS,17 platform/ledger PASS (11.89s).
 Final90 actual cases PASS (302.24s), wheel-sdist PASS; no financial release/retry or gate.
+
+2026-10-03 absence financial closure in progress: exact paired elapsed-window proof,
+whole original custody and atomic EXPIRED transition, concurrent replay/source
+retention. Initial5 PASS, expanded27 PASS plus mixed fixture mismatch; matching
+explicit venue balance repaired and final9 PASS (83.42s). Added deferred snapshot
+head/revision proof; first full run failed on SQL CASE parsing before execution,
+expression repaired, final10 actual PASS (97.37s), injected ledger mutation rollback
+verified. Four additional unit contract negatives PASS. Combined regression follows
+controlled retry/resolution.178 units/mypy58/140 schemas/scan/
+offline SDK PASS;17 platform/ledger PASS (7.30s). No Phase5 gate.

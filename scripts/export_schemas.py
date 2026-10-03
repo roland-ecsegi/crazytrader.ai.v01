@@ -6,6 +6,7 @@ from pathlib import Path
 
 from crazytrader_contracts import (
     absence,
+    absence_closure,
     account,
     dispatch,
     execution,
@@ -28,6 +29,7 @@ TYPES = [
     absence.FixtureOrderLookup,
     absence.FixtureTimedOrderLookup,
     absence.FixtureAbsenceAssessment,
+    absence_closure.FixtureAbsenceClosure,
     expiry.UnsentExecutionExpiry,
     native_fills.NativeSimulationFill,
     native_fills.NativeSimulationIncident,

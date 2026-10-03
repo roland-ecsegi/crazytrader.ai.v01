@@ -1,0 +1,1031 @@
+{
+  "$defs": {
+    "ExecutionRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "client_order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Client Order Id",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "environment": {
+          "enum": [
+            "SANDBOX",
+            "PUBLIC"
+          ],
+          "title": "Environment",
+          "type": "string"
+        },
+        "execution_mode": {
+          "enum": [
+            "SIMULATION",
+            "TESTNET",
+            "PAPER",
+            "SHADOW",
+            "LIVE"
+          ],
+          "title": "Execution Mode",
+          "type": "string"
+        },
+        "execution_request_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Execution Request Id",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "intent_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Intent Id",
+          "type": "string"
+        },
+        "intent_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Intent Sha256",
+          "type": "string"
+        },
+        "limit_price": {
+          "anyOf": [
+            {
+              "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Limit Price"
+        },
+        "metadata_version": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Metadata Version",
+          "type": "string"
+        },
+        "order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "order_type": {
+          "enum": [
+            "MARKET",
+            "LIMIT"
+          ],
+          "title": "Order Type",
+          "type": "string"
+        },
+        "owner_config_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Owner Config Id",
+          "type": "string"
+        },
+        "policy_bundle_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Policy Bundle Sha256",
+          "type": "string"
+        },
+        "portfolio_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Portfolio Id",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        },
+        "risk_record_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Risk Record Sha256",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "side": {
+          "enum": [
+            "BUY",
+            "SELL"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "symbol": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "tenant_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "venue_account_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Account Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "execution_request_id",
+        "order_id",
+        "tenant_id",
+        "portfolio_id",
+        "actor_id",
+        "intent_id",
+        "intent_sha256",
+        "risk_record_sha256",
+        "owner_config_id",
+        "policy_bundle_sha256",
+        "client_order_id",
+        "venue_account_ref",
+        "symbol",
+        "side",
+        "order_type",
+        "quantity",
+        "limit_price",
+        "metadata_version",
+        "execution_mode",
+        "environment",
+        "created_at",
+        "expires_at"
+      ],
+      "title": "ExecutionRequest",
+      "type": "object"
+    },
+    "ExecutionState": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "filled_quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Filled Quantity",
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/ExecutionRequest"
+        },
+        "revision": {
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/OrderState"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "venue_order_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Venue Order Id"
+        }
+      },
+      "required": [
+        "request",
+        "revision",
+        "state",
+        "filled_quantity",
+        "venue_order_id",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "ExecutionState",
+      "type": "object"
+    },
+    "Fill": {
+      "additionalProperties": false,
+      "properties": {
+        "fee_amount": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Fee Amount",
+          "type": "string"
+        },
+        "fee_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Fee Asset",
+          "type": "string"
+        },
+        "fill_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Fill Id",
+          "type": "string"
+        },
+        "order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "price": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Price",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "venue_fill_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Fill Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fill_id",
+        "order_id",
+        "venue_fill_id",
+        "quantity",
+        "price",
+        "fee_amount",
+        "fee_asset",
+        "timestamp"
+      ],
+      "title": "Fill",
+      "type": "object"
+    },
+    "FixtureAbsenceAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "$ref": "#/$defs/VenueAccountRead"
+        },
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "certification_effect": {
+          "const": "NONE",
+          "default": "NONE",
+          "title": "Certification Effect",
+          "type": "string"
+        },
+        "coverage": {
+          "const": "SEQUENTIAL_ID_ZERO_COMPLETE_LOOPBACK_FIXTURE",
+          "default": "SEQUENTIAL_ID_ZERO_COMPLETE_LOOPBACK_FIXTURE",
+          "title": "Coverage",
+          "type": "string"
+        },
+        "financial_effect": {
+          "const": "NONE",
+          "default": "NONE",
+          "title": "Financial Effect",
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:@/-]+$",
+            "type": "string"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "internal_head_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Internal Head Sha256",
+          "type": "string"
+        },
+        "lookup": {
+          "$ref": "#/$defs/FixtureOrderLookup"
+        },
+        "occurred_at": {
+          "format": "date-time",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/ExecutionState"
+        },
+        "verdict": {
+          "enum": [
+            "PROVEN",
+            "DENIED"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "lookup",
+        "account",
+        "internal_head_sha256",
+        "actor_id",
+        "verdict",
+        "findings",
+        "occurred_at"
+      ],
+      "title": "FixtureAbsenceAssessment",
+      "type": "object"
+    },
+    "FixtureDispatchBound": {
+      "additionalProperties": false,
+      "properties": {
+        "bound_at": {
+          "format": "date-time",
+          "title": "Bound At",
+          "type": "string"
+        },
+        "child_source_sha256": {
+          "const": "113680db83443dacad4b124b407a298f75a1579ebdc0cf5d188833c2f937530b",
+          "title": "Child Source Sha256",
+          "type": "string"
+        },
+        "maximum_signature_window_ms": {
+          "const": 5000,
+          "default": 5000,
+          "title": "Maximum Signature Window Ms",
+          "type": "integer"
+        },
+        "protocol": {
+          "const": "LOOPBACK_DEADLINE_GUARD_V1",
+          "default": "LOOPBACK_DEADLINE_GUARD_V1",
+          "title": "Protocol",
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/ExecutionRequest"
+        },
+        "request_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Request Sha256",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sdk_version": {
+          "const": "3.0.0",
+          "default": "3.0.0",
+          "title": "Sdk Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request",
+        "bound_at",
+        "request_sha256",
+        "child_source_sha256"
+      ],
+      "title": "FixtureDispatchBound",
+      "type": "object"
+    },
+    "FixtureOrderLookup": {
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "title": "Available",
+          "type": "boolean"
+        },
+        "finished_at": {
+          "format": "date-time",
+          "title": "Finished At",
+          "type": "string"
+        },
+        "http_status": {
+          "anyOf": [
+            {
+              "maximum": 599,
+              "minimum": 100,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Http Status"
+        },
+        "raw_json": {
+          "anyOf": [
+            {
+              "maxLength": 64000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw Json"
+        },
+        "request": {
+          "$ref": "#/$defs/ExecutionRequest"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "const": "OFFICIAL_SDK_LOOPBACK_FIXTURE",
+          "default": "OFFICIAL_SDK_LOOPBACK_FIXTURE",
+          "title": "Source",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request",
+        "started_at",
+        "finished_at",
+        "available",
+        "http_status",
+        "raw_json"
+      ],
+      "title": "FixtureOrderLookup",
+      "type": "object"
+    },
+    "FixtureTimedOrderLookup": {
+      "additionalProperties": false,
+      "properties": {
+        "clock_source": {
+          "const": "LOOPBACK_HTTP_DATE_HEADER",
+          "default": "LOOPBACK_HTTP_DATE_HEADER",
+          "title": "Clock Source",
+          "type": "string"
+        },
+        "lookup": {
+          "$ref": "#/$defs/FixtureOrderLookup"
+        },
+        "maximum_signature_window_ms": {
+          "const": 5000,
+          "default": 5000,
+          "title": "Maximum Signature Window Ms",
+          "type": "integer"
+        },
+        "raw_server_date": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw Server Date"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "server_date": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Server Date"
+        }
+      },
+      "required": [
+        "lookup",
+        "raw_server_date",
+        "server_date"
+      ],
+      "title": "FixtureTimedOrderLookup",
+      "type": "object"
+    },
+    "LedgerPosting": {
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "enum": [
+            "AVAILABLE",
+            "RESERVED",
+            "INVENTORY",
+            "EXTERNAL",
+            "FEES",
+            "CAPITAL",
+            "REALIZED_PNL"
+          ],
+          "title": "Account",
+          "type": "string"
+        },
+        "amount": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Asset",
+          "type": "string"
+        },
+        "portfolio_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Portfolio Id"
+        },
+        "posting_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Posting Id",
+          "type": "string"
+        },
+        "valuation_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valuation Ref"
+        }
+      },
+      "required": [
+        "posting_id",
+        "portfolio_id",
+        "account",
+        "asset",
+        "amount"
+      ],
+      "title": "LedgerPosting",
+      "type": "object"
+    },
+    "LedgerTransaction": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "base_asset": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Base Asset"
+        },
+        "correction_of_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Correction Of Id"
+        },
+        "fill_data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Fill"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "fill_side": {
+          "anyOf": [
+            {
+              "enum": [
+                "BUY",
+                "SELL"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill Side"
+        },
+        "postings": {
+          "items": {
+            "$ref": "#/$defs/LedgerPosting"
+          },
+          "maxItems": 100,
+          "minItems": 2,
+          "title": "Postings",
+          "type": "array"
+        },
+        "provenance_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "quote_asset": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quote Asset"
+        },
+        "reason": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Reason",
+          "type": "string"
+        },
+        "related_fill_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Related Fill Id"
+        },
+        "related_order_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Related Order Id"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_event_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Source Event Id",
+          "type": "string"
+        },
+        "tenant_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "transaction_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Transaction Id",
+          "type": "string"
+        },
+        "transaction_type": {
+          "enum": [
+            "FUNDING",
+            "ALLOCATION",
+            "RESERVATION",
+            "RELEASE",
+            "FILL",
+            "FEE",
+            "TRANSFER",
+            "CORRECTION"
+          ],
+          "title": "Transaction Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transaction_id",
+        "tenant_id",
+        "source_event_id",
+        "actor_id",
+        "transaction_type",
+        "reason",
+        "provenance_ref",
+        "timestamp",
+        "postings"
+      ],
+      "title": "LedgerTransaction",
+      "type": "object"
+    },
+    "OrderState": {
+      "enum": [
+        "CREATED",
+        "RISK_PENDING",
+        "AUTHORIZED",
+        "SUBMITTING",
+        "SUBMITTED",
+        "ACKNOWLEDGED",
+        "PARTIALLY_FILLED",
+        "FILLED",
+        "DENIED",
+        "REJECTED",
+        "CANCEL_PENDING",
+        "CANCELLED",
+        "EXPIRED",
+        "UNKNOWN",
+        "RECOVERY_REQUIRED"
+      ],
+      "title": "OrderState",
+      "type": "string"
+    },
+    "VenueAccountRead": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_request_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Anchor Request Id",
+          "type": "string"
+        },
+        "anchor_request_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Anchor Request Sha256",
+          "type": "string"
+        },
+        "available": {
+          "title": "Available",
+          "type": "boolean"
+        },
+        "execution_mode": {
+          "const": "SIMULATION",
+          "default": "SIMULATION",
+          "title": "Execution Mode",
+          "type": "string"
+        },
+        "finished_at": {
+          "format": "date-time",
+          "title": "Finished At",
+          "type": "string"
+        },
+        "raw_json": {
+          "anyOf": [
+            {
+              "maxLength": 10000000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw Json"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "const": "OFFICIAL_SDK_LOOPBACK_FIXTURE",
+          "default": "OFFICIAL_SDK_LOOPBACK_FIXTURE",
+          "title": "Source",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "symbols": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:@/-]+$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Symbols",
+          "type": "array"
+        },
+        "tenant_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "venue_account_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Account Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "venue_account_ref",
+        "anchor_request_id",
+        "anchor_request_sha256",
+        "symbols",
+        "started_at",
+        "finished_at",
+        "available",
+        "raw_json"
+      ],
+      "title": "VenueAccountRead",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "assessment": {
+      "$ref": "#/$defs/FixtureAbsenceAssessment"
+    },
+    "certification_effect": {
+      "const": "NONE",
+      "default": "NONE",
+      "title": "Certification Effect",
+      "type": "string"
+    },
+    "dispatch_bound": {
+      "$ref": "#/$defs/FixtureDispatchBound"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "original_reservation": {
+      "$ref": "#/$defs/LedgerTransaction"
+    },
+    "release": {
+      "$ref": "#/$defs/LedgerTransaction"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "timed_lookup": {
+      "$ref": "#/$defs/FixtureTimedOrderLookup"
+    }
+  },
+  "required": [
+    "assessment",
+    "dispatch_bound",
+    "timed_lookup",
+    "original_reservation",
+    "release",
+    "actor_id",
+    "occurred_at"
+  ],
+  "title": "FixtureAbsenceClosure",
+  "type": "object"
+}

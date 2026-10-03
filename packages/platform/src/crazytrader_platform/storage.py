@@ -7,6 +7,7 @@ from typing import Literal
 
 import psycopg
 from crazytrader_contracts.absence import FixtureAbsenceAssessment
+from crazytrader_contracts.absence_closure import FixtureAbsenceClosure
 from crazytrader_contracts.account import AccountReconciliationReport
 from crazytrader_contracts.codec import canonical as canonical
 from crazytrader_contracts.codec import digest as digest
@@ -47,6 +48,7 @@ class HealthChange(Contract):
 PAYLOAD_TYPES: dict[str, type[Contract]] = {
     "FixtureDispatchBound.v1": FixtureDispatchBound,
     "FixtureAbsenceAssessed.v1": FixtureAbsenceAssessment,
+    "FixtureAbsenceClosed.v1": FixtureAbsenceClosure,
     "UnsentExecutionExpired.v1": UnsentExecutionExpiry,
     "NativeSimulationCriticalMismatch.v1": NativeSimulationIncident,
     "LedgerNativeFillAppended.v1": NativeFillLedgerTransaction,
@@ -95,6 +97,13 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
             or event.actor_id != payload.request.actor_id
         ):
             raise ValueError("fixture dispatch bound ownership mismatch")
+    elif isinstance(payload, FixtureAbsenceClosure):
+        source, occurred = "reconciliation", payload.occurred_at
+        if (
+            event.tenant_id != payload.assessment.state.request.tenant_id
+            or event.actor_id != payload.actor_id
+        ):
+            raise ValueError("absence closure ownership mismatch")
     elif isinstance(payload, FixtureAbsenceAssessment):
         source, occurred = "reconciliation", payload.occurred_at
         if event.tenant_id != payload.state.request.tenant_id or event.actor_id != payload.actor_id:
