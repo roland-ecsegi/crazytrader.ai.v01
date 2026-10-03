@@ -15,12 +15,15 @@ from crazytrader_contracts.execution import (
     ExecutionIncident,
     ExecutionState,
     VenueFillBatch,
+    VenueFillEvidence,
     VenueOrderObservation,
+    VenueQuoteFillBatch,
 )
-from crazytrader_contracts.ledger import Account
+from crazytrader_contracts.ledger import Account, JournalTransaction
 from crazytrader_contracts.models import OrderState
 from crazytrader_contracts.risk import RiskEvaluationRecord
-from crazytrader_ledger.commands import account_fill, move
+from crazytrader_contracts.venue_fills import VenueQuoteFill
+from crazytrader_ledger.commands import account_actual_quote_fill, account_fill, move
 from crazytrader_ledger.store import InsufficientFunds, LedgerStore
 from crazytrader_platform.storage import ConflictError
 from crazytrader_risk.store import StateUnavailable
@@ -46,7 +49,7 @@ class FillSettlement:
         self,
         conn: psycopg.Connection[dict[str, object]],
         current: ExecutionState,
-        batch: VenueFillBatch,
+        batch: VenueFillBatch | VenueQuoteFillBatch,
         reason: Reason,
     ) -> None:
         source = digest(canonical(batch))
@@ -117,9 +120,35 @@ class FillSettlement:
         )
         self.store.append_in_transaction(conn, event, incident)
 
-    def apply(self, observation: VenueOrderObservation, batch: VenueFillBatch) -> ExecutionState:
+    def _same_fill(self, previous_body: str, candidate: VenueFillEvidence | VenueQuoteFill) -> bool:
+        raw = json.loads(previous_body)
+        if "quote_quantity" in raw:
+            previous: VenueFillEvidence | VenueQuoteFill = VenueQuoteFill.model_validate(raw)
+        else:
+            previous = VenueFillEvidence.model_validate(raw)
+        prior_identity = previous.identity if isinstance(previous, VenueQuoteFill) else previous
+        new_identity = candidate.identity if isinstance(candidate, VenueQuoteFill) else candidate
+        if prior_identity.model_dump() != new_identity.model_dump():
+            return False
+        with localcontext() as exact:
+            exact.prec = 100
+            prior_quote = (
+                previous.quote_quantity
+                if isinstance(previous, VenueQuoteFill)
+                else previous.fill.quantity * previous.fill.price
+            )
+            new_quote = (
+                candidate.quote_quantity
+                if isinstance(candidate, VenueQuoteFill)
+                else candidate.fill.quantity * candidate.fill.price
+            )
+        return prior_quote == new_quote
+
+    def apply(
+        self, observation: VenueOrderObservation, batch: VenueFillBatch | VenueQuoteFillBatch
+    ) -> ExecutionState:
         observation = VenueOrderObservation.model_validate(observation.model_dump())
-        batch = VenueFillBatch.model_validate(batch.model_dump())
+        batch = type(batch).model_validate(batch.model_dump())
         current = self.execution.load(batch.execution_request_id)
         request = current.request
         if request.execution_mode != "SIMULATION" or observation.action != "QUERY":
@@ -171,6 +200,21 @@ class FillSettlement:
                 "VALUES(%s,%s,%s,%s) ON CONFLICT DO NOTHING",
                 (digest(body), request.execution_request_id, body, batch.observed_at),
             )
+            if isinstance(batch, VenueQuoteFillBatch):
+                proof = conn.execute(
+                    "SELECT venue_rules_digest FROM ct_execution_reservations "
+                    "WHERE execution_request_id=%s",
+                    (request.execution_request_id,),
+                ).fetchone()
+                if (
+                    proof is None
+                    or proof["venue_rules_digest"] != digest(canonical(batch.venue_rule_receipt))
+                    or batch.venue_rule_receipt.rules.metadata_version != request.metadata_version
+                    or batch.venue_rule_receipt.rules.environment != request.environment
+                ):
+                    raise StateUnavailable(
+                        "actual quote precision differs from original reservation proof"
+                    )
             if not batch.available or not batch.complete:
                 self._incident(conn, current, batch, "UNPROVEN_FILL_BATCH")
                 return current
@@ -191,7 +235,7 @@ class FillSettlement:
                 else:
                     for entry in batch.fills:
                         prior = conn.execute(
-                            "SELECT digest FROM ct_execution_fills WHERE tenant_id=%s "
+                            "SELECT digest,body FROM ct_execution_fills WHERE tenant_id=%s "
                             "AND venue_account_ref=%s AND symbol=%s AND raw_trade_id=%s",
                             (
                                 entry.tenant_id,
@@ -200,7 +244,7 @@ class FillSettlement:
                                 entry.raw_trade_id,
                             ),
                         ).fetchone()
-                        if prior is None or prior["digest"] != digest(canonical(entry)):
+                        if prior is None or not self._same_fill(str(prior["body"]), entry):
                             self._incident(conn, current, batch, "FILL_ID_CONFLICT")
                             break
                 return current
@@ -236,7 +280,7 @@ class FillSettlement:
                             raise ValueError("fill order/clock attribution mismatch")
                         fingerprint = digest(canonical(entry))
                         prior = conn.execute(
-                            "SELECT digest FROM ct_execution_fills WHERE tenant_id=%s "
+                            "SELECT digest,body FROM ct_execution_fills WHERE tenant_id=%s "
                             "AND venue_account_ref=%s AND symbol=%s AND raw_trade_id=%s",
                             (
                                 entry.tenant_id,
@@ -246,24 +290,41 @@ class FillSettlement:
                             ),
                         ).fetchone()
                         if prior is not None:
-                            if prior["digest"] != fingerprint:
+                            if not self._same_fill(str(prior["body"]), entry):
                                 reason = "FILL_ID_CONFLICT"
                                 raise ConflictError("venue fill ID changed body")
                             continue
-                        tx = account_fill(
-                            "fill-tx:" + fingerprint,
-                            request.tenant_id,
-                            "fill-source:" + fingerprint,
-                            request.actor_id,
-                            "venue-fill:" + fingerprint,
-                            fill.timestamp,
-                            request.portfolio_id,
-                            request.side,
-                            metadata.base_asset,
-                            metadata.quote_asset,
-                            fill,
-                            "venue-fill:" + fingerprint,
-                        )
+                        tx: JournalTransaction
+                        if isinstance(entry, VenueQuoteFill):
+                            tx = account_actual_quote_fill(
+                                "fill-tx:" + fingerprint,
+                                request.tenant_id,
+                                "fill-source:" + fingerprint,
+                                request.actor_id,
+                                "venue-fill:" + fingerprint,
+                                fill.timestamp,
+                                request.portfolio_id,
+                                request.side,
+                                metadata.base_asset,
+                                metadata.quote_asset,
+                                entry,
+                                "venue-fill:" + fingerprint,
+                            )
+                        else:
+                            tx = account_fill(
+                                "fill-tx:" + fingerprint,
+                                request.tenant_id,
+                                "fill-source:" + fingerprint,
+                                request.actor_id,
+                                "venue-fill:" + fingerprint,
+                                fill.timestamp,
+                                request.portfolio_id,
+                                request.side,
+                                metadata.base_asset,
+                                metadata.quote_asset,
+                                fill,
+                                "venue-fill:" + fingerprint,
+                            )
                         LedgerStore(self.store).append_in_transaction(conn, tx)
                         conn.execute(
                             "INSERT INTO ct_execution_fills "

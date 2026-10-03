@@ -20,8 +20,11 @@ from crazytrader_contracts.execution import (
     VenueFillBatch,
     VenueFillEvidence,
     VenueOrderObservation,
+    VenueQuoteFillBatch,
 )
 from crazytrader_contracts.models import Fill, decimal_input
+from crazytrader_contracts.venue_fills import QuoteFillIdentity, VenueQuoteFill
+from crazytrader_contracts.venue_rules import VenueRuleReceipt
 
 
 class SDKFixtureTransport:
@@ -284,3 +287,72 @@ class SDKFixtureTransport:
                 "observed_at": now,
             }
         )
+
+    def quote_fills(
+        self,
+        request: ExecutionRequest,
+        observation: VenueOrderObservation,
+        receipt: VenueRuleReceipt,
+        now: datetime,
+    ) -> VenueQuoteFillBatch:
+        receipt = VenueRuleReceipt.model_validate(receipt.model_dump())
+        legacy = self.fills(request, observation, now)
+        base = legacy.model_dump() | {
+            "venue_rule_receipt": receipt,
+            "available": False,
+            "complete": False,
+            "fills": (),
+        }
+        try:
+            if legacy.raw_json is None:
+                raise ValueError("SDK quote source unavailable")
+            rows = json.loads(legacy.raw_json)
+            entries = []
+            for row in rows:
+                scope = digest(
+                    json.dumps(
+                        [request.tenant_id, request.venue_account_ref, request.symbol, row["id"]],
+                        separators=(",", ":"),
+                    )
+                )
+                fill = Fill(
+                    fill_id="fill:" + scope,
+                    venue_fill_id="vfill:" + scope,
+                    order_id=request.order_id,
+                    quantity=row["qty"],
+                    price=row["price"],
+                    fee_amount=row["commission"],
+                    fee_asset=row["commissionAsset"],
+                    timestamp=datetime(1970, 1, 1, tzinfo=UTC)
+                    + timedelta(milliseconds=row["time"]),
+                )
+                identity = QuoteFillIdentity(
+                    tenant_id=request.tenant_id,
+                    venue_account_ref=request.venue_account_ref,
+                    execution_request_id=request.execution_request_id,
+                    client_order_id=request.client_order_id,
+                    venue_order_id=observation.venue_order_id,
+                    symbol=request.symbol,
+                    side=request.side,
+                    raw_trade_id=row["id"],
+                    fill=fill,
+                )
+                entries.append(
+                    VenueQuoteFill(
+                        identity=identity,
+                        quote_quantity=row["quoteQty"],
+                        quote_precision=receipt.rules.quote_precision,
+                        venue_rule_receipt_sha256=digest(canonical(receipt)),
+                        raw_trade_json=json.dumps(row, sort_keys=True, separators=(",", ":")),
+                    )
+                )
+            return VenueQuoteFillBatch.model_validate(
+                base
+                | {
+                    "available": True,
+                    "complete": len(rows) < 1000,
+                    "fills": tuple(entries),
+                }
+            )
+        except Exception:
+            return VenueQuoteFillBatch.model_validate(base)

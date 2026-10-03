@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from botocore.exceptions import EndpointConnectionError
+from botocore.exceptions import ClientError, EndpointConnectionError
 from crazytrader_contracts.market import InstrumentMetadata
 from crazytrader_market.archive import AnalyticalTrades, HistoricalIngestor, S3Artifacts
 from crazytrader_platform.storage import ConflictError, EventStore
@@ -17,7 +17,12 @@ def test_real_source_projection_restart_and_failures():
     for path in sorted(Path("infra/migrations").glob("*.sql")):
         store.migrate(path)
     objects = S3Artifacts(os.environ["CT_TEST_S3"], "market-fixture", "fixture", "fixture")
-    objects.client.create_bucket(Bucket=objects.bucket)
+    try:
+        objects.client.head_bucket(Bucket=objects.bucket)
+    except ClientError as exc:
+        if exc.response["ResponseMetadata"]["HTTPStatusCode"] != 404:
+            raise
+        objects.client.create_bucket(Bucket=objects.bucket)
     analytics = AnalyticalTrades(
         "127.0.0.1", int(os.environ["CT_TEST_CH_PORT"]), "fixture", "fixture"
     )
@@ -40,16 +45,23 @@ def test_real_source_projection_restart_and_failures():
     ingestor = HistoricalIngestor(store, objects, analytics)
     source = ingestor.ingest("fixture", metadata, raw)
     assert ingestor.ingest("fixture", metadata, raw) == source
-    result = analytics.client.query("SELECT count(DISTINCT record_key) FROM ct_market_trades")
+    result = analytics.client.query(
+        "SELECT count(DISTINCT record_key) FROM ct_market_trades WHERE tenant_id='fixture'"
+    )
     assert result.first_row[0] == 2
     with store.connection() as conn:
         assert (
-            conn.execute("SELECT last_trade_id FROM ct_market_watermarks").fetchone()[
-                "last_trade_id"
-            ]
+            conn.execute(
+                "SELECT last_trade_id FROM ct_market_watermarks WHERE tenant_id='fixture'"
+            ).fetchone()["last_trade_id"]
             == 2
         )
-        assert conn.execute("SELECT count(*) AS n FROM ct_market_records").fetchone()["n"] == 2
+        assert (
+            conn.execute(
+                "SELECT count(*) AS n FROM ct_market_records WHERE tenant_id='fixture'"
+            ).fetchone()["n"]
+            == 2
+        )
     # New process-like objects use durable database state, not in-memory cursor.
     restarted = HistoricalIngestor(EventStore(os.environ["CT_TEST_DSN"]), objects, analytics)
     with pytest.raises(ConflictError):
@@ -69,14 +81,15 @@ def test_real_source_projection_restart_and_failures():
         )
     with store.connection() as conn:
         assert (
-            conn.execute("SELECT last_trade_id FROM ct_market_watermarks").fetchone()[
-                "last_trade_id"
-            ]
+            conn.execute(
+                "SELECT last_trade_id FROM ct_market_watermarks WHERE tenant_id='fixture'"
+            ).fetchone()["last_trade_id"]
             == 2
         )
         assert (
             conn.execute(
-                "SELECT count(*) AS n FROM ct_market_batches WHERE status='FAILED'"
+                "SELECT count(*) AS n FROM ct_market_batches b JOIN ct_market_sources s "
+                "ON s.digest=b.source_digest WHERE b.status='FAILED' AND s.tenant_id='fixture'"
             ).fetchone()["n"]
             == 1
         )
@@ -108,17 +121,17 @@ def test_real_source_projection_restart_and_failures():
         raise AssertionError("ClickHouse restart failed")
     restarted = HistoricalIngestor(store, objects, analytics)
     assert (
-        analytics.client.query("SELECT count(DISTINCT record_key) FROM ct_market_trades").first_row[
-            0
-        ]
+        analytics.client.query(
+            "SELECT count(DISTINCT record_key) FROM ct_market_trades WHERE tenant_id='fixture'"
+        ).first_row[0]
         >= 2
     )
     restarted.ingest("fixture", metadata, [raw[0] | {"a": 3}])
     with store.connection() as conn:
         assert (
-            conn.execute("SELECT last_trade_id FROM ct_market_watermarks").fetchone()[
-                "last_trade_id"
-            ]
+            conn.execute(
+                "SELECT last_trade_id FROM ct_market_watermarks WHERE tenant_id='fixture'"
+            ).fetchone()["last_trade_id"]
             == 3
         )
     unavailable = S3Artifacts("http://127.0.0.1:1", "market-fixture", "fixture", "fixture")
@@ -128,9 +141,9 @@ def test_real_source_projection_restart_and_failures():
         )
     with store.connection() as conn:
         assert (
-            conn.execute("SELECT last_trade_id FROM ct_market_watermarks").fetchone()[
-                "last_trade_id"
-            ]
+            conn.execute(
+                "SELECT last_trade_id FROM ct_market_watermarks WHERE tenant_id='fixture'"
+            ).fetchone()["last_trade_id"]
             == 3
         )
 

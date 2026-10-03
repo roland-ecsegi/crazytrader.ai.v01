@@ -1,0 +1,195 @@
+{
+  "$defs": {
+    "Fill": {
+      "additionalProperties": false,
+      "properties": {
+        "fee_amount": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Fee Amount",
+          "type": "string"
+        },
+        "fee_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Fee Asset",
+          "type": "string"
+        },
+        "fill_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Fill Id",
+          "type": "string"
+        },
+        "order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "price": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Price",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "venue_fill_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Fill Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fill_id",
+        "order_id",
+        "venue_fill_id",
+        "quantity",
+        "price",
+        "fee_amount",
+        "fee_asset",
+        "timestamp"
+      ],
+      "title": "Fill",
+      "type": "object"
+    },
+    "QuoteFillIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "client_order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Client Order Id",
+          "type": "string"
+        },
+        "execution_request_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Execution Request Id",
+          "type": "string"
+        },
+        "fill": {
+          "$ref": "#/$defs/Fill"
+        },
+        "raw_trade_id": {
+          "minimum": 0,
+          "title": "Raw Trade Id",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "side": {
+          "enum": [
+            "BUY",
+            "SELL"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "symbol": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "tenant_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "venue_account_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Account Ref",
+          "type": "string"
+        },
+        "venue_order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Order Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "venue_account_ref",
+        "execution_request_id",
+        "client_order_id",
+        "venue_order_id",
+        "symbol",
+        "side",
+        "raw_trade_id",
+        "fill"
+      ],
+      "title": "QuoteFillIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Authoritative actual quote amount, independently bound to preserved trade row.",
+  "properties": {
+    "identity": {
+      "$ref": "#/$defs/QuoteFillIdentity"
+    },
+    "quote_precision": {
+      "maximum": 18,
+      "minimum": 0,
+      "title": "Quote Precision",
+      "type": "integer"
+    },
+    "quote_quantity": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Quote Quantity",
+      "type": "string"
+    },
+    "raw_trade_json": {
+      "maxLength": 65536,
+      "minLength": 2,
+      "title": "Raw Trade Json",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "venue_rule_receipt_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Venue Rule Receipt Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "identity",
+    "quote_quantity",
+    "quote_precision",
+    "venue_rule_receipt_sha256",
+    "raw_trade_json"
+  ],
+  "title": "VenueQuoteFill",
+  "type": "object"
+}

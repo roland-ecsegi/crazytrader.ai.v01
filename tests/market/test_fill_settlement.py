@@ -295,3 +295,75 @@ def test_order_status_proof_cannot_be_swapped_and_terminal_fee_conflict_is_prese
                 ).fetchone()["reason_code"]
                 == "FILL_ID_CONFLICT"
             )
+
+
+def test_signed_sdk_actual_rounded_quote_does_not_infer_extra_cash(backbone):
+    risk, objects, intent, context, config, policy, now = backbone
+    with sdk_venue(risk.store, intent.tenant_id, timeout_after_accept=False) as endpoint:
+        execution, request, reconciler = ready(backbone, endpoint)
+        row = fill(request, now) | {"price": "100.00000001", "quoteQty": "4.00000000"}
+        set_truth(risk.store, request, [row], "PARTIALLY_FILLED")
+        state = reconciler.reconcile(request.execution_request_id)
+        assert state.state == OrderState.PARTIALLY_FILLED
+        assert LedgerStore(risk.store).balance(
+            intent.tenant_id, intent.portfolio_id, "AVAILABLE", "USDT"
+        ) == Decimal("3.99")
+        assert reconciler.reconcile(request.execution_request_id) == state
+        with risk.store.connection() as conn:
+            body = conn.execute(
+                "SELECT body FROM ct_ledger_transactions WHERE tenant_id=%s "
+                "AND transaction_type='FILL'",
+                (intent.tenant_id,),
+            ).fetchone()["body"]
+            assert json.loads(body)["quote_evidence"]["quote_quantity"] == "4.00000000"
+
+
+def test_v1_posted_fill_upgrade_to_actual_quote_path_cannot_double_post(backbone):
+    risk, objects, intent, context, config, policy, now = backbone
+    with sdk_venue(risk.store, intent.tenant_id, timeout_after_accept=False) as endpoint:
+        execution, request, reconciler = ready(backbone, endpoint)
+        set_truth(risk.store, request, [fill(request, now)], "PARTIALLY_FILLED")
+        adapter = transport(endpoint)
+        observation = adapter.query(request, now)
+        legacy = adapter.fills(request, observation, now)
+        original = FillSettlement(execution).apply(observation, legacy)
+        assert original.state == OrderState.PARTIALLY_FILLED
+        assert reconciler.reconcile(request.execution_request_id) == original
+        with risk.store.connection() as conn:
+            assert (
+                conn.execute(
+                    "SELECT count(*) n FROM ct_ledger_transactions WHERE tenant_id=%s "
+                    "AND transaction_type='FILL'",
+                    (intent.tenant_id,),
+                ).fetchone()["n"]
+                == 1
+            )
+            assert (
+                conn.execute(
+                    "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s",
+                    (intent.tenant_id,),
+                ).fetchone()
+                is None
+            )
+
+
+def test_inconsistent_actual_quote_remains_unposted_source_and_reservation(backbone):
+    risk, objects, intent, context, config, policy, now = backbone
+    with sdk_venue(risk.store, intent.tenant_id, timeout_after_accept=False) as endpoint:
+        execution, request, reconciler = ready(backbone, endpoint)
+        row = fill(request, now) | {"quoteQty": "3.9"}
+        set_truth(risk.store, request, [row], "PARTIALLY_FILLED")
+        assert reconciler.reconcile(request.execution_request_id).state == OrderState.ACKNOWLEDGED
+        ledger = LedgerStore(risk.store)
+        assert ledger.balance(intent.tenant_id, intent.portfolio_id, "RESERVED", "BTC") == Decimal(
+            "0.1"
+        )
+        assert ledger.balance(intent.tenant_id, intent.portfolio_id, "AVAILABLE", "USDT") == 0
+        with risk.store.connection() as conn:
+            assert (
+                conn.execute(
+                    "SELECT reason_code FROM ct_reconciliation_incidents WHERE tenant_id=%s",
+                    (intent.tenant_id,),
+                ).fetchone()["reason_code"]
+                == "UNPROVEN_FILL_BATCH"
+            )

@@ -16,7 +16,7 @@ from crazytrader_contracts.execution import (
     ExecutionIncident,
     ExecutionTransition,
 )
-from crazytrader_contracts.ledger import LedgerTransaction
+from crazytrader_contracts.ledger import LedgerTransaction, VenueFillLedgerTransaction
 from crazytrader_contracts.market import BookDelta, MarketCandle, MarketStatus, MarketTrade
 from crazytrader_contracts.models import Contract, Identifier, Timestamp
 from crazytrader_contracts.risk import PolicyAuthorization, RiskAuthorization, RiskBoundaryRejection
@@ -39,6 +39,7 @@ PAYLOAD_TYPES: dict[str, type[Contract]] = {
     "MarketCandleClosed.v1": MarketCandle,
     "MarketBookUpdated.v1": BookDelta,
     "LedgerEntryAppended.v1": LedgerTransaction,
+    "LedgerVenueFillAppended.v1": VenueFillLedgerTransaction,
     "RiskDecisionDenied.v1": RiskBoundaryRejection,
     "TradeIntentRiskApproved.v1": RiskAuthorization,
     "TradeIntentRiskDenied.v1": RiskAuthorization,
@@ -106,7 +107,7 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
             raise ValueError("decision ownership mismatch")
         if ("Approved" in event.event_type) != (payload.decision.decision == "ALLOW"):
             raise ValueError("decision event verdict mismatch")
-    elif isinstance(payload, LedgerTransaction):
+    elif isinstance(payload, (LedgerTransaction, VenueFillLedgerTransaction)):
         source, occurred = "ledger", payload.timestamp
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
             raise ValueError("ledger event ownership mismatch")

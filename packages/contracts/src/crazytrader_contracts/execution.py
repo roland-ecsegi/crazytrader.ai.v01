@@ -11,6 +11,8 @@ from .codec import digest
 from .market import Hash, Sequence
 from .models import Contract, Fill, Identifier, NonNegative, OrderState, Positive, Timestamp
 from .risk import CancellationAuthorization, CancellationContext, CancellationRequest
+from .venue_fills import VenueQuoteFill
+from .venue_rules import VenueRuleReceipt
 
 
 class ExecutionRequest(Contract):
@@ -395,3 +397,131 @@ class CancellationReceipt(Contract):
     outcome: Literal["OBSERVED", "UNKNOWN"]
     raw_json: Annotated[str | None, Field(max_length=2_000_000)]
     observed_at: Timestamp
+
+
+class VenueQuoteFillBatch(Contract):
+    schema_version: Literal["1"] = "1"
+    order_observation: VenueOrderObservation
+    venue_rule_receipt: VenueRuleReceipt
+    source: Literal["OFFICIAL_SDK_LOOPBACK_FIXTURE"] = "OFFICIAL_SDK_LOOPBACK_FIXTURE"
+    tenant_id: Identifier
+    venue_account_ref: Identifier
+    execution_request_id: Identifier
+    request_sha256: Hash
+    client_order_id: Identifier
+    venue_order_id: Identifier
+    symbol: Identifier
+    side: Literal["BUY", "SELL"]
+    available: Annotated[bool, Field(strict=True)]
+    complete: Annotated[bool, Field(strict=True)]
+    fills: Annotated[tuple[VenueQuoteFill, ...], Field(max_length=1000)]
+    raw_json: Annotated[str | None, Field(max_length=2_000_000)]
+    observed_at: Timestamp
+
+    @model_validator(mode="after")
+    def identity(self) -> Self:
+        from .codec import canonical
+
+        receipt = self.venue_rule_receipt
+        if receipt.tenant_id != self.tenant_id or receipt.rules.symbol != self.symbol:
+            raise ValueError("quote batch receipt ownership mismatch")
+        if receipt.rules.observed_at > self.observed_at:
+            raise ValueError("quote batch cannot predate its rules")
+        observation = self.order_observation
+        if observation.action != "QUERY" or (
+            observation.tenant_id,
+            observation.venue_account_ref,
+            observation.execution_request_id,
+            observation.request_sha256,
+            observation.client_order_id,
+            observation.venue_order_id,
+            observation.symbol,
+            observation.side,
+        ) != (
+            self.tenant_id,
+            self.venue_account_ref,
+            self.execution_request_id,
+            self.request_sha256,
+            self.client_order_id,
+            self.venue_order_id,
+            self.symbol,
+            self.side,
+        ):
+            raise ValueError("fill batch must bind exact query order proof")
+        if observation.observed_at > self.observed_at:
+            raise ValueError("fill batch cannot predate order query")
+        if self.complete and not self.available:
+            raise ValueError("unavailable fills cannot claim completeness")
+        if not self.available and self.fills:
+            raise ValueError("unvalidated batch cannot grant typed fill authority")
+        if self.available and self.raw_json is None:
+            raise ValueError("validated batch requires preserved source")
+        if len({entry.fill.venue_fill_id for entry in self.fills}) != len(self.fills):
+            raise ValueError("duplicate fill IDs require explicit source resolution")
+        if self.available:
+            try:
+                rows = json.loads(self.raw_json or "")
+                if not isinstance(rows, list) or len(rows) != len(self.fills):
+                    raise ValueError("raw fill count mismatch")
+                for row, entry in zip(rows, self.fills, strict=True):
+                    if not isinstance(row, dict) or any(
+                        type(row.get(name)) is not int for name in ("id", "orderId", "time")
+                    ):
+                        raise ValueError("raw fill integer identity required")
+                    if any(
+                        not isinstance(row.get(name), str)
+                        for name in ("qty", "price", "quoteQty", "commission", "commissionAsset")
+                    ):
+                        raise ValueError("raw financial strings required")
+                    with localcontext() as exact:
+                        exact.prec = 100
+                        values = (
+                            Decimal(row["qty"]),
+                            Decimal(row["price"]),
+                            Decimal(row["commission"]),
+                        )
+                        if any(not value.is_finite() for value in values):
+                            raise ValueError("non-finite raw financial value")
+                        if Decimal(row["quoteQty"]) != entry.quote_quantity:
+                            raise ValueError("raw actual quote amount mismatch")
+                    if (
+                        row.get("symbol") != self.symbol
+                        or str(row["orderId"]) != self.venue_order_id
+                        or row["id"] != entry.raw_trade_id
+                        or type(row.get("isBuyer")) is not bool
+                        or row["isBuyer"] != (self.side == "BUY")
+                        or values != (entry.fill.quantity, entry.fill.price, entry.fill.fee_amount)
+                        or row["commissionAsset"] != entry.fill.fee_asset
+                        or datetime(1970, 1, 1, tzinfo=UTC) + timedelta(milliseconds=row["time"])
+                        != entry.fill.timestamp
+                    ):
+                        raise ValueError("normalized fill differs from preserved source")
+            except (KeyError, TypeError, ArithmeticError, OverflowError) as exc:
+                raise ValueError("invalid raw fill source") from exc
+        for index, entry in enumerate(self.fills):
+            if (
+                entry.venue_rule_receipt_sha256 != digest(canonical(receipt))
+                or entry.quote_precision != receipt.rules.quote_precision
+            ):
+                raise ValueError("quote fill rule proof mismatch")
+            if json.loads(entry.raw_trade_json) != rows[index]:
+                raise ValueError("quote row differs from preserved full batch")
+            if (
+                entry.tenant_id,
+                entry.venue_account_ref,
+                entry.execution_request_id,
+                entry.client_order_id,
+                entry.venue_order_id,
+                entry.symbol,
+                entry.side,
+            ) != (
+                self.tenant_id,
+                self.venue_account_ref,
+                self.execution_request_id,
+                self.client_order_id,
+                self.venue_order_id,
+                self.symbol,
+                self.side,
+            ):
+                raise ValueError("fill batch ownership/scope mismatch")
+        return self

@@ -76,9 +76,9 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
 review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
-action: additive actual quote-amount fill/journal contracts, preserving published V1
-schemas; settle authoritative quoteQty with rule-bound precision and update cost
-attribution. Then BUY fee buffers/mixed custody and full account reconciliation. Current certification L0; no Phase5 gate.
+action: mixed custody reservation and proven remainder release; then sourced BUY fee
+buffers/certification dependency and complete account reconciliation. Actual quoteQty
+accounting and cost attribution implemented with additive contracts. Current certification L0; no Phase5 gate.
 
 ## Progress log
 2026-10-03: Phase4 completed; pre-T014 review recorded, Phase5 prepared.
@@ -145,3 +145,7 @@ fixture timestamp collision repaired. Final38 actual tests PASS (120.32s);136 re
 one-shot capture:11 filters/quote precision8, not elapsed or financial certification.
 Next actual quote amounts/BUY buffers/full account recovery; review/evidence committed
 with this milestone. Cancellation checkpoint8654034 hosted CI37125094475 PASS.
+
+2026-10-03 actual quote milestone:43 actual combined cases PASS (146.04s),17 platform/ledger
+PASS (6.06s),142 units/mypy43/106 schemas/build PASS. Original precision receipt, actual
+quote cash/fees and legacy/new replay verified. Evidence/review committed; no Phase5 gate.

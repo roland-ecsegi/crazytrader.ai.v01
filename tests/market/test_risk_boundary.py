@@ -89,7 +89,7 @@ def backbone():
             "filterType": "PRICE_FILTER",
             "minPrice": "0",
             "maxPrice": "1000000",
-            "tickSize": "0.01",
+            "tickSize": "0.00000001",
         },
     )
     # This fixture venue explicitly uses current trade price (window0), never a fabricated average.

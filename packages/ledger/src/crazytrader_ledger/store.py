@@ -5,9 +5,19 @@ from decimal import Decimal, localcontext
 
 import psycopg
 from crazytrader_contracts.events import EventEnvelope, PayloadReference
-from crazytrader_contracts.ledger import Account, AssetBalance, LedgerTransaction, PortfolioSnapshot
+from crazytrader_contracts.ledger import (
+    Account,
+    AssetBalance,
+    JournalTransaction,
+    PortfolioSnapshot,
+    VenueFillLedgerTransaction,
+)
 from crazytrader_contracts.models import Portfolio
+from crazytrader_contracts.venue_rules import VenueRuleReceipt
 from crazytrader_platform.storage import ConflictError, EventStore, canonical, digest
+from pydantic import TypeAdapter
+
+JOURNAL: TypeAdapter[JournalTransaction] = TypeAdapter(JournalTransaction)
 
 
 class InsufficientFunds(ValueError):
@@ -52,21 +62,48 @@ class LedgerStore:
                 raise RuntimeError("accounting query unavailable")
             return row["balance"]
 
-    def append(self, transaction: LedgerTransaction) -> bool:
-        transaction = LedgerTransaction.model_validate(transaction.model_dump())
+    def append(self, transaction: JournalTransaction) -> bool:
+        transaction = JOURNAL.validate_python(transaction.model_dump())
         with self.store.connection() as conn:
             return self.append_in_transaction(conn, transaction)
 
     def append_in_transaction(
-        self, conn: psycopg.Connection[dict[str, object]], transaction: LedgerTransaction
+        self, conn: psycopg.Connection[dict[str, object]], transaction: JournalTransaction
     ) -> bool:
         """Shared transaction for execution reservation/fill plus its durable state."""
-        transaction = LedgerTransaction.model_validate(transaction.model_dump())
+        transaction = JOURNAL.validate_python(transaction.model_dump())
         body = canonical(transaction)
         fingerprint = digest(body)
+        if isinstance(transaction, VenueFillLedgerTransaction):
+            row = conn.execute(
+                "SELECT body,digest FROM ct_venue_rule_receipts WHERE digest=%s",
+                (transaction.quote_evidence.venue_rule_receipt_sha256,),
+            ).fetchone()
+            if row is None:
+                raise ValueError("actual quote fill requires durable venue precision proof")
+            receipt = VenueRuleReceipt.model_validate_json(str(row["body"]))
+            symbol = receipt.rules.symbol_record()
+            if digest(canonical(receipt)) != row["digest"] or (
+                receipt.tenant_id,
+                receipt.rules.symbol,
+                receipt.rules.quote_precision,
+                symbol["baseAsset"],
+                symbol["quoteAsset"],
+            ) != (
+                transaction.tenant_id,
+                transaction.quote_evidence.identity.symbol,
+                transaction.quote_evidence.quote_precision,
+                transaction.base_asset,
+                transaction.quote_asset,
+            ):
+                raise ConflictError("actual quote fill precision/asset ownership mismatch")
         event = EventEnvelope(
             event_id="ledger:" + digest(transaction.transaction_id),
-            event_type="LedgerEntryAppended.v1",
+            event_type=(
+                "LedgerVenueFillAppended.v1"
+                if isinstance(transaction, VenueFillLedgerTransaction)
+                else "LedgerEntryAppended.v1"
+            ),
             schema_version="1",
             occurred_at=transaction.timestamp,
             tenant_id=transaction.tenant_id,
@@ -77,7 +114,7 @@ class LedgerStore:
             payload=PayloadReference(
                 artifact_ref=fingerprint,
                 sha256=fingerprint,
-                payload_schema_ref="LedgerTransaction.v1",
+                payload_schema_ref=type(transaction).__name__ + ".v1",
             ),
         )
         # Tenant-wide serialization is intentionally conservative for Enterprise Local.
@@ -167,7 +204,7 @@ class LedgerStore:
         self.store.append_in_transaction(conn, event, transaction)
         return True
 
-    def history(self, tenant: str) -> tuple[LedgerTransaction, ...]:
+    def history(self, tenant: str) -> tuple[JournalTransaction, ...]:
         with self.store.connection() as conn:
             rows = conn.execute(
                 "SELECT body,digest FROM ct_ledger_transactions WHERE tenant_id=%s "
@@ -176,7 +213,7 @@ class LedgerStore:
             ).fetchall()
             transactions = []
             for row in rows:
-                transaction = LedgerTransaction.model_validate_json(str(row["body"]))
+                transaction = JOURNAL.validate_json(str(row["body"]))
                 if digest(canonical(transaction)) != row["digest"]:
                     raise ConflictError("ledger history integrity failure")
                 transactions.append(transaction)

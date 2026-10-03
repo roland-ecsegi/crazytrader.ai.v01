@@ -9,7 +9,11 @@ from datetime import datetime
 from decimal import ROUND_HALF_EVEN, Decimal, localcontext
 from fractions import Fraction
 
-from crazytrader_contracts.ledger import LedgerTransaction, PositionAttribution
+from crazytrader_contracts.ledger import (
+    JournalTransaction,
+    PositionAttribution,
+    VenueFillLedgerTransaction,
+)
 
 
 def display(value: Fraction) -> Decimal:
@@ -21,7 +25,7 @@ def display(value: Fraction) -> Decimal:
 
 
 def positions(
-    history: tuple[LedgerTransaction, ...], tenant: str, portfolio: str, now: datetime
+    history: tuple[JournalTransaction, ...], tenant: str, portfolio: str, now: datetime
 ) -> tuple[PositionAttribution, ...]:
     # Full compensations cancel accounting effect; journal itself remains immutable.
     by_id = {tx.transaction_id: tx for tx in history}
@@ -49,7 +53,11 @@ def positions(
         )
         base_fee = Fraction(fill.fee_amount) if fill.fee_asset == tx.base_asset else Fraction(0)
         quote_fee = Fraction(fill.fee_amount) if fill.fee_asset == tx.quote_asset else Fraction(0)
-        gross = Fraction(fill.quantity) * Fraction(fill.price)
+        gross = (
+            Fraction(tx.quote_evidence.quote_quantity)
+            if isinstance(tx, VenueFillLedgerTransaction)
+            else Fraction(fill.quantity) * Fraction(fill.price)
+        )
         if tx.fill_side == "BUY":
             acquired = Fraction(fill.quantity) - base_fee
             if acquired <= 0:

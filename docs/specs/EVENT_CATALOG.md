@@ -75,6 +75,7 @@ Breaking schema changes require a new schema version.
 - PositionReduced.v1
 - PositionClosed.v1
 - LedgerEntryAppended.v1
+- LedgerVenueFillAppended.v1
 
 ## Risk events
 

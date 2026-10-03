@@ -3,8 +3,15 @@
 from collections.abc import Callable
 from datetime import datetime
 
-from crazytrader_contracts.execution import ExecutionState
+from crazytrader_contracts.codec import canonical, digest
+from crazytrader_contracts.execution import (
+    ExecutionState,
+    VenueOrderObservation,
+    VenueQuoteFillBatch,
+)
 from crazytrader_contracts.models import OrderState
+from crazytrader_contracts.venue_rules import VenueRuleReceipt
+from crazytrader_risk.store import StateUnavailable
 
 from .fixture_transport import SDKFixtureTransport
 from .settlement import FillSettlement
@@ -16,6 +23,23 @@ class FixtureReconciler:
         self, store: ExecutionStore, transport: SDKFixtureTransport, clock: Callable[[], datetime]
     ) -> None:
         self.store, self.transport, self.clock = store, transport, clock
+
+    def _fills(
+        self, current: ExecutionState, observation: VenueOrderObservation
+    ) -> VenueQuoteFillBatch:
+        with self.store.store.connection() as conn:
+            row = conn.execute(
+                "SELECT v.body,v.digest FROM ct_execution_reservations r "
+                "JOIN ct_venue_rule_receipts v ON v.digest=r.venue_rules_digest "
+                "WHERE r.execution_request_id=%s",
+                (current.request.execution_request_id,),
+            ).fetchone()
+        if row is None:
+            raise StateUnavailable("original actual-quote precision proof unavailable")
+        receipt = VenueRuleReceipt.model_validate_json(str(row["body"]))
+        if digest(canonical(receipt)) != row["digest"]:
+            raise StateUnavailable("original actual-quote precision proof corrupted")
+        return self.transport.quote_fills(current.request, observation, receipt, self.clock())
 
     def recover(self, request_id: str) -> ExecutionState:
         current = self.store.start_recovery(request_id, self.clock())
@@ -30,7 +54,7 @@ class FixtureReconciler:
             and current.filled_quantity == 0
         ):
             return self.store.recover_open_order(observation)
-        batch = self.transport.fills(current.request, observation, self.clock())
+        batch = self._fills(current, observation)
         return FillSettlement(self.store).apply(observation, batch)
 
     def reconcile(self, request_id: str) -> ExecutionState:
@@ -58,5 +82,5 @@ class FixtureReconciler:
             and current.filled_quantity == 0
         ):
             return current
-        batch = self.transport.fills(current.request, observation, self.clock())
+        batch = self._fills(current, observation)
         return FillSettlement(self.store).apply(observation, batch)
