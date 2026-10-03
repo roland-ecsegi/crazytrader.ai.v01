@@ -7,6 +7,7 @@ RUN --mount=type=secret,id=proxy_ca,required=true \
 COPY pyproject.toml uv.lock README.md ./
 COPY packages/contracts/src ./packages/contracts/src
 COPY packages/platform/src ./packages/platform/src
+COPY packages/market/src ./packages/market/src
 RUN --mount=type=secret,id=proxy_ca,required=true \
     SSL_CERT_FILE=/run/secrets/proxy_ca uv sync --locked --no-dev --no-cache
 COPY infra/migrations ./infra/migrations

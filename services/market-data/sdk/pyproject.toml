@@ -1,0 +1,5 @@
+[project]
+name = "crazytrader-read-only-binance"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = ["binance-sdk-spot==3.0.0", "binance-common==3.2.0"]

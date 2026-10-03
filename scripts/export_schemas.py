@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from crazytrader_contracts import models
+from crazytrader_contracts import market, models
 from crazytrader_contracts.events import EventEnvelope
 from crazytrader_platform.storage import HealthChange
 
@@ -22,6 +22,12 @@ TYPES = [
     models.CertificationState,
     EventEnvelope,
     HealthChange,
+    market.MarketTrade,
+    market.MarketStatus,
+    market.MarketCandle,
+    market.BookSnapshot,
+    market.BookDelta,
+    market.InstrumentMetadata,
 ]
 
 

@@ -1,0 +1,122 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "environment": {
+      "enum": [
+        "SANDBOX",
+        "PUBLIC"
+      ],
+      "title": "Environment",
+      "type": "string"
+    },
+    "gap_target": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Gap Target"
+    },
+    "health": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNKNOWN"
+      ],
+      "title": "Health",
+      "type": "string"
+    },
+    "last_exchange_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Exchange At"
+    },
+    "last_received_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Received At"
+    },
+    "last_trade_id": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Trade Id"
+    },
+    "metadata_version": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Metadata Version",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "reason_code": {
+      "enum": [
+        "FRESH",
+        "STALE_OR_DISCONNECTED",
+        "SEQUENCE_GAP",
+        "CONTENT_CONFLICT",
+        "NO_OBSERVATIONS"
+      ],
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "symbol": {
+      "pattern": "^[A-Z0-9]{2,30}$",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "venue": {
+      "const": "BINANCE",
+      "default": "BINANCE",
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "required": [
+    "environment",
+    "symbol",
+    "metadata_version",
+    "health",
+    "reason_code",
+    "occurred_at",
+    "last_trade_id",
+    "gap_target",
+    "last_exchange_at",
+    "last_received_at"
+  ],
+  "title": "MarketStatus",
+  "type": "object"
+}

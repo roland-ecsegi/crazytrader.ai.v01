@@ -1,0 +1,75 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "environment": {
+      "enum": [
+        "SANDBOX",
+        "PUBLIC"
+      ],
+      "title": "Environment",
+      "type": "string"
+    },
+    "exchange_at": {
+      "format": "date-time",
+      "title": "Exchange At",
+      "type": "string"
+    },
+    "metadata_version": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Metadata Version",
+      "type": "string"
+    },
+    "price": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Price",
+      "type": "string"
+    },
+    "quantity": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Quantity",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "symbol": {
+      "pattern": "^[A-Z0-9]{2,30}$",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "taker_side": {
+      "enum": [
+        "BUY",
+        "SELL"
+      ],
+      "title": "Taker Side",
+      "type": "string"
+    },
+    "trade_id": {
+      "minimum": 0,
+      "title": "Trade Id",
+      "type": "integer"
+    },
+    "venue": {
+      "const": "BINANCE",
+      "default": "BINANCE",
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "required": [
+    "environment",
+    "symbol",
+    "metadata_version",
+    "trade_id",
+    "price",
+    "quantity",
+    "taker_side",
+    "exchange_at"
+  ],
+  "title": "MarketTrade",
+  "type": "object"
+}

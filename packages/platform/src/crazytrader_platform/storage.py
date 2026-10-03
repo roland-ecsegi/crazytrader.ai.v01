@@ -9,6 +9,7 @@ from typing import Literal
 
 import psycopg
 from crazytrader_contracts.events import EventEnvelope
+from crazytrader_contracts.market import BookDelta, MarketCandle, MarketStatus, MarketTrade
 from crazytrader_contracts.models import Contract, Identifier, Timestamp
 from opentelemetry import trace
 from psycopg.rows import dict_row
@@ -21,6 +22,43 @@ class HealthChange(Contract):
     health: Literal["HEALTHY", "DEGRADED", "UNKNOWN"]
     reason_code: Identifier
     occurred_at: Timestamp
+
+
+PAYLOAD_TYPES: dict[str, type[Contract]] = {
+    "ServiceHealthChanged.v1": HealthChange,
+    "MarketTradeReceived.v1": MarketTrade,
+    "MarketCandleClosed.v1": MarketCandle,
+    "MarketBookUpdated.v1": BookDelta,
+    "MarketDataStale.v1": MarketStatus,
+    "MarketDataRecovered.v1": MarketStatus,
+    "MarketSequenceGapDetected.v1": MarketStatus,
+}
+
+
+def validate_payload(event: EventEnvelope, payload: Contract) -> None:
+    expected_type = PAYLOAD_TYPES.get(event.event_type)
+    if expected_type is None or type(payload) is not expected_type:
+        raise ValueError("unsupported typed event payload")
+    if event.payload.payload_schema_ref != type(payload).__name__ + ".v1":
+        raise ValueError("payload schema mismatch")
+    if isinstance(payload, HealthChange):
+        source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, MarketStatus):
+        source, occurred = "market-data", payload.occurred_at
+        if (event.event_type == "MarketDataRecovered.v1") != (payload.health == "HEALTHY"):
+            raise ValueError("market recovery health mismatch")
+        if (event.event_type == "MarketSequenceGapDetected.v1") != (
+            payload.reason_code == "SEQUENCE_GAP"
+        ):
+            raise ValueError("market gap status mismatch")
+    elif isinstance(payload, MarketCandle):
+        source, occurred = "market-data", payload.closed_at
+    elif isinstance(payload, (MarketTrade, BookDelta)):
+        source, occurred = "market-data", payload.exchange_at
+    else:
+        raise ValueError("unsupported payload")
+    if event.source_service != source or event.occurred_at != occurred:
+        raise ValueError("payload/envelope provenance mismatch")
 
 
 def canonical(model: Contract) -> str:
@@ -56,25 +94,21 @@ class EventStore:
         except psycopg.Error:
             return False
 
-    def append(self, event: EventEnvelope, payload: HealthChange) -> bool:
+    def append(self, event: EventEnvelope, payload: Contract) -> bool:
         """Persist payload, event and outbox atomically; reject changed ID content."""
-        if event.event_type != "ServiceHealthChanged.v1":
-            raise ValueError("Phase 1 supports only typed service-health payloads")
+        validate_payload(event, payload)
+        schema_ref = type(payload).__name__ + ".v1"
         body = canonical(payload)
         expected = digest(body)
         if event.payload.sha256 != expected or event.payload.artifact_ref != expected:
             raise ValueError("payload reference/hash mismatch")
-        if event.payload.payload_schema_ref != "HealthChange.v1":
-            raise ValueError("payload schema mismatch")
-        if event.source_service != payload.service_id or event.occurred_at != payload.occurred_at:
-            raise ValueError("payload/envelope provenance mismatch")
         envelope = canonical(event)
         event_digest = digest(envelope)
         with TRACER.start_as_current_span("platform.event.append"), self.connection() as conn:
             inserted = conn.execute(
                 "INSERT INTO ct_artifacts(digest,tenant_id,schema_ref,body) VALUES (%s,%s,%s,%s) "
                 "ON CONFLICT DO NOTHING RETURNING digest",
-                (expected, event.tenant_id, "HealthChange.v1", body),
+                (expected, event.tenant_id, schema_ref, body),
             ).fetchone()
             if inserted is None:
                 existing = conn.execute(
@@ -84,7 +118,7 @@ class EventStore:
                 if existing != {
                     "body": body,
                     "tenant_id": event.tenant_id,
-                    "schema_ref": "HealthChange.v1",
+                    "schema_ref": schema_ref,
                 }:
                     raise ConflictError("artifact ownership/content collision")
             inserted = conn.execute(
@@ -139,7 +173,11 @@ class EventStore:
             ).fetchone()
             if row is None or row["digest"] != digest(canonical(event)):
                 raise ConflictError("unpersisted or altered delivery")
-            payload = HealthChange.model_validate_json(str(row["body"]))
+            payload_type = PAYLOAD_TYPES.get(event.event_type)
+            if payload_type is None:
+                raise ValueError("unsupported persisted payload")
+            payload = payload_type.model_validate_json(str(row["body"]))
+            validate_payload(event, payload)
             if digest(canonical(payload)) != event.payload.sha256:
                 raise ConflictError("persisted payload integrity failure")
             inserted = conn.execute(
@@ -163,7 +201,7 @@ class EventStore:
                     event.payload.sha256,
                 ),
             )
-            if payload.health != "HEALTHY":
+            if isinstance(payload, (HealthChange, MarketStatus)) and payload.health != "HEALTHY":
                 conn.execute(
                     "INSERT INTO ct_notifications(event_id,status) VALUES (%s,'PENDING')",
                     (event.event_id,),

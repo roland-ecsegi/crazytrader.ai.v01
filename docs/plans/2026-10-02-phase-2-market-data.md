@@ -38,12 +38,12 @@ Additive V1 normalized schema and initial manifest/watermarks. Existing HealthCh
 
 ## Implementation steps
 - [x] Read specifications/adoption evidence and define phase boundaries.
-- [ ] Lock read-only SDK/data clients and prove dependency/license compatibility.
-- [ ] Implement typed normalized payloads and deterministic freshness/gap monitor.
-- [ ] Implement narrow public/sandbox reads and metadata/stream alignment.
-- [ ] Add historical manifests, ClickHouse analytical writes and S3 source artifacts.
-- [ ] Test real local persistence/restart/outage and malformed/stale/gapped fixtures.
-- [ ] Adversarial self-review, repair, record evidence, publish and proceed Phase 3.
+- [x] Lock read-only SDK/data clients and prove dependency/license compatibility.
+- [x] Implement typed normalized payloads and deterministic freshness/gap monitor.
+- [x] Implement narrow public/sandbox reads and metadata/stream alignment.
+- [x] Add historical manifests, ClickHouse analytical writes and S3 source artifacts.
+- [x] Test real local persistence/restart/outage and malformed/stale/gapped fixtures.
+- [x] Adversarial self-review, repair, record evidence, publish and proceed Phase 3.
 
 ## Test plan
 make check; new market unit/contract cases for float/nonfinite/precision rejection, IDs/UTC, stale/future times, conflicting duplicates, warmup and gap/backfill/snapshot alignment. Extend make integration with exact-digest ClickHouse/SeaweedFS alongside PostgreSQL/NATS; verify real fixture PUT/GET/hash, analytical queries, replay, watermark restart and storage failures. A supported public/sandbox read, if reachable, is recorded separately from local fixtures; never fabricate continuous elapsed-market evidence. No signed endpoint calls.
@@ -55,7 +55,13 @@ Typed normalized reads and historical ingestion run through real local data-stor
 Stop ingestion, preserve source artifacts and manifests, revert parser/writer version. Replay from committed watermarks with immutable source history and dedup keys. Do not delete historical data to conceal gaps or failed tests. Test fixtures are disposable only.
 
 ## Resume checkpoint
-Branch codex/enterprise-local-autonomous. Last durable implementation commit 8de8c80231f91208529c82d29f49d7c1c76327fc. Current step: plan/adoption design complete, implementation not started. Next exact action: integrate the narrow SDK dependency/client contract, then implement market payloads and freshness/gap tests before changing EventStore registry. Uncommitted: this plan and CI/status evidence. Blockers: none. Usage state: active; no allowance-reset claim. Verification: Phase 1 local static/unit/integration/build/runtime smoke PASS and hosted CI PASS.
+Branch codex/enterprise-local-autonomous. Phase 2 implementation and local gate
+complete; publishing from parent ab27906dc28a707eb6249ee93f1e2838f102282d.
+Next exact action: execute docs/plans/2026-10-03-phase-3-ledger-portfolio.md.
+No external blocker; usage active. Verification: make check/integration PASS
+(63 unit/contract tests; 8 PostgreSQL/NATS tests plus API; 2 real market-store tests),
+SDK offline model/signature check PASS, actual public metadata/trade/depth GETs
+PASS, wheel/sdist PASS. No elapsed streaming or venue execution certification.
 
 ## Progress log
 2026-10-02: Phase 1 published/CI verified; Phase 2 design and dependency boundaries established. No market observation claimed.
@@ -64,4 +70,19 @@ Branch codex/enterprise-local-autonomous. Last durable implementation commit 8de
 Real-time readiness requires observed freshness and verified sequence alignment, not successful parsing or store reachability. Keep SDK credentials unavailable to market worker. Preserve immutable raw source lineage so parser changes remain reproducible.
 
 ## Completion summary
-Pending implementation; do not mark Phase 2 delivered based on this plan.
+Phase 2 local gate PASS: isolated official read-only SDK, normalized immutable
+trades/candles/books/metadata/status contracts; deterministic warmup/freshness/gap
+and snapshot alignment; PostgreSQL immutable record/source manifests and retryable
+watermarks; verified S3 source artifacts; ClickHouse analytical projection;
+serialized symbol worker checkpoints, normalized event outbox/audit and stale/gap
+status notifications. Public bounded GET evidence is separate from local fixtures.
+No websocket transport deployment/continuous elapsed stream, production TLS/scoped
+roles/bucket protection, or paper/live certification claimed. Continue Phase 3.
+
+2026-10-03 implementation: SDK dependency conflict resolved with isolated lock;
+SDK nested union serialization repaired using upstream to_dict(); actual three
+public reads normalized. Real store replay/conflict/watermark/outage/restart tests
+pass. Self-review repaired Decimal precision, receipt/write freshness, old-ID
+conflicts and stale checkpoint catchup. Disposable Seaweed fixtures bounded to
+16MB volumes; regenerable completed-spike venv/MLflow image removed to recover
+disk; anonymous fixture volumes now removed with container. No source history lost.

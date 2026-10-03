@@ -1,0 +1,34 @@
+{
+  "observed_at": "2026-10-03T08:12:01.112008+00:00",
+  "source": "https://data-api.binance.vision",
+  "sdk": "binance-sdk-spot==3.0.0",
+  "symbol": "BTCUSDT",
+  "metadata_version": "1ba7579415c7f5f480b3772ffa74bc54469e3102b7f407f7ed0a1e1938936f6f",
+  "read_operations": [
+    "exchange_info",
+    "agg_trades",
+    "depth"
+  ],
+  "trade_ids": [
+    4080031440,
+    4080031441,
+    4080031442,
+    4080031443,
+    4080031444
+  ],
+  "decimal_prices": [
+    "84638.00000000",
+    "84637.99000000",
+    "84638.00000000",
+    "84637.99000000",
+    "84638.00000000"
+  ],
+  "depth_last_sequence": 101005578329,
+  "certification": "L0",
+  "limitations": [
+    "three bounded unsigned public GETs only",
+    "no continuous stream or sandbox order evidence",
+    "no execution credentials or money",
+    "REST snapshot has no exchange timestamp"
+  ]
+}

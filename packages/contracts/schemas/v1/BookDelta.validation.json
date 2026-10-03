@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "BookLevel": {
+      "additionalProperties": false,
+      "properties": {
+        "price": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Price",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "price",
+        "quantity"
+      ],
+      "title": "BookLevel",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "asks": {
+      "items": {
+        "$ref": "#/$defs/BookLevel"
+      },
+      "title": "Asks",
+      "type": "array"
+    },
+    "bids": {
+      "items": {
+        "$ref": "#/$defs/BookLevel"
+      },
+      "title": "Bids",
+      "type": "array"
+    },
+    "environment": {
+      "enum": [
+        "SANDBOX",
+        "PUBLIC"
+      ],
+      "title": "Environment",
+      "type": "string"
+    },
+    "exchange_at": {
+      "format": "date-time",
+      "title": "Exchange At",
+      "type": "string"
+    },
+    "first_sequence": {
+      "minimum": 0,
+      "title": "First Sequence",
+      "type": "integer"
+    },
+    "last_sequence": {
+      "minimum": 0,
+      "title": "Last Sequence",
+      "type": "integer"
+    },
+    "metadata_version": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Metadata Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "symbol": {
+      "pattern": "^[A-Z0-9]{2,30}$",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "venue": {
+      "const": "BINANCE",
+      "default": "BINANCE",
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "required": [
+    "environment",
+    "symbol",
+    "metadata_version",
+    "first_sequence",
+    "last_sequence",
+    "exchange_at",
+    "bids",
+    "asks"
+  ],
+  "title": "BookDelta",
+  "type": "object"
+}

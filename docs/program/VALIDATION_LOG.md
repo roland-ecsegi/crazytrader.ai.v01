@@ -41,3 +41,20 @@ PASS. `make check`: 44 unit/contract tests, 8 real-dependency tests intentionall
 ## 2026-10-02 — Hosted CI checkpoint verification
 
 Phase 1 commit 8de8c80231f91208529c82d29f49d7c1c76327fc, run 37068956651/job 111043565024: PASS for setup/check and real dependency integration. Phase 0 commit b610027 hosted CI also PASS. Phase 0.5 run 37066810615 failed solely Ruff formatting in platform_probe.py after a late local proxy fix; this formatting was repaired in Phase 1 and current hosted checks include the corrected file. No runtime/license/contract failure hidden. Phase 2 plan created; market implementation/observation still pending.
+
+## 2026-10-03 — Phase 2 market/data local gate
+
+PASS. `make check integration`: 63 unit/contract tests, 10 dependency tests skipped
+only in unit command; separate actual platform integration 9 PASS and market
+integration 2 PASS. Ruff/static mypy18 modules, 36 schema artifacts, source scan
+and isolated official SDK offline roundtrip/unsigned GET signatures PASS.
+`uv build`: wheel/sdist PASS. Actual public three-operation metadata/trade/depth
+read normalization evidence recorded in phase-2-public-read.json. Real fixtures
+verify S3 PUT/GET/hash lineage, ClickHouse logical dedup/restart, PostgreSQL
+immutable old-ID conflicts, source manifests, failed projection retry/no cursor
+advance, missing watermark range denial, worker checkpoint restart, typed market
+event audit idempotency. Self-review repairs: full Decimal context; SDK generated
+union to_dict; post-storage freshness check; old duplicate conflicts; complete
+history recovery; symbol writer serialization. Fixture-only anonymous S3 and
+loopback trust DB are not production auth/TLS evidence. Bounded REST fallback,
+no websocket/elapsed paper/live claim. L0 retained. Continue Phase 3.

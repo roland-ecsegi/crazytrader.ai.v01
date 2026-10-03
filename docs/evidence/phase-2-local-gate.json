@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-03",
+  "phase": 2,
+  "gate": "PASS",
+  "unit_tests": 63,
+  "platform_integration_tests": 9,
+  "market_integration_tests": 2,
+  "commands": [
+    "make check integration",
+    "uv build",
+    "SDK offline verify_offline.py",
+    "public unsigned SDK three-GET probe"
+  ],
+  "clients": {
+    "boto3": {
+      "version": "1.40.53",
+      "license": "Apache-2.0"
+    },
+    "clickhouse-connect": {
+      "version": "0.9.2",
+      "license": "Apache-2.0"
+    },
+    "binance-sdk-spot": {
+      "version": "3.0.0",
+      "license": "MIT",
+      "deployment": "isolated locked worker"
+    }
+  },
+  "certification": "L0",
+  "limitations": [
+    "REST fallback; no continuous websocket deployment",
+    "no elapsed paper/live observation",
+    "production scoped roles TLS and object deletion protection remain security gate",
+    "ClickHouse logical projection dedup is not financial exactly-once"
+  ],
+  "self_review": "repaired full Decimal context, official SDK nested serialization, post-write freshness, old-ID content conflicts, verified historical recovery and fixture capacity"
+}
