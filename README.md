@@ -93,20 +93,25 @@ HTTP policy client and opt-in same-policy local protective fallback. Internal
 loads owner configuration and journal/archive/service/control proofs, then persists
 risk/policy evidence and audit outbox. Missing source/config/lifecycle/certification
 proof denies; current trusted certification boundary is L0. Cancellation contracts
-manage an original immutable intent and stable owned order; actual registry comes
-in Phase5. No exchange submission endpoint or live capability. See Phase4 evidence
+manage an original immutable intent and stable owned order in the Phase5 registry. No exchange submission endpoint or live capability. See Phase4 evidence
 and active Phase5 ExecPlan. Production scoped roles/TLS remain Phase14.
 
 Phase5 coordination milestone: immutable execution requests/transitions, stable
 client IDs, atomic journal reservation and one submission claim for approved
 protective SIMULATION requests. Restart in SUBMITTING becomes UNKNOWN with funds
-reserved. This is internal coordination, with no exchange transport yet. BUY cost
-buffers, mixed custody, reconciliation, partial fills and cancel settlement remain
-the active Phase5 plan.
+reserved. The isolated official-SDK loopback fixture verifies order submission/recovery,
+canonical partial/full fill and fee settlement, owned cancellation and suspense/incident
+containment. BUY cost buffers, mixed custody, complete account reconciliation and
+selected simulation adoption remain active Phase5 work.
 
 The official Spot SDK fixture now proves signed dummy-auth accepted-timeout and
 query recovery after restart with one submitted order and exact decimal strings.
 Fixed literal-loopback endpoints, no inherited credentials, retries0 and no redirects;
 it cannot contact Binance or act as production live/simulation certification. Query
 not-found remains unresolved; recovered open order alone does not grant full-account
-health. Fill settlement, cancel and suspense accounting remain active Phase5 work.
+health. Current-policy cancellation uses one durable DELETE claim; receipts never
+release funds. Query plus complete fills atomically settles proven remainder. Known
+unposted truth retains reservation and opens an incident while allowing owned
+cancellation. Full venue-rule provenance and MARKET checks are required before reservation and
+final submission claim;
+actual quote-amount accounting remains pending. Certification is L0; no Phase5 gate.

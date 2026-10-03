@@ -75,9 +75,10 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
-review repairs PASS. Owned cancellation/one-send claim/query-only settlement verified. Next exact action:
-complete versioned venue rules with raw exchange-info provenance, then additive actual
-quote/fee accounting without modifying published V1 ledger/fill contracts. Current certification L0; no Phase5 gate.
+review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
+action: additive actual quote-amount fill/journal contracts, preserving published V1
+schemas; settle authoritative quoteQty with rule-bound precision and update cost
+attribution. Then BUY fee buffers/mixed custody and full account reconciliation. Current certification L0; no Phase5 gate.
 
 ## Progress log
 2026-10-03: Phase4 completed; pre-T014 review recorded, Phase5 prepared.
@@ -135,3 +136,12 @@ timeout/crash/audit/fill-race/incident cases. SDK fixture cryptographic HMAC val
 Evidence/review in phase-5-cancellation.md and reviews/2026-10-03-phase-5-cancellation-review.md.
 Settlement hosted CI37124294645 PASS. Continue complete venue rules/actual quote amounts,
 BUY fee buffers/mixed custody/full account reconciliation/selected simulation before gate.
+
+2026-10-03 venue rules: complete unsigned SDK source capture and tenant-bound immutable
+receipts;13 rule regressions PASS,136 repository tests/mypy42/98 schemas/build PASS;
+36 actual foundation tests PASS (118.57s). Required matching source before reservation
+and final claim now implemented;35 existing financial regressions PASS, source-archive
+fixture timestamp collision repaired. Final38 actual tests PASS (120.32s);136 repository tests/mypy42/98 schemas/build PASS. Actual public BTCUSDT
+one-shot capture:11 filters/quote precision8, not elapsed or financial certification.
+Next actual quote amounts/BUY buffers/full account recovery; review/evidence committed
+with this milestone. Cancellation checkpoint8654034 hosted CI37125094475 PASS.

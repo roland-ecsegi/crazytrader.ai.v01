@@ -17,3 +17,12 @@ canary trades to achieve L6. Phase4 preserves the stronger invariant and denies 
 before L6. An accepted owner ADR is needed at the owner-local live boundary; finish
 independent engineering before requesting that material decision. No credentials
 or live activation are requested by this checkpoint.
+
+## Phase5 financial/venue scope still being closed
+Current dispatch supports protective SIMULATION SELL through literal-loopback SDK
+fixtures. Real venue five-minute notional averages/account order counts require sourced
+proof, never last-price substitution or zero defaults. Published Fill/Ledger V1 assumes
+quantity*price; rounded actual quoteQty needs additive accounting evidence/contracts.
+Owner/system cap currencies need explicit binding/FX proof before future increasing
+authority; production remains L0 and rejects increasing authority. These are engineering
+dependencies, not external blockers or certification completion.

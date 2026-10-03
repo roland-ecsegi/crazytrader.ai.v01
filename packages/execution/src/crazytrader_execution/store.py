@@ -1,7 +1,8 @@
 """Durable execution coordination. Only prepared, reserved simulation sends can be claimed.
 
-This milestone has no venue transport. ABOVE-L0 registries, BUY cost buffers, signed
-owner-local adapters, fill/cancel reconciliation remain explicit Phase5 work.
+Official-SDK loopback submission/query/cancel and exact fixture settlement are verified.
+Above-L0 registries, BUY cost buffers, actual quote amounts, full account reconciliation
+and signed owner-local adapters remain explicit engineering work.
 """
 
 import json
@@ -22,7 +23,9 @@ from crazytrader_contracts.models import OrderState
 from crazytrader_contracts.risk import RiskEvaluationRecord, VenueSafetyFact
 from crazytrader_ledger.commands import move
 from crazytrader_ledger.store import LedgerStore
+from crazytrader_market.adapter import normalize_metadata
 from crazytrader_market.archive import S3Artifacts
+from crazytrader_market.rules import TradingRuleArchive, check_market_rules
 from crazytrader_platform.storage import ConflictError, EventStore
 from crazytrader_risk.store import RiskStore, StateUnavailable
 
@@ -30,8 +33,8 @@ from .state import initial, transition
 
 
 class ExecutionStore:
-    def __init__(self, store: EventStore) -> None:
-        self.store = store
+    def __init__(self, store: EventStore, objects: S3Artifacts | None = None) -> None:
+        self.store, self.objects = store, objects
 
     def _lock(self, conn: psycopg.Connection[dict[str, object]], tenant: str) -> None:
         conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", ("ledger:" + tenant,))
@@ -121,6 +124,7 @@ class ExecutionStore:
     ) -> ExecutionState:
         """Atomically prepare already policy-approved protective simulation."""
         request = ExecutionRequest.model_validate(request.model_dump())
+        self.objects = objects
         state = initial(request)
         if (
             request.execution_mode != "SIMULATION"
@@ -212,6 +216,7 @@ class ExecutionStore:
                 != request.venue_account_ref
             ):
                 raise StateUnavailable("execution venue account differs from trusted proof")
+            venue_rules_digest = self._venue_rules(conn, request, now)
             # Hold checkpoint row against concurrent stream mutation until reservation commits.
             conn.execute(
                 "SELECT tenant_id FROM ct_market_checkpoints WHERE tenant_id=%s "
@@ -290,8 +295,8 @@ class ExecutionStore:
             conn.execute(
                 "INSERT INTO ct_execution_reservations "
                 "(execution_request_id,reservation_tx_id,reserve_asset,reserve_account,reserve_amount,"
-                "ledger_head_sha256,safety_sha256,checkpoint_sha256) "
-                "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
+                "ledger_head_sha256,safety_sha256,checkpoint_sha256,venue_rules_digest) "
+                "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     request.execution_request_id,
                     tx.transaction_id,
@@ -301,6 +306,7 @@ class ExecutionStore:
                     self._journal_head(conn, request.tenant_id),
                     self._safety(conn, request.tenant_id),
                     self._checkpoint(conn, request),
+                    venue_rules_digest,
                 ),
             )
             authorized = transition(
@@ -326,9 +332,10 @@ class ExecutionStore:
         rows = conn.execute(
             "SELECT digest FROM ct_risk_source_facts WHERE tenant_id=%s UNION ALL "
             "SELECT digest FROM ct_venue_safety_facts WHERE tenant_id=%s UNION ALL "
+            "SELECT digest FROM ct_venue_rule_receipts WHERE tenant_id=%s UNION ALL "
             "SELECT encode(sha256(convert_to(body,'UTF8')),'hex') digest "
             "FROM ct_reconciliation_incidents WHERE tenant_id=%s ORDER BY digest",
-            (tenant, tenant, tenant),
+            (tenant, tenant, tenant, tenant),
         ).fetchall()
         return digest(json.dumps([str(row["digest"]) for row in rows], separators=(",", ":")))
 
@@ -343,6 +350,49 @@ class ExecutionStore:
         if row is None:
             raise StateUnavailable("final market checkpoint missing")
         return digest(str(row["body"]))
+
+    def _venue_rules(
+        self, conn: psycopg.Connection[dict[str, object]], request: ExecutionRequest, now: datetime
+    ) -> str:
+        if self.objects is None:
+            raise StateUnavailable("venue rules source store must be configured after restart")
+        try:
+            receipt = TradingRuleArchive(self.store, self.objects).latest(
+                request.tenant_id, request.environment, request.symbol, now
+            )
+            row = conn.execute(
+                "SELECT body FROM ct_risk_evaluations WHERE record_digest=%s",
+                (request.risk_record_sha256,),
+            ).fetchone()
+            if row is None:
+                raise StateUnavailable("approved venue reference proof unavailable")
+            record = RiskEvaluationRecord.model_validate_json(str(row["body"]))
+            if digest(canonical(record)) != request.risk_record_sha256:
+                raise ConflictError("approved venue reference integrity failure")
+            metadata = normalize_metadata(
+                receipt.rules.symbol_record(), request.environment, receipt.rules.observed_at
+            )
+            if (
+                metadata.model_dump(exclude={"observed_at"})
+                != record.context.metadata.model_dump(exclude={"observed_at"})
+                or receipt.rules.metadata_version != request.metadata_version
+            ):
+                raise StateUnavailable("full venue rules differ from approved metadata")
+            prices = {} if record.context.price is None else {0: record.context.price}
+            reasons = check_market_rules(
+                receipt.rules,
+                request.side,
+                request.quantity,
+                now,
+                reference_prices=prices,
+                reference_observed_at=record.context.market.last_received_at
+                or record.context.observed_at,
+            )
+            if reasons:
+                raise StateUnavailable("full venue MARKET rule check denied")
+            return digest(canonical(receipt))
+        except (ValueError, ConflictError):
+            raise StateUnavailable("full venue rules unavailable, changed or denied") from None
 
     def claim_submission(self, request_id: str, now: datetime) -> ExecutionState | None:
         """Return a single fenced claim. Already-started send never grants another claim."""
@@ -374,6 +424,8 @@ class ExecutionStore:
                 self._checkpoint(conn, request),
             ):
                 raise StateUnavailable("state changed after authorization/reservation")
+            if self._venue_rules(conn, request, now) != proof["venue_rules_digest"]:
+                raise StateUnavailable("full venue rules changed after reservation")
             change = transition(
                 current,
                 OrderState.SUBMITTING,

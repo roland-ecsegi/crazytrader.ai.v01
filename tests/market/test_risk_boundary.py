@@ -23,8 +23,9 @@ from crazytrader_contracts.risk import (
 )
 from crazytrader_ledger.commands import move
 from crazytrader_ledger.store import LedgerStore
-from crazytrader_market.adapter import PublicMarketClient
+from crazytrader_market.adapter import PublicMarketClient, normalize_metadata
 from crazytrader_market.archive import AnalyticalTrades, HistoricalIngestor, S3Artifacts
+from crazytrader_market.rules import TradingRuleArchive, capture_rules
 from crazytrader_market.worker import MarketWorker
 from crazytrader_platform.storage import ConflictError, EventStore
 from crazytrader_risk.engine import evaluate
@@ -33,6 +34,7 @@ from crazytrader_risk.service import RiskService
 from crazytrader_risk.store import RiskStore, StateUnavailable
 
 from tests.risk.test_engine import fixture
+from tests.test_venue_rules import exchange_info
 
 pytestmark = pytest.mark.skipif(not os.getenv("CT_TEST_S3"), reason="actual market stores required")
 
@@ -80,7 +82,22 @@ def backbone():
             "expires_at": now + timedelta(seconds=30),
         }
     )
-    metadata = original.metadata.model_copy(update={"observed_at": now})
+    full_rules = exchange_info()
+    full_rules["symbols"][0]["filters"].insert(
+        2,
+        {
+            "filterType": "PRICE_FILTER",
+            "minPrice": "0",
+            "maxPrice": "1000000",
+            "tickSize": "0.01",
+        },
+    )
+    # This fixture venue explicitly uses current trade price (window0), never a fabricated average.
+    full_rules["symbols"][0]["filters"][-1]["avgPriceMins"] = 0
+    metadata = normalize_metadata(full_rules["symbols"][0], "SANDBOX", now)
+    TradingRuleArchive(store, objects).persist(
+        tenant, capture_rules(full_rules, "BTCUSDT", "SANDBOX", now)
+    )
     delta = now - datetime(1970, 1, 1, tzinfo=UTC)
     milliseconds = delta.days * 86400000 + delta.seconds * 1000 + delta.microseconds // 1000
 
@@ -130,6 +147,7 @@ def backbone():
     market = original.market.model_copy(
         update={
             "occurred_at": now,
+            "metadata_version": metadata.metadata_version,
             "last_trade_id": checkpoint.last_id,
             "last_exchange_at": checkpoint.last_exchange_at,
             "last_received_at": checkpoint.last_received_at,
