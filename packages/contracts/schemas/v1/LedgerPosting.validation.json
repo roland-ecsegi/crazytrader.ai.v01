@@ -1,0 +1,75 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "account": {
+      "enum": [
+        "AVAILABLE",
+        "RESERVED",
+        "INVENTORY",
+        "EXTERNAL",
+        "FEES",
+        "CAPITAL",
+        "REALIZED_PNL"
+      ],
+      "title": "Account",
+      "type": "string"
+    },
+    "amount": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Amount",
+      "type": "string"
+    },
+    "asset": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Asset",
+      "type": "string"
+    },
+    "portfolio_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Portfolio Id"
+    },
+    "posting_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Posting Id",
+      "type": "string"
+    },
+    "valuation_ref": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Valuation Ref"
+    }
+  },
+  "required": [
+    "posting_id",
+    "portfolio_id",
+    "account",
+    "asset",
+    "amount"
+  ],
+  "title": "LedgerPosting",
+  "type": "object"
+}

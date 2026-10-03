@@ -58,3 +58,22 @@ union to_dict; post-storage freshness check; old duplicate conflicts; complete
 history recovery; symbol writer serialization. Fixture-only anonymous S3 and
 loopback trust DB are not production auth/TLS evidence. Bounded REST fallback,
 no websocket/elapsed paper/live claim. L0 retained. Continue Phase 3.
+
+## 2026-10-03 — Phase 3 accounting local gate
+
+PASS. `make check integration`: 73 unit tests (subsequent unchecked-copy regression
+adds1, standalone ledger unit11 PASS), 18 dependency skips only in unit command;
+actual platform/ledger17 PASS (8 ledger +8 platform +API), market2 PASS. Ruff,
+strict mypy23 modules, 46 schema artifacts, source scan and SDK offline PASS.
+Wheel/sdist PASS. Real SQL tests cover tenant/mode ownership, high-precision history,
+concurrent80+80 reservations against100 (one denied), partial/over/wrong-order release,
+changed transaction/source/fill IDs, exact base/quote/BNB fees, SELL inventory reservation,
+SQL UPDATE/DELETE/TRUNCATE denial, no-posting/unbalanced/negative direct SQL,
+late posting rejection, one full compensation and audit idempotency. Rational cost
+view reconstructs costs/P&L; unknown BNB quote fee value yields null P&L. Shared
+producer and ledger handler revalidate unchecked model-copy input. SQL journal,
+artifact, event and outbox commit atomically. Live venue ingestion/mismatch handling,
+production roles and trading authorization remain later gates. L0 retained.
+Mandatory pre-T012 architecture/security pass recorded; continue Phase4.
+
+Phase2 hosted run37109997716 PASS, implementation866efded6d3d5e4778d2f17a1b2f0bc446bb7a5d.

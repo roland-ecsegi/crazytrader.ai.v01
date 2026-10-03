@@ -55,12 +55,14 @@ def main() -> None:
         env["CT_TEST_DSN"] = f"postgresql://postgres@127.0.0.1:{pg_port}/postgres"
         env["CT_TEST_NATS_URL"] = f"nats://127.0.0.1:{nats_port}"
         subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/platform", "-q"], env=env, check=True
+            [sys.executable, "-m", "pytest", "tests/platform", "tests/ledger", "-q", "--tb=short"],
+            env=env,
+            check=True,
         )
         print("real PostgreSQL/NATS platform integration PASS")
     finally:
         for name in reversed(names):
-            docker("rm", "-f", name, check=False)
+            docker("rm", "-fv", name, check=False)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,94 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "base_asset": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Base Asset",
+      "type": "string"
+    },
+    "cost_basis": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Cost Basis",
+      "type": "string"
+    },
+    "fee_valuation_pending": {
+      "title": "Fee Valuation Pending",
+      "type": "boolean"
+    },
+    "portfolio_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Portfolio Id",
+      "type": "string"
+    },
+    "quantity": {
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "title": "Quantity",
+      "type": "string"
+    },
+    "quote_asset": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Quote Asset",
+      "type": "string"
+    },
+    "realized_pnl": {
+      "anyOf": [
+        {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Realized Pnl"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "valuation_policy": {
+      "const": "weighted-average.quote-18-half-even.v1",
+      "title": "Valuation Policy",
+      "type": "string"
+    },
+    "valuation_refs": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "title": "Valuation Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "portfolio_id",
+    "base_asset",
+    "quote_asset",
+    "quantity",
+    "cost_basis",
+    "realized_pnl",
+    "fee_valuation_pending",
+    "valuation_refs",
+    "valuation_policy",
+    "as_of"
+  ],
+  "title": "PositionAttribution",
+  "type": "object"
+}

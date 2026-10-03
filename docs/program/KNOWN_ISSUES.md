@@ -9,4 +9,11 @@ Repository is currently public. Security must not depend on privacy, but if prop
 ## Future live validation
 Codex Cloud will not receive live Binance secrets. L5/L6 require owner-controlled local setup/activation.
 
-No current blocker prevents Phase 0 implementation.
+No current external blocker prevents independent implementation.
+
+## Future live/canary authority conflict
+AGENTS invariant10 forbids real money before L6; certification requires actual L5
+canary trades to achieve L6. Phase4 preserves the stronger invariant and denies LIVE
+before L6. An accepted owner ADR is needed at the owner-local live boundary; finish
+independent engineering before requesting that material decision. No credentials
+or live activation are requested by this checkpoint.

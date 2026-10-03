@@ -80,12 +80,12 @@ idempotent. Corrections retain references to original history; no destructive re
 
 ## Implementation steps
 - [x] Read Phase 3 specification and define accounting boundary.
-- [ ] Implement and export immutable balanced transaction/posting contracts.
-- [ ] Add exact SQL journal, provenance, idempotency and nonnegative-fund controls.
-- [ ] Implement portfolio registration, allocation/reservation/release primitives.
-- [ ] Prove history reconstruction, fill/fee attribution, corrections and concurrency.
-- [ ] Adversarial self-review, repair, full checks, durable publication.
-- [ ] Continue to mandatory independent pre-T012 Hard Risk architecture/security review.
+- [x] Implement and export immutable balanced transaction/posting contracts.
+- [x] Add exact SQL journal, provenance, idempotency and nonnegative-fund controls.
+- [x] Implement portfolio registration, allocation/reservation/release primitives.
+- [x] Prove history reconstruction, fill/fee attribution, corrections and concurrency.
+- [x] Adversarial self-review, repair, full checks, durable publication.
+- [x] Continue to mandatory independent pre-T012 Hard Risk architecture/security review.
 
 ## Test plan
 make check/integration; real PostgreSQL tests for per-asset balance enforcement,
@@ -106,11 +106,15 @@ compensating transactions for accounting corrections with provenance. Rebuild
 projections from immutable postings. Never erase real journal history.
 
 ## Resume checkpoint
-Branch codex/enterprise-local-autonomous. Last published checkpoint ab27906dc28a707eb6249ee93f1e2838f102282d;
-Phase 2 final gate/publish is in progress before this plan becomes active. Current
-Phase 3 work: specification/design only. Next exact action after Phase 2 pass:
-implement ledger contracts and balancing tests, then additive SQL journal. No
-external blocker. Usage active. Do not repeat completed Phase 0–2 foundation work.
+Branch codex/enterprise-local-autonomous. Publishing Phase3 from parent
+866efded6d3d5e4778d2f17a1b2f0bc446bb7a5d. Local gate PASS: make check/integration
+(73 unit/contract tests plus subsequent unchecked-copy regression PASS =74 total;
+17 actual platform/ledger tests, 2 market tests), strict mypy23 modules, 46 schemas,
+source scan, SDK offline check and wheel/sdist PASS. Next exact action: active
+Phase4 ExecPlan, pre-T012 review recorded in docs/evidence/reviews/2026-10-03-pre-T012.md;
+implement typed limits/context/classification negatives. No current external blocker;
+future live authority conflict recorded but independent engineering continues.
+Usage active. Implementation committed at this checkpoint; no hidden VM-only state.
 
 ## Progress log
 2026-10-03: Prepared ledger design while final Phase 2 verification runs.
@@ -122,4 +126,16 @@ truth. Explicit Decimal context must cover full contract precision. Portfolio
 attribution and correction provenance are mandatory, including transfers.
 
 ## Completion summary
-Pending implementation. Continue autonomously after the Phase 2 gate.
+PASS. Immutable per-asset balanced journal, portfolio registry/snapshots, order
+reservations/partial releases, allocation/transfers, source/fill identity, fees,
+full compensation and cold reconstruction. SQL prevents unbalanced/negative/late
+postings, repeated corrections and body/hash/row mismatch; journal/audit/outbox
+are atomic. Exact rational weighted-average attribution has explicit display policy
+and unvalued third-fee P&L remains unknown. No trading authority, credentials or
+certification gained. Actual venue mismatch/suspense handling composes in Phase5;
+scoped SQL roles remain security gate. Continue Phase4 review/implementation.
+
+2026-10-03: Complete gate/self-review repaired SQL placeholder binding, ambient
+Decimal negation, SELL reservation custody, third-asset fee attribution, late
+posting extension, duplicate compensation, journal body/hash/row divergence and
+unchecked Pydantic model-copy bypass. No mutable balance cache or fabricated P&L.

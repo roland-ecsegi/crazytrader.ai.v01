@@ -4,12 +4,17 @@ import argparse
 import json
 from pathlib import Path
 
-from crazytrader_contracts import market, models
+from crazytrader_contracts import ledger, market, models
 from crazytrader_contracts.events import EventEnvelope
 from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    ledger.LedgerPosting,
+    ledger.AssetBalance,
+    ledger.PositionAttribution,
+    ledger.PortfolioSnapshot,
+    ledger.LedgerTransaction,
     models.TradeIntent,
     models.RiskDecision,
     models.PolicyDecision,

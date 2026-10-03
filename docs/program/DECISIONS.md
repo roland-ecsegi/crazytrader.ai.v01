@@ -23,3 +23,19 @@ See docs/evidence/spikes/ADOPTION.md and exact version/license hashes. Use Nauti
 ## 2026-10-02 — Platform durability/readiness
 
 PostgreSQL is canonical immutable event/audit state with transactional outbox and inbox. NATS file JetStream is at-least-once transport, not an exactly-once ledger. Notification failures persist bounded attempts; only local console delivery exists so far. Readiness requires fresh audit/outbox/notification heartbeats, not only reachable stores. Explicit admin migration separated from ordinary worker startup. App UID10001/read-only Compose with API-only ingress and loopback binding; data network internal. Development role/auth settings are not production security certification.
+
+## 2026-10-03 — Market and accounting durability
+
+Official Binance SDK uses isolated locked environment due its Ruff dependency
+conflict; use upstream to_dict for nested union serialization. Public bounded GETs
+are separate evidence from fixture/elapsed certification. Historical source is
+S3 SHA-addressed/read-back verified; PostgreSQL identities/watermarks are canonical;
+ClickHouse remains deduplicated analytical projection. No continuous WS claim.
+
+Ledger is exact per-asset double entry with tenant-wide serialization, immutable
+header/postings/body/hash, atomic audit outbox and stable source/fill/reservation
+identity. Committed transactions cannot gain postings. V1 correction is one full
+attribution-preserving compensation; partial corrections need a versioned command.
+Weighted-average cost uses exact rational reconstruction with explicit display
+rounding; third-asset fee quote valuation remains unknown instead of invented.
+Shared producers revalidate typed contracts even after unchecked model_copy.

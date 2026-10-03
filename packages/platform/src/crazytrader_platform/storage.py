@@ -9,6 +9,7 @@ from typing import Literal
 
 import psycopg
 from crazytrader_contracts.events import EventEnvelope
+from crazytrader_contracts.ledger import LedgerTransaction
 from crazytrader_contracts.market import BookDelta, MarketCandle, MarketStatus, MarketTrade
 from crazytrader_contracts.models import Contract, Identifier, Timestamp
 from opentelemetry import trace
@@ -29,20 +30,26 @@ PAYLOAD_TYPES: dict[str, type[Contract]] = {
     "MarketTradeReceived.v1": MarketTrade,
     "MarketCandleClosed.v1": MarketCandle,
     "MarketBookUpdated.v1": BookDelta,
+    "LedgerEntryAppended.v1": LedgerTransaction,
     "MarketDataStale.v1": MarketStatus,
     "MarketDataRecovered.v1": MarketStatus,
     "MarketSequenceGapDetected.v1": MarketStatus,
 }
 
 
-def validate_payload(event: EventEnvelope, payload: Contract) -> None:
+def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
     expected_type = PAYLOAD_TYPES.get(event.event_type)
     if expected_type is None or type(payload) is not expected_type:
         raise ValueError("unsupported typed event payload")
+    payload = expected_type.model_validate(payload.model_dump())
     if event.payload.payload_schema_ref != type(payload).__name__ + ".v1":
         raise ValueError("payload schema mismatch")
     if isinstance(payload, HealthChange):
         source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, LedgerTransaction):
+        source, occurred = "ledger", payload.timestamp
+        if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
+            raise ValueError("ledger event ownership mismatch")
     elif isinstance(payload, MarketStatus):
         source, occurred = "market-data", payload.occurred_at
         if (event.event_type == "MarketDataRecovered.v1") != (payload.health == "HEALTHY"):
@@ -59,6 +66,7 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> None:
         raise ValueError("unsupported payload")
     if event.source_service != source or event.occurred_at != occurred:
         raise ValueError("payload/envelope provenance mismatch")
+    return payload
 
 
 def canonical(model: Contract) -> str:
@@ -96,7 +104,14 @@ class EventStore:
 
     def append(self, event: EventEnvelope, payload: Contract) -> bool:
         """Persist payload, event and outbox atomically; reject changed ID content."""
-        validate_payload(event, payload)
+        payload = validate_payload(event, payload)
+        with TRACER.start_as_current_span("platform.event.append"), self.connection() as conn:
+            return self.append_in_transaction(conn, event, payload)
+
+    def append_in_transaction(
+        self, conn: psycopg.Connection[dict[str, object]], event: EventEnvelope, payload: Contract
+    ) -> bool:
+        payload = validate_payload(event, payload)
         schema_ref = type(payload).__name__ + ".v1"
         body = canonical(payload)
         expected = digest(body)
@@ -104,45 +119,44 @@ class EventStore:
             raise ValueError("payload reference/hash mismatch")
         envelope = canonical(event)
         event_digest = digest(envelope)
-        with TRACER.start_as_current_span("platform.event.append"), self.connection() as conn:
-            inserted = conn.execute(
-                "INSERT INTO ct_artifacts(digest,tenant_id,schema_ref,body) VALUES (%s,%s,%s,%s) "
-                "ON CONFLICT DO NOTHING RETURNING digest",
-                (expected, event.tenant_id, schema_ref, body),
+        inserted = conn.execute(
+            "INSERT INTO ct_artifacts(digest,tenant_id,schema_ref,body) VALUES (%s,%s,%s,%s) "
+            "ON CONFLICT DO NOTHING RETURNING digest",
+            (expected, event.tenant_id, schema_ref, body),
+        ).fetchone()
+        if inserted is None:
+            existing = conn.execute(
+                "SELECT body,tenant_id,schema_ref FROM ct_artifacts WHERE digest=%s",
+                (expected,),
             ).fetchone()
-            if inserted is None:
-                existing = conn.execute(
-                    "SELECT body,tenant_id,schema_ref FROM ct_artifacts WHERE digest=%s",
-                    (expected,),
-                ).fetchone()
-                if existing != {
-                    "body": body,
-                    "tenant_id": event.tenant_id,
-                    "schema_ref": schema_ref,
-                }:
-                    raise ConflictError("artifact ownership/content collision")
-            inserted = conn.execute(
-                "INSERT INTO ct_events "
-                "(event_id,tenant_id,event_type,digest,envelope,payload_digest) "
-                "VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING RETURNING event_id",
-                (
-                    event.event_id,
-                    event.tenant_id,
-                    event.event_type,
-                    event_digest,
-                    envelope,
-                    expected,
-                ),
+            if existing != {
+                "body": body,
+                "tenant_id": event.tenant_id,
+                "schema_ref": schema_ref,
+            }:
+                raise ConflictError("artifact ownership/content collision")
+        inserted = conn.execute(
+            "INSERT INTO ct_events "
+            "(event_id,tenant_id,event_type,digest,envelope,payload_digest) "
+            "VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING RETURNING event_id",
+            (
+                event.event_id,
+                event.tenant_id,
+                event.event_type,
+                event_digest,
+                envelope,
+                expected,
+            ),
+        ).fetchone()
+        if inserted is None:
+            row = conn.execute(
+                "SELECT digest FROM ct_events WHERE event_id=%s", (event.event_id,)
             ).fetchone()
-            if inserted is None:
-                row = conn.execute(
-                    "SELECT digest FROM ct_events WHERE event_id=%s", (event.event_id,)
-                ).fetchone()
-                if row is None or row["digest"] != event_digest:
-                    raise ConflictError("event ID reused with different content")
-                return False
-            conn.execute("INSERT INTO ct_outbox(event_id) VALUES (%s)", (event.event_id,))
-            return True
+            if row is None or row["digest"] != event_digest:
+                raise ConflictError("event ID reused with different content")
+            return False
+        conn.execute("INSERT INTO ct_outbox(event_id) VALUES (%s)", (event.event_id,))
+        return True
 
     def pending(self, limit: int = 100) -> tuple[EventEnvelope, ...]:
         if not 1 <= limit <= 1000:
@@ -177,7 +191,7 @@ class EventStore:
             if payload_type is None:
                 raise ValueError("unsupported persisted payload")
             payload = payload_type.model_validate_json(str(row["body"]))
-            validate_payload(event, payload)
+            payload = validate_payload(event, payload)
             if digest(canonical(payload)) != event.payload.sha256:
                 raise ConflictError("persisted payload integrity failure")
             inserted = conn.execute(

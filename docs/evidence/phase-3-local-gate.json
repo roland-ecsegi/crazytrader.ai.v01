@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-03",
+  "phase": 3,
+  "gate": "PASS",
+  "unit_tests_total": 74,
+  "ledger_unit_tests": 11,
+  "ledger_postgres_tests": 8,
+  "platform_and_ledger_tests": 17,
+  "market_tests": 2,
+  "commands": [
+    "make check integration",
+    "pytest tests/test_ledger.py -q (additional unchecked-copy negative)",
+    "uv build"
+  ],
+  "certification": "L0",
+  "self_review_repairs": [
+    "atomic journal/outbox",
+    "late posting guard",
+    "full compensation uniqueness",
+    "SQL body/hash/row alignment",
+    "full precision negation",
+    "order-attributed SELL reservations",
+    "third-asset fee exact accounting",
+    "unknown fee quote valuation",
+    "unchecked model-copy validation"
+  ],
+  "limits": [
+    "no venue mutation or live funding",
+    "actual mismatch/suspense ingestion remains reconciliation phase",
+    "production roles/TLS remain security gate",
+    "display P&L does not grant trading permission"
+  ]
+}

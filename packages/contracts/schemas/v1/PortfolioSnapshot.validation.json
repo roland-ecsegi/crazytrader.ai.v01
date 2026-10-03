@@ -1,0 +1,104 @@
+{
+  "$defs": {
+    "AssetBalance": {
+      "additionalProperties": false,
+      "properties": {
+        "asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Asset",
+          "type": "string"
+        },
+        "available": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Available",
+          "type": "string"
+        },
+        "fees": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Fees",
+          "type": "string"
+        },
+        "inventory": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Inventory",
+          "type": "string"
+        },
+        "reserved": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Reserved",
+          "type": "string"
+        },
+        "total_held": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Total Held",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset",
+        "available",
+        "reserved",
+        "inventory",
+        "fees",
+        "total_held"
+      ],
+      "title": "AssetBalance",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "balances": {
+      "items": {
+        "$ref": "#/$defs/AssetBalance"
+      },
+      "title": "Balances",
+      "type": "array"
+    },
+    "mode": {
+      "enum": [
+        "MATH",
+        "STRATEGY",
+        "RESERVE"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "portfolio_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Portfolio Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "portfolio_id",
+    "mode",
+    "as_of",
+    "balances"
+  ],
+  "title": "PortfolioSnapshot",
+  "type": "object"
+}

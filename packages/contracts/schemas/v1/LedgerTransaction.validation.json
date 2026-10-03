@@ -1,0 +1,338 @@
+{
+  "$defs": {
+    "Fill": {
+      "additionalProperties": false,
+      "properties": {
+        "fee_amount": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Fee Amount",
+          "type": "string"
+        },
+        "fee_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Fee Asset",
+          "type": "string"
+        },
+        "fill_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Fill Id",
+          "type": "string"
+        },
+        "order_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "price": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Price",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "venue_fill_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Venue Fill Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fill_id",
+        "order_id",
+        "venue_fill_id",
+        "quantity",
+        "price",
+        "fee_amount",
+        "fee_asset",
+        "timestamp"
+      ],
+      "title": "Fill",
+      "type": "object"
+    },
+    "LedgerPosting": {
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "enum": [
+            "AVAILABLE",
+            "RESERVED",
+            "INVENTORY",
+            "EXTERNAL",
+            "FEES",
+            "CAPITAL",
+            "REALIZED_PNL"
+          ],
+          "title": "Account",
+          "type": "string"
+        },
+        "amount": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Asset",
+          "type": "string"
+        },
+        "portfolio_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Portfolio Id"
+        },
+        "posting_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "title": "Posting Id",
+          "type": "string"
+        },
+        "valuation_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:@/-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valuation Ref"
+        }
+      },
+      "required": [
+        "posting_id",
+        "portfolio_id",
+        "account",
+        "asset",
+        "amount"
+      ],
+      "title": "LedgerPosting",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "base_asset": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Base Asset"
+    },
+    "correction_of_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Correction Of Id"
+    },
+    "fill_data": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Fill"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "fill_side": {
+      "anyOf": [
+        {
+          "enum": [
+            "BUY",
+            "SELL"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fill Side"
+    },
+    "postings": {
+      "items": {
+        "$ref": "#/$defs/LedgerPosting"
+      },
+      "maxItems": 100,
+      "minItems": 2,
+      "title": "Postings",
+      "type": "array"
+    },
+    "provenance_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Provenance Ref",
+      "type": "string"
+    },
+    "quote_asset": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Quote Asset"
+    },
+    "reason": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Reason",
+      "type": "string"
+    },
+    "related_fill_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Related Fill Id"
+    },
+    "related_order_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:@/-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Related Order Id"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_event_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Source Event Id",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "timestamp": {
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "transaction_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Transaction Id",
+      "type": "string"
+    },
+    "transaction_type": {
+      "enum": [
+        "FUNDING",
+        "ALLOCATION",
+        "RESERVATION",
+        "RELEASE",
+        "FILL",
+        "FEE",
+        "TRANSFER",
+        "CORRECTION"
+      ],
+      "title": "Transaction Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "transaction_id",
+    "tenant_id",
+    "source_event_id",
+    "actor_id",
+    "transaction_type",
+    "reason",
+    "provenance_ref",
+    "timestamp",
+    "postings"
+  ],
+  "title": "LedgerTransaction",
+  "type": "object"
+}
