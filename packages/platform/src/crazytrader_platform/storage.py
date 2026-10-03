@@ -10,6 +10,7 @@ from crazytrader_contracts.absence import FixtureAbsenceAssessment
 from crazytrader_contracts.account import AccountReconciliationReport
 from crazytrader_contracts.codec import canonical as canonical
 from crazytrader_contracts.codec import digest as digest
+from crazytrader_contracts.dispatch import FixtureDispatchBound
 from crazytrader_contracts.events import EventEnvelope
 from crazytrader_contracts.execution import (
     TRANSITION_EVENTS,
@@ -44,6 +45,7 @@ class HealthChange(Contract):
 
 
 PAYLOAD_TYPES: dict[str, type[Contract]] = {
+    "FixtureDispatchBound.v1": FixtureDispatchBound,
     "FixtureAbsenceAssessed.v1": FixtureAbsenceAssessment,
     "UnsentExecutionExpired.v1": UnsentExecutionExpiry,
     "NativeSimulationCriticalMismatch.v1": NativeSimulationIncident,
@@ -86,6 +88,13 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         raise ValueError("payload schema mismatch")
     if isinstance(payload, HealthChange):
         source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, FixtureDispatchBound):
+        source, occurred = "execution", payload.bound_at
+        if (
+            event.tenant_id != payload.request.tenant_id
+            or event.actor_id != payload.request.actor_id
+        ):
+            raise ValueError("fixture dispatch bound ownership mismatch")
     elif isinstance(payload, FixtureAbsenceAssessment):
         source, occurred = "reconciliation", payload.occurred_at
         if event.tenant_id != payload.state.request.tenant_id or event.actor_id != payload.actor_id:

@@ -76,8 +76,8 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
 review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
-action: original send deadline/late-acceptance fence, then source-bound absence
-release/controlled retry and append-only incident resolution. Bounded signed fixture
+action: source-bound elapsed-window absence release/controlled retry. Original
+send deadline/guard binding and fixture acceptance/read linearization verified, and append-only incident resolution. Bounded signed fixture
 absence assessment has no financial effect.
 Unsent expiry verified. Native
 job/request binding, financial journal/state/incidents, worker/source and restart
@@ -205,3 +205,10 @@ identified original-send/late-acceptance fence required before release/retry; im
 next, no Phase5 gate. Full83 passes (285.88s) and one fixture identifier failure;
 repaired final8 PASS (34.99s),175 units/mypy55/134 schemas/scan/offline SDK/build,
 17 platform/ledger PASS (6.27s).
+
+2026-10-03 guarded dispatch: actual prepared-request deadline and signed5000ms window,
+immutable reviewed-source bound before claim, Python/SQL evidence fence and exclusive
+backend choice. Original late sender stays UNKNOWN/no wire; legacy requests are not
+backfilled.22 repaired cases PASS (66.83s),20 final fill/deadline/SDK PASS (111.11s),
+178 units/mypy56/138 schemas/scan/offline SDK PASS,17 platform/ledger PASS (11.89s).
+Final90 actual cases PASS (302.24s), wheel-sdist PASS; no financial release/retry or gate.

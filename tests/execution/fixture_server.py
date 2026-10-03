@@ -102,6 +102,16 @@ def sdk_venue(
             # after application/fixture restart queries the same authoritative row.
             with store.connection() as conn:
                 conn.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",
+                    ("fixture-wire:" + tenant,),
+                )
+                timestamp = int(params["timestamp"])
+                window = int(params["recvWindow"])
+                server_ms = time.time_ns() // 1000000
+                if window != 5000 or timestamp > server_ms + 1000 or server_ms - timestamp > window:
+                    self.respond({"code": -1021, "msg": "Signature timestamp expired."}, status=400)
+                    return
+                conn.execute(
                     "INSERT INTO ct_test_wire_posts(tenant,client_id) VALUES(%s,%s)",
                     (tenant, client_id),
                 )
@@ -249,6 +259,10 @@ def sdk_venue(
             assert urlsplit(self.path).path == "/api/v3/order"
             assert params["signature"]
             with store.connection() as conn:
+                conn.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",
+                    ("fixture-wire:" + tenant,),
+                )
                 row = conn.execute(
                     "SELECT body FROM ct_test_wire_orders WHERE tenant=%s AND client_id=%s",
                     (tenant, params["origClientOrderId"]),

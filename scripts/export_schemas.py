@@ -7,6 +7,7 @@ from pathlib import Path
 from crazytrader_contracts import (
     absence,
     account,
+    dispatch,
     execution,
     expiry,
     ledger,
@@ -23,7 +24,9 @@ from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    dispatch.FixtureDispatchBound,
     absence.FixtureOrderLookup,
+    absence.FixtureTimedOrderLookup,
     absence.FixtureAbsenceAssessment,
     expiry.UnsentExecutionExpiry,
     native_fills.NativeSimulationFill,

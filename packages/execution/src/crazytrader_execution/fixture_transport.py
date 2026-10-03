@@ -12,9 +12,10 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
-from crazytrader_contracts.absence import FixtureOrderLookup
+from crazytrader_contracts.absence import FixtureOrderLookup, FixtureTimedOrderLookup
 from crazytrader_contracts.account import VenueAccountRead
 from crazytrader_contracts.codec import canonical, digest
+from crazytrader_contracts.dispatch import FixtureDispatchBound
 from crazytrader_contracts.execution import (
     CancellationEvaluationRecord,
     CancellationReceipt,
@@ -112,6 +113,16 @@ class SDKFixtureTransport:
             return observation
         except Exception:
             return VenueOrderObservation.model_validate(base)
+
+    def dispatch_bound(self, request: ExecutionRequest) -> FixtureDispatchBound:
+        return FixtureDispatchBound.model_validate(
+            dict(
+                request=request,
+                bound_at=datetime.now(UTC),
+                request_sha256=digest(canonical(request)),
+                child_source_sha256=digest(self.child.read_text()),
+            )
+        )
 
     def submit(self, request: ExecutionRequest, now: datetime) -> VenueOrderObservation:
         return self._call(request, "SUBMIT", now)
@@ -405,6 +416,9 @@ class SDKFixtureTransport:
             return VenueAccountRead.model_validate(base | {"finished_at": datetime.now(UTC)})
 
     def lookup(self, request: ExecutionRequest) -> FixtureOrderLookup:
+        return self.timed_lookup(request).lookup
+
+    def timed_lookup(self, request: ExecutionRequest) -> FixtureTimedOrderLookup:
         request = ExecutionRequest.model_validate(request.model_dump())
         if request.execution_mode != "SIMULATION" or request.side != "SELL":
             raise ValueError("fixture lookup has no real-money authority")
@@ -443,7 +457,7 @@ class SDKFixtureTransport:
                 or not isinstance(captured.get("body"), dict)
             ):
                 raise ValueError("lookup source unavailable")
-            return FixtureOrderLookup.model_validate(
+            observed = FixtureOrderLookup.model_validate(
                 base
                 | {
                     "available": True,
@@ -452,5 +466,16 @@ class SDKFixtureTransport:
                     "finished_at": datetime.now(UTC),
                 }
             )
+            return FixtureTimedOrderLookup.model_validate(
+                dict(
+                    lookup=observed,
+                    raw_server_date=captured.get("raw_date"),
+                    server_date=captured.get("server_date"),
+                )
+            )
         except Exception:
-            return FixtureOrderLookup.model_validate(base | {"finished_at": datetime.now(UTC)})
+            return FixtureTimedOrderLookup(
+                lookup=FixtureOrderLookup.model_validate(base | {"finished_at": datetime.now(UTC)}),
+                raw_server_date=None,
+                server_date=None,
+            )

@@ -10,6 +10,7 @@ from datetime import datetime
 
 import psycopg
 from crazytrader_contracts.codec import canonical, digest
+from crazytrader_contracts.dispatch import FixtureDispatchBound
 from crazytrader_contracts.events import EventEnvelope, PayloadReference
 from crazytrader_contracts.execution import (
     TRANSITION_EVENTS,
@@ -415,8 +416,64 @@ class ExecutionStore:
         except (ValueError, ConflictError):
             raise StateUnavailable("full venue rules unavailable, changed or denied") from None
 
+    def bind_fixture_dispatch(self, bound: FixtureDispatchBound) -> None:
+        bound = FixtureDispatchBound.model_validate(bound.model_dump())
+        request, body = bound.request, canonical(bound)
+        with self.store.connection() as conn:
+            self._lock(conn, request.tenant_id)
+            current = self._load(conn, request.execution_request_id)
+            if current.request != request:
+                raise StateUnavailable("fixture bound requires original owned request")
+            native = conn.execute(
+                "SELECT 1 FROM ct_native_simulation_jobs WHERE tenant_id=%s "
+                "AND venue_account_ref=%s LIMIT 1",
+                (request.tenant_id, request.venue_account_ref),
+            ).fetchone()
+            if native is not None:
+                raise StateUnavailable("native simulated account cannot bind SDK dispatch")
+            existing = conn.execute(
+                "SELECT body,digest FROM ct_fixture_dispatch_bounds WHERE execution_request_id=%s",
+                (request.execution_request_id,),
+            ).fetchone()
+            if existing is not None:
+                saved = FixtureDispatchBound.model_validate_json(str(existing["body"]))
+                if digest(canonical(saved)) != existing["digest"] or (
+                    saved.model_dump(exclude={"bound_at"}) != bound.model_dump(exclude={"bound_at"})
+                ):
+                    raise ConflictError("fixture dispatch protocol immutable collision")
+                return
+            if current.state != OrderState.AUTHORIZED:
+                return  # concurrent sender already claimed; cannot install a new protocol proof
+            conn.execute(
+                "INSERT INTO ct_fixture_dispatch_bounds(execution_request_id,digest,body) "
+                "VALUES(%s,%s,%s)",
+                (request.execution_request_id, digest(body), body),
+            )
+            event = EventEnvelope(
+                event_id="fixture-bound:" + digest(body),
+                event_type="FixtureDispatchBound.v1",
+                schema_version="1",
+                occurred_at=bound.bound_at,
+                tenant_id=request.tenant_id,
+                actor_id=request.actor_id,
+                source_service="execution",
+                trace_id="fixture-bound:" + digest(body),
+                correlation_id=request.execution_request_id,
+                payload=PayloadReference(
+                    artifact_ref=digest(body),
+                    sha256=digest(body),
+                    payload_schema_ref="FixtureDispatchBound.v1",
+                ),
+            )
+            self.store.append_in_transaction(conn, event, bound)
+
     def claim_submission(
-        self, request_id: str, now: datetime, *, native: bool = False
+        self,
+        request_id: str,
+        now: datetime,
+        *,
+        native: bool = False,
+        dispatch_bound: FixtureDispatchBound | None = None,
     ) -> ExecutionState | None:
         """Return a single fenced claim. Already-started send never grants another claim."""
         current = self.load(request_id)
@@ -428,6 +485,8 @@ class ExecutionStore:
                 return None
             if type(native) is not bool:
                 raise StateUnavailable("explicit supported adapter claim required")
+            if dispatch_bound is not None:
+                dispatch_bound = FixtureDispatchBound.model_validate(dispatch_bound.model_dump())
             native_job = conn.execute(
                 "SELECT 1 FROM ct_native_simulation_jobs WHERE execution_request_id=%s",
                 (request_id,),
@@ -441,6 +500,26 @@ class ExecutionStore:
                 return None  # account namespace cannot mix native and SDK fixture dispatch
             if request.execution_mode != "SIMULATION":
                 raise StateUnavailable("signed transport is not enabled")
+            bound_row = conn.execute(
+                "SELECT body,digest FROM ct_fixture_dispatch_bounds WHERE execution_request_id=%s",
+                (request_id,),
+            ).fetchone()
+            bound_ref = None
+            if bound_row is not None:
+                saved_bound = FixtureDispatchBound.model_validate_json(str(bound_row["body"]))
+                if (
+                    dispatch_bound is None
+                    or native
+                    or (
+                        saved_bound.model_dump(exclude={"bound_at"})
+                        != dispatch_bound.model_dump(exclude={"bound_at"})
+                        or digest(canonical(saved_bound)) != bound_row["digest"]
+                    )
+                ):
+                    return None
+                bound_ref = "fixture-bound:" + str(bound_row["digest"])
+            elif dispatch_bound is not None:
+                raise StateUnavailable("guarded dispatch requires durable bound")
             proof = conn.execute(
                 "SELECT * FROM ct_execution_reservations WHERE execution_request_id=%s",
                 (request_id,),
@@ -467,7 +546,7 @@ class ExecutionStore:
                 OrderState.SUBMITTING,
                 now,
                 "SINGLE_DURABLE_SUBMISSION_CLAIM",
-                str(proof["reservation_tx_id"]),
+                bound_ref or str(proof["reservation_tx_id"]),
             )
             self._write(conn, change)
             return change.resulting_state

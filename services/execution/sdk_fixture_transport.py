@@ -6,6 +6,8 @@ accept owner credentials or enable live/testnet transport. Not a production simu
 
 import json
 import sys
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from urllib.parse import parse_qs, urlsplit
 
 from binance_common.configuration import ConfigurationRestAPI
@@ -34,13 +36,46 @@ def main() -> None:
         api_key="fixture-only-key",
         api_secret="fixture",
         base_path=endpoint,
-        timeout=150,
+        timeout=150 if raw["action"] in {"SUBMIT", "CANCEL"} else 1000,
         retries=0,
         backoff=0,
     )
     client = Spot(config_rest_api=config)
     # Public fixture endpoint cannot redirect the mature SDK outside loopback.
     client.rest_api._session.max_redirects = 0
+    client.rest_api._session.trust_env = False  # no proxy/netrc credential fallback
+    if raw["action"] == "SUBMIT":
+        deadline = datetime.fromisoformat(request["expires_at"].replace("Z", "+00:00"))
+        delta = deadline - datetime(1970, 1, 1, tzinfo=UTC)
+        deadline_ms = (delta.days * 86400 + delta.seconds) * 1000 + delta.microseconds // 1000
+
+        def guard_submission(prepared):
+            target = urlsplit(prepared.url)
+            body = prepared.body or ""
+            if isinstance(body, bytes):
+                body = body.decode("ascii")
+            fields = parse_qs(target.query)
+            for name, values in parse_qs(body).items():
+                if name in fields:
+                    raise ValueError("duplicate signed dispatch field")
+                fields[name] = values
+            timestamp = fields.get("timestamp", [])
+            if (
+                datetime.now(UTC) >= deadline
+                or prepared.method != "POST"
+                or target.hostname != "127.0.0.1"
+                or target.port != parsed.port
+                or target.path != "/api/v3/order"
+                or len(timestamp) != 1
+                or not timestamp[0].isdigit()
+                or int(timestamp[0]) > deadline_ms
+                or fields.get("recvWindow") != ["5000"]
+                or fields.get("newClientOrderId") != [request["client_order_id"]]
+            ):
+                raise ValueError("expired or unbounded original signed dispatch")
+            return prepared  # validate the official SDK request without changing its signature
+
+        client.rest_api._session.auth = guard_submission
     try:
         if raw["action"] == "LOOKUP":
             captured = {}
@@ -60,7 +95,19 @@ def main() -> None:
                     return
                 data = response.json()
                 if isinstance(data, dict):
-                    captured.update(http_status=response.status_code, body=data)
+                    captured.update(
+                        http_status=response.status_code,
+                        body=data,
+                        server_date=None,
+                        raw_date=response.headers.get("Date"),
+                    )
+                    if captured["raw_date"]:
+                        parsed_date = parsedate_to_datetime(captured["raw_date"])
+                        if (
+                            parsed_date.utcoffset() is not None
+                            and parsed_date.utcoffset().total_seconds() == 0
+                        ):
+                            captured["server_date"] = parsed_date.isoformat()
 
             client.rest_api._session.hooks["response"].append(capture)
             try:
@@ -124,6 +171,7 @@ def main() -> None:
                 quantity=request["quantity"],
                 new_client_order_id=request["client_order_id"],
                 new_order_resp_type="RESULT",
+                recv_window=5000,
             )
         elif raw["action"] == "CANCEL":
             response = client.rest_api.delete_order(

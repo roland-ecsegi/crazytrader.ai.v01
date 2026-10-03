@@ -134,3 +134,12 @@ source/head, SQL source binding, raw-before-audit recovery. No financial effect.
 SDK/native pending-state fences unified. Original send/late-acceptance fence required
 before release/retry. Native financial CI37141145082 and expiry CI37142039091 PASS.
 L0/no Phase5 gate.
+
+## 2026-10-03 — Guarded fixture dispatch
+Final90 actual cases PASS (302.24s),178 units/mypy56/138 schemas/scan/offline SDK/
+wheel-sdist PASS; platform/ledger17 PASS (11.89s). Original request expires before
+prepared signed wire; fixed5000ms window, immutable source/profile bound and exact
+Python/SQL claim reference. Concurrent/audit/expiry/backend-choice fences; no backfill
+for legacy unknown. Original late sender zero wire. Environment/netrc/redirect fallback
+disabled, test-only injected netrc sends no auth. Query reads bounded1000ms; send/cancel
+150ms faults and zero SDK retries preserved. No financial absence release/retry or gate.

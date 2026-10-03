@@ -82,6 +82,7 @@ Breaking schema changes require a new schema version.
 - NativeSimulationCriticalMismatch.v1
 - UnsentExecutionExpired.v1
 - FixtureAbsenceAssessed.v1
+- FixtureDispatchBound.v1
 
 ## Risk events
 

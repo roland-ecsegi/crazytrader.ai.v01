@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import psycopg
 import pytest
+from crazytrader_contracts.events import EventEnvelope
 from crazytrader_contracts.ledger import LedgerTransaction
 from crazytrader_contracts.models import OrderState
 from crazytrader_execution.expiry import UnsentExpiryService
@@ -44,11 +45,13 @@ def test_expired_unsent_request_restores_exact_original_custody_under_duplicate_
     assert execution.claim_submission(request.execution_request_id, now) is None
     after = LedgerStore(risk.store).snapshot(request.tenant_id, request.portfolio_id, now)
     assert after == before
-    events = [
-        e
-        for e in risk.store.pending(limit=1000)
-        if e.tenant_id == request.tenant_id and e.event_type == "UnsentExecutionExpired.v1"
-    ]
+    with risk.store.connection() as conn:
+        rows = conn.execute(
+            "SELECT envelope FROM ct_events WHERE tenant_id=%s "
+            "AND event_type='UnsentExecutionExpired.v1'",
+            (request.tenant_id,),
+        ).fetchall()
+    events = [EventEnvelope.model_validate_json(str(row["envelope"])) for row in rows]
     assert len(events) == 1
     assert risk.store.consume_audit(events[0])
     assert not risk.store.consume_audit(events[0])

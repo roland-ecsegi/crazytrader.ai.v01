@@ -72,6 +72,8 @@ class NativeSimulationRegistry:
                 "AND (c.state IN('SUBMITTING','SUBMITTED','ACKNOWLEDGED','PARTIALL"
                 "Y_FILLED','FILLED','CANCEL_PENDING','CANCELLED','UNKNOWN','RECOVE"
                 "RY_REQUIRED','REJECTED') "
+                "OR EXISTS(SELECT 1 FROM ct_fixture_dispatch_bounds d WHERE d.execution_request_id="
+                "r.execution_request_id) "
                 "OR EXISTS(SELECT 1 FROM ct_execution_observations v WHERE v.execu"
                 "tion_request_id=r.execution_request_id)) LIMIT 1",
                 (request.tenant_id, request.venue_account_ref),

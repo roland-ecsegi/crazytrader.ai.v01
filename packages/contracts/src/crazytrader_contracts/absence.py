@@ -132,3 +132,23 @@ class FixtureAbsenceAssessment(Contract):
             if any(row["clientOrderId"] == request.client_order_id for row in orders):
                 raise ValueError("original order is present in absence source")
         return self
+
+
+class FixtureTimedOrderLookup(Contract):
+    schema_version: Literal["1"] = "1"
+    lookup: FixtureOrderLookup
+    raw_server_date: Annotated[str | None, Field(max_length=128)]
+    server_date: Timestamp | None
+    maximum_signature_window_ms: Literal[5000] = 5000
+    clock_source: Literal["LOOPBACK_HTTP_DATE_HEADER"] = "LOOPBACK_HTTP_DATE_HEADER"
+
+    @model_validator(mode="after")
+    def source_clock(self) -> Self:
+        if (self.raw_server_date is None) != (self.server_date is None):
+            raise ValueError("paired original server clock source required")
+        if self.server_date is not None:
+            from email.utils import parsedate_to_datetime
+
+            if parsedate_to_datetime(self.raw_server_date or "") != self.server_date:
+                raise ValueError("server clock differs from captured HTTP date")
+        return self

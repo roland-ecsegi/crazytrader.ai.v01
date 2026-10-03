@@ -27,6 +27,11 @@ def test_signed_lookup_distinguishes_unavailable_from_explicit_negative_response
         assert negative.explicitly_not_found
         assert negative.raw()["code"] == -2013
         assert negative.request == request
+
+
+def test_signed_lookup_finds_the_original_owned_order(backbone):
+    risk, objects, intent, context, config, policy, now = backbone
+    execution, request = prepared_request(backbone)
     with sdk_venue(risk.store, intent.tenant_id, timeout_after_accept=False) as endpoint:
         execution.prepare(request, objects, now)
         assert FixtureExecutionRunner(execution, transport(endpoint), lambda: now).submit_once(
