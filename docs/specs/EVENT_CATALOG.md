@@ -81,6 +81,7 @@ Breaking schema changes require a new schema version.
 - LedgerNativeFillAppended.v1
 - NativeSimulationCriticalMismatch.v1
 - UnsentExecutionExpired.v1
+- FixtureAbsenceAssessed.v1
 
 ## Risk events
 

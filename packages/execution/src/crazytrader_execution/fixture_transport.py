@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
+from crazytrader_contracts.absence import FixtureOrderLookup
 from crazytrader_contracts.account import VenueAccountRead
 from crazytrader_contracts.codec import canonical, digest
 from crazytrader_contracts.execution import (
@@ -402,3 +403,54 @@ class SDKFixtureTransport:
             )
         except Exception:
             return VenueAccountRead.model_validate(base | {"finished_at": datetime.now(UTC)})
+
+    def lookup(self, request: ExecutionRequest) -> FixtureOrderLookup:
+        request = ExecutionRequest.model_validate(request.model_dump())
+        if request.execution_mode != "SIMULATION" or request.side != "SELL":
+            raise ValueError("fixture lookup has no real-money authority")
+        started = datetime.now(UTC)
+        base = dict(
+            request=request,
+            started_at=started,
+            finished_at=started,
+            available=False,
+            http_status=None,
+            raw_json=None,
+        )
+        try:
+            env = {k: v for k, v in os.environ.items() if k in {"PATH", "SYSTEMROOT"}}
+            env.update(NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost")
+            result = subprocess.run(
+                [str(self.sdk_python), str(self.child)],
+                input=json.dumps(
+                    {
+                        "endpoint": self.endpoint,
+                        "action": "LOOKUP",
+                        "request": request.model_dump(mode="json"),
+                    }
+                ),
+                env=env,
+                timeout=5,
+                capture_output=True,
+                text=True,
+            )
+            raw = json.loads(result.stdout)
+            captured = raw.get("lookup")
+            if (
+                result.returncode
+                or raw.get("status") != "OBSERVED"
+                or not isinstance(captured, dict)
+                or not isinstance(captured.get("body"), dict)
+            ):
+                raise ValueError("lookup source unavailable")
+            return FixtureOrderLookup.model_validate(
+                base
+                | {
+                    "available": True,
+                    "http_status": captured["http_status"],
+                    "raw_json": json.dumps(captured["body"], sort_keys=True, separators=(",", ":")),
+                    "finished_at": datetime.now(UTC),
+                }
+            )
+        except Exception:
+            return FixtureOrderLookup.model_validate(base | {"finished_at": datetime.now(UTC)})

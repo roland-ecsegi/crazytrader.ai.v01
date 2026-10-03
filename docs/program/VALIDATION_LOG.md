@@ -113,3 +113,24 @@ Parent/child reject non-literal-loopback endpoints and real-money modes, strip
 credentials, use fixed dummy auth; redirects disabled. No production simulator,
 real Binance credentials/orders, L4 observation or complete Phase5 claim.
 Coordination7cdc0c6 hosted CI37117415054 PASS. Pre-T016 review recorded.
+
+
+## 2026-10-03 — Native financial and unsent expiry milestones
+Native registry cf91a168 hosted CI37140085947 PASS; native source84c74699 and modeled
+funding61a7ebd3 hosted CI37136414359/37134720320 PASS. Native financial3d28318b:69 full
+actual cases PASS (234.94s), final13 native PASS (27.88s),17 platform/ledger PASS (7.50s),
+164 units/mypy51/128 schemas/scan/offline SDK/wheel-sdist PASS. Source-bound native cash
+and fee, atomic journal/FILLED/proof, duplicate/crash recovery, critical incident latch.
+Unsent expiry2c820edc:7 actual PASS (6.10s),36 affected cases PASS (98.62s),17 platform/
+ledger PASS (6.79s),169 units/mypy53/130 schemas/scan/offline SDK/wheel-sdist PASS. Exact
+original custody, owned no-dispatch proof, unknown retention, claim race/audit rollback.
+L0/no Phase5 gate.
+
+## 2026-10-03 — Bounded fixture absence source assessment
+Full83 passes (285.88s) with one invalid fixture identifier; repaired final8 cases PASS
+(34.99s),175 units/mypy55/134 schemas/scan/offline SDK/build PASS,17 platform/ledger
+PASS (6.27s). Strict signed HTTP lookup, complete bounded account/history, stable
+source/head, SQL source binding, raw-before-audit recovery. No financial effect.
+SDK/native pending-state fences unified. Original send/late-acceptance fence required
+before release/retry. Native financial CI37141145082 and expiry CI37142039091 PASS.
+L0/no Phase5 gate.

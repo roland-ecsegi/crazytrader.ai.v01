@@ -18,6 +18,7 @@ def sdk_venue(
     timeout_after_accept=True,
     timeout_after_cancel=False,
     account_history_unavailable=False,
+    authoritative_not_found=False,
 ):
     with store.connection() as conn:
         conn.execute(
@@ -62,9 +63,9 @@ def sdk_venue(
             assert hmac.compare_digest(params["signature"][0], signature)
             return {key: values[0] for key, values in params.items()}
 
-        def respond(self, body):
+        def respond(self, body, status=200):
             encoded = json.dumps(body).encode()
-            self.send_response(200)
+            self.send_response(status)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(encoded)))
             self.end_headers()
@@ -253,8 +254,11 @@ def sdk_venue(
                     (tenant, params["origClientOrderId"]),
                 ).fetchone()
             if row is None:
-                self.send_response(400)
-                self.end_headers()
+                if authoritative_not_found:
+                    self.respond({"code": -2013, "msg": "Order does not exist."}, status=400)
+                else:
+                    self.send_response(400)
+                    self.end_headers()
                 return
             body = json.loads(row["body"])
             body.update(

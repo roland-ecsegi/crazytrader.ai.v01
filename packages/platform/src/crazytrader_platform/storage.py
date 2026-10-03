@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 import psycopg
+from crazytrader_contracts.absence import FixtureAbsenceAssessment
 from crazytrader_contracts.account import AccountReconciliationReport
 from crazytrader_contracts.codec import canonical as canonical
 from crazytrader_contracts.codec import digest as digest
@@ -43,6 +44,7 @@ class HealthChange(Contract):
 
 
 PAYLOAD_TYPES: dict[str, type[Contract]] = {
+    "FixtureAbsenceAssessed.v1": FixtureAbsenceAssessment,
     "UnsentExecutionExpired.v1": UnsentExecutionExpiry,
     "NativeSimulationCriticalMismatch.v1": NativeSimulationIncident,
     "LedgerNativeFillAppended.v1": NativeFillLedgerTransaction,
@@ -84,6 +86,10 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         raise ValueError("payload schema mismatch")
     if isinstance(payload, HealthChange):
         source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, FixtureAbsenceAssessment):
+        source, occurred = "reconciliation", payload.occurred_at
+        if event.tenant_id != payload.state.request.tenant_id or event.actor_id != payload.actor_id:
+            raise ValueError("absence assessment ownership mismatch")
     elif isinstance(payload, UnsentExecutionExpiry):
         source, occurred = "execution", payload.occurred_at
         if event.tenant_id != payload.request.tenant_id or event.actor_id != payload.actor_id:

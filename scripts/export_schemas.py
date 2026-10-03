@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from crazytrader_contracts import (
+    absence,
     account,
     execution,
     expiry,
@@ -22,6 +23,8 @@ from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    absence.FixtureOrderLookup,
+    absence.FixtureAbsenceAssessment,
     expiry.UnsentExecutionExpiry,
     native_fills.NativeSimulationFill,
     native_fills.NativeSimulationIncident,

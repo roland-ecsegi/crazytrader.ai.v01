@@ -6,7 +6,7 @@ accept owner credentials or enable live/testnet transport. Not a production simu
 
 import json
 import sys
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from binance_common.configuration import ConfigurationRestAPI
 from binance_sdk_spot.spot import Spot
@@ -42,6 +42,35 @@ def main() -> None:
     # Public fixture endpoint cannot redirect the mature SDK outside loopback.
     client.rest_api._session.max_redirects = 0
     try:
+        if raw["action"] == "LOOKUP":
+            captured = {}
+
+            def capture(response, *args, **kwargs):
+                target = urlsplit(response.request.url)
+                params = parse_qs(target.query)
+                if (
+                    response.request.method != "GET"
+                    or target.hostname != "127.0.0.1"
+                    or target.port != parsed.port
+                    or target.path != "/api/v3/order"
+                    or params.get("origClientOrderId") != [request["client_order_id"]]
+                    or params.get("symbol") != [request["symbol"]]
+                    or len(response.content) > 64000
+                ):
+                    return
+                data = response.json()
+                if isinstance(data, dict):
+                    captured.update(http_status=response.status_code, body=data)
+
+            client.rest_api._session.hooks["response"].append(capture)
+            try:
+                client.rest_api.get_order(
+                    symbol=request["symbol"], orig_client_order_id=request["client_order_id"]
+                )
+            except Exception:
+                pass  # capture retains HTTP source; exception is never negative proof
+            print(json.dumps({"status": "OBSERVED" if captured else "UNKNOWN", "lookup": captured}))
+            return
         if raw["action"] == "ACCOUNT":
             symbols = raw["symbols"]
             if (
