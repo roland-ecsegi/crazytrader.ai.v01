@@ -16,6 +16,8 @@ from crazytrader_contracts.execution import (
     CancellationReceipt,
     ExecutionIncident,
     ExecutionTransition,
+    NativeSimulationAdmission,
+    NativeSimulationResultRecord,
 )
 from crazytrader_contracts.ledger import LedgerTransaction, VenueFillLedgerTransaction
 from crazytrader_contracts.market import BookDelta, MarketCandle, MarketStatus, MarketTrade
@@ -35,6 +37,8 @@ class HealthChange(Contract):
 
 
 PAYLOAD_TYPES: dict[str, type[Contract]] = {
+    "NativeSimulationAdmitted.v1": NativeSimulationAdmission,
+    "NativeSimulationReceiptRecorded.v1": NativeSimulationResultRecord,
     "AccountReconciliationChecked.v1": AccountReconciliationReport,
     "AccountReconciliationMatched.v1": AccountReconciliationReport,
     "AccountReconciliationMismatch.v1": AccountReconciliationReport,
@@ -86,6 +90,18 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         source, occurred = "execution", payload.observed_at
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
             raise ValueError("cancellation receipt ownership mismatch")
+    elif isinstance(payload, (NativeSimulationAdmission, NativeSimulationResultRecord)):
+        admission = (
+            payload.admission if isinstance(payload, NativeSimulationResultRecord) else payload
+        )
+        occurred = (
+            payload.receipt.observed_at
+            if isinstance(payload, NativeSimulationResultRecord)
+            else payload.occurred_at
+        )
+        source = "execution"
+        if event.tenant_id != admission.request.tenant_id or event.actor_id != admission.actor_id:
+            raise ValueError("native simulation event ownership mismatch")
     elif isinstance(payload, AccountReconciliationReport):
         source, occurred = "reconciliation", payload.occurred_at
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:

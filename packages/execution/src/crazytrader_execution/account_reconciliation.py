@@ -44,6 +44,7 @@ class FixtureAccountReconciler:
         return digest(json.dumps([str(r["digest"]) for r in rows], separators=(",", ":")))
 
     def run(self, request_id: str) -> AccountReconciliationReport:
+        self.execution.require_sdk_account(request_id)
         anchor = self.execution.load(request_id)
         request = anchor.request
         with self.store.connection() as conn:

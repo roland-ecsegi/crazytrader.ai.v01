@@ -137,8 +137,13 @@ class ExecutionStore:
             incident = conn.execute(
                 "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s UNION ALL "
                 "SELECT 1 FROM ct_account_reconciliation_reports WHERE tenant_id=%s "
-                "AND blocks_new_risk LIMIT 1",
-                (request.tenant_id, request.tenant_id),
+                "AND blocks_new_risk UNION ALL "
+                "SELECT 1 FROM ct_native_simulation_jobs n JOIN ct_execution_current c "
+                "USING(execution_request_id) WHERE n.tenant_id=%s "
+                "AND c.state IN('SUBMITTING','SUBMITTED','UNKNOWN','RECOVERY_REQUIRED') "
+                "AND NOT EXISTS(SELECT 1 FROM ct_native_simulation_postings p "
+                "WHERE p.execution_request_id=n.execution_request_id) LIMIT 1",
+                (request.tenant_id, request.tenant_id, request.tenant_id),
             ).fetchone()
             if incident is not None:
                 raise StateUnavailable("canonical reconciliation incident blocks unproven exposure")
@@ -291,7 +296,8 @@ class ExecutionStore:
             LedgerStore(self.store).append_in_transaction(conn, tx)
             conn.execute(
                 "INSERT INTO ct_execution_reservations "
-                "(execution_request_id,reservation_tx_id,reserve_asset,reserve_account,reserve_amount,"
+                "(execution_request_id,reservation_tx_id,reserve_asset,reserve_acc"
+                "ount,reserve_amount,"
                 "ledger_head_sha256,safety_sha256,checkpoint_sha256,venue_rules_digest) "
                 "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
@@ -393,7 +399,9 @@ class ExecutionStore:
         except (ValueError, ConflictError):
             raise StateUnavailable("full venue rules unavailable, changed or denied") from None
 
-    def claim_submission(self, request_id: str, now: datetime) -> ExecutionState | None:
+    def claim_submission(
+        self, request_id: str, now: datetime, *, native: bool = False
+    ) -> ExecutionState | None:
         """Return a single fenced claim. Already-started send never grants another claim."""
         current = self.load(request_id)
         request = current.request
@@ -402,6 +410,19 @@ class ExecutionStore:
             current = self._load(conn, request_id)
             if current.state != OrderState.AUTHORIZED:
                 return None
+            if type(native) is not bool:
+                raise StateUnavailable("explicit supported adapter claim required")
+            native_job = conn.execute(
+                "SELECT 1 FROM ct_native_simulation_jobs WHERE execution_request_id=%s",
+                (request_id,),
+            ).fetchone()
+            native_account = conn.execute(
+                "SELECT 1 FROM ct_native_simulation_jobs WHERE tenant_id=%s AND ve"
+                "nue_account_ref=%s LIMIT 1",
+                (request.tenant_id, request.venue_account_ref),
+            ).fetchone()
+            if native and native_job is None or not native and native_account is not None:
+                return None  # account namespace cannot mix native and SDK fixture dispatch
             if request.execution_mode != "SIMULATION":
                 raise StateUnavailable("signed transport is not enabled")
             proof = conn.execute(
@@ -453,7 +474,19 @@ class ExecutionStore:
             self._write(conn, unknown)
             return unknown.resulting_state
 
+    def require_sdk_account(self, request_id: str) -> None:
+        current = self.load(request_id)
+        with self.store.connection() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM ct_native_simulation_jobs WHERE tenant_id=%s "
+                "AND venue_account_ref=%s LIMIT 1",
+                (current.request.tenant_id, current.request.venue_account_ref),
+            ).fetchone()
+        if row is not None:
+            raise StateUnavailable("native simulated account requires native recovery/cancellation")
+
     def record_submission(self, observation: VenueOrderObservation) -> ExecutionState:
+        self.require_sdk_account(observation.execution_request_id)
         """Fixture-only observation after the single send; fill settlement is separate."""
         observation = VenueOrderObservation.model_validate(observation.model_dump())
         current = self.load(observation.execution_request_id)
@@ -545,6 +578,7 @@ class ExecutionStore:
             return current
 
     def recover_open_order(self, observation: VenueOrderObservation) -> ExecutionState:
+        self.require_sdk_account(observation.execution_request_id)
         """Only a query-proven unfilled open fixture order; no inferred settlement/absence."""
         observation = VenueOrderObservation.model_validate(observation.model_dump())
         current = self.load(observation.execution_request_id)

@@ -175,3 +175,10 @@ actual isolated native tests; private fsynced claim/result, response-loss recove
 missing result never reruns, exact source/clock/currency and native precision checks.
 No SDK provenance fabrication. Native environment added to CI setup. PostgreSQL
 financial adapter/recovery next; no Phase5 gate/certification.
+
+2026-10-03 native registry:60 full actual cases PASS (221.28s), final5 native cases
+PASS (10.47s);163 units/mypy49/122 schemas PASS. Owned original request/source
+binding, account backend fencing, concurrent dispatch and source recovery after
+persistence interruption. Financial-proof placeholder denies inserts; UNKNOWN retains
+custody. Evidence/separate root review committed. Next native journal/state/incidents;
+no Phase5 gate.

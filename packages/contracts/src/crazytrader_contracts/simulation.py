@@ -217,6 +217,9 @@ class NativeSimulationReceipt(Contract):
                 or after_base != before_base - qty
                 or after_base < 0
                 or after_quote < 0
+                or before_quote % quantum != 0
+                or after_quote % quantum != 0
+                or fee % quantum != 0
                 or gross < 0
                 or gross % quantum != 0
                 or abs(gross - qty * price) >= quantum

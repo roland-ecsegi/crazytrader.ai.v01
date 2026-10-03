@@ -127,3 +127,15 @@ def test_native_source_identity_and_clock_are_not_coercible(tmp_path, mutation):
     altered["raw_json"] = json.dumps(raw)
     with pytest.raises(ValueError):
         NativeSimulationReceipt.model_validate(altered)
+
+
+def test_compensating_subquantum_cash_and_fee_cannot_fake_native_precision(tmp_path):
+    receipt = transport(tmp_path).simulate(job())
+    assert receipt.available
+    altered = receipt.model_dump()
+    raw = json.loads(altered["raw_json"])
+    raw["fills"][0]["commission"] = "0.010000005 USDT"
+    raw["after"]["USDT"] = "9.989999995"
+    altered["raw_json"] = json.dumps(raw)
+    with pytest.raises(ValueError, match="native actual cash"):
+        NativeSimulationReceipt.model_validate(altered)

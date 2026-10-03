@@ -25,6 +25,8 @@ EVENT_TYPES: frozenset[str] = frozenset(
         "TradeIntentPolicyApproved.v1",
         "TradeIntentPolicyDenied.v1",
         "TradeIntentExecutionRequested.v1",
+        "NativeSimulationAdmitted.v1",
+        "NativeSimulationReceiptRecorded.v1",
         "ExecutionPreparationChanged.v1",
         "OrderSubmissionStarted.v1",
         "OrderSubmitted.v1",

@@ -203,8 +203,13 @@ class RiskStore:
             incident = conn.execute(
                 "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s UNION ALL "
                 "SELECT 1 FROM ct_account_reconciliation_reports WHERE tenant_id=%s "
-                "AND blocks_new_risk LIMIT 1",
-                (context.tenant_id, context.tenant_id),
+                "AND blocks_new_risk UNION ALL "
+                "SELECT 1 FROM ct_native_simulation_jobs n JOIN ct_execution_current c "
+                "USING(execution_request_id) WHERE n.tenant_id=%s "
+                "AND c.state IN('SUBMITTING','SUBMITTED','UNKNOWN','RECOVERY_REQUIRED') "
+                "AND NOT EXISTS(SELECT 1 FROM ct_native_simulation_postings p "
+                "WHERE p.execution_request_id=n.execution_request_id) LIMIT 1",
+                (context.tenant_id, context.tenant_id, context.tenant_id),
             ).fetchone()
             if incident is not None and context.accounting_health == "HEALTHY":
                 raise StateUnavailable(

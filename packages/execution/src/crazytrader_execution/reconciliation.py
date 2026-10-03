@@ -42,6 +42,7 @@ class FixtureReconciler:
         return self.transport.quote_fills(current.request, observation, receipt, self.clock())
 
     def recover(self, request_id: str) -> ExecutionState:
+        self.store.require_sdk_account(request_id)
         current = self.store.start_recovery(request_id, self.clock())
         if current.state != OrderState.RECOVERY_REQUIRED:
             return current
@@ -58,6 +59,7 @@ class FixtureReconciler:
         return FillSettlement(self.store).apply(observation, batch)
 
     def reconcile(self, request_id: str) -> ExecutionState:
+        self.store.require_sdk_account(request_id)
         current = self.store.load(request_id)
         if current.state in {
             OrderState.SUBMITTING,

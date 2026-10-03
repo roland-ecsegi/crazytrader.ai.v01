@@ -81,6 +81,7 @@ class FixtureCancellationRunner:
             self.execution._lock(conn, cancel.tenant_id)
             current = self.execution._load(conn, execution_id)
             request = current.request
+            self.execution.require_sdk_account(execution_id)
             if authenticated_actor != request.actor_id or not authenticated_actor:
                 raise StateUnavailable("authenticated owned-order actor required")
             if request.execution_mode != "SIMULATION":

@@ -7,10 +7,11 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
-from .codec import digest
+from .codec import canonical, digest
 from .market import Hash, Sequence
 from .models import Contract, Fill, Identifier, NonNegative, OrderState, Positive, Timestamp
 from .risk import CancellationAuthorization, CancellationContext, CancellationRequest
+from .simulation import NativeSimulationJob, NativeSimulationReceipt
 from .venue_fills import VenueQuoteFill
 from .venue_rules import VenueRuleReceipt
 
@@ -524,4 +525,70 @@ class VenueQuoteFillBatch(Contract):
                 self.side,
             ):
                 raise ValueError("fill batch ownership/scope mismatch")
+        return self
+
+
+class NativeSimulationAdmission(Contract):
+    """Original request and native descriptor binding; approval remains in risk store."""
+
+    schema_version: Literal["1"] = "1"
+    request: ExecutionRequest
+    job: NativeSimulationJob
+    actor_id: Identifier
+    occurred_at: Timestamp
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        request, job = self.request, self.job
+        if (
+            self.actor_id != request.actor_id
+            or self.occurred_at != job.event_at
+            or request.execution_mode != "SIMULATION"
+            or request.side != "SELL"
+            or request.order_type != "MARKET"
+            or not request.created_at <= job.event_at < request.expires_at
+            or digest(canonical(request)) != job.request_sha256
+            or (
+                request.execution_request_id,
+                request.order_id,
+                request.tenant_id,
+                request.portfolio_id,
+                request.venue_account_ref,
+                request.client_order_id,
+                request.symbol,
+                request.quantity,
+                request.risk_record_sha256,
+                request.environment,
+                request.metadata_version,
+            )
+            != (
+                job.execution_request_id,
+                job.order_id,
+                job.tenant_id,
+                job.portfolio_id,
+                job.venue_account_ref,
+                job.client_order_id,
+                job.symbol,
+                job.quantity,
+                job.reference_risk_record_sha256,
+                job.venue_rules.rules.environment,
+                job.venue_rules.rules.metadata_version,
+            )
+        ):
+            raise ValueError("native admission original approved request binding mismatch")
+        return self
+
+
+class NativeSimulationResultRecord(Contract):
+    schema_version: Literal["1"] = "1"
+    admission: NativeSimulationAdmission
+    receipt: NativeSimulationReceipt
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        if (
+            self.admission.job != self.receipt.job
+            or digest(canonical(self.admission.job)) != self.receipt.job_sha256
+        ):
+            raise ValueError("native result differs from durable admitted job")
         return self

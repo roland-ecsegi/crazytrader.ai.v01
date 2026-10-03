@@ -149,6 +149,7 @@ class FillSettlement:
     ) -> ExecutionState:
         observation = VenueOrderObservation.model_validate(observation.model_dump())
         batch = type(batch).model_validate(batch.model_dump())
+        self.execution.require_sdk_account(batch.execution_request_id)
         current = self.execution.load(batch.execution_request_id)
         request = current.request
         if request.execution_mode != "SIMULATION" or observation.action != "QUERY":
