@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
+from crazytrader_contracts.account import VenueAccountRead
 from crazytrader_contracts.codec import canonical, digest
 from crazytrader_contracts.execution import (
     CancellationEvaluationRecord,
@@ -356,3 +357,48 @@ class SDKFixtureTransport:
             )
         except Exception:
             return VenueQuoteFillBatch.model_validate(base)
+
+    def account(self, request: ExecutionRequest, symbols: tuple[str, ...]) -> VenueAccountRead:
+        request = ExecutionRequest.model_validate(request.model_dump())
+        if request.execution_mode != "SIMULATION" or request.side != "SELL":
+            raise ValueError("fixture account read has no owner credential authority")
+        started = datetime.now(UTC)
+        base = dict(
+            tenant_id=request.tenant_id,
+            venue_account_ref=request.venue_account_ref,
+            anchor_request_id=request.execution_request_id,
+            anchor_request_sha256=digest(canonical(request)),
+            symbols=symbols,
+            started_at=started,
+            finished_at=started,
+            available=False,
+            raw_json=None,
+        )
+        try:
+            env = {key: value for key, value in os.environ.items() if key in {"PATH", "SYSTEMROOT"}}
+            env.update(NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost")
+            result = subprocess.run(
+                [str(self.sdk_python), str(self.child)],
+                input=json.dumps(
+                    {
+                        "endpoint": self.endpoint,
+                        "action": "ACCOUNT",
+                        "symbols": symbols,
+                        "request": request.model_dump(mode="json"),
+                    }
+                ),
+                env=env,
+                timeout=10,
+                capture_output=True,
+                text=True,
+            )
+            raw = json.loads(result.stdout)
+            if isinstance(raw.get("account"), dict):
+                base["raw_json"] = json.dumps(raw["account"], sort_keys=True, separators=(",", ":"))
+            if result.returncode or raw["status"] != "OBSERVED":
+                raise ValueError("account source unavailable")
+            return VenueAccountRead.model_validate(
+                base | {"available": True, "finished_at": datetime.now(UTC)}
+            )
+        except Exception:
+            return VenueAccountRead.model_validate(base | {"finished_at": datetime.now(UTC)})

@@ -4,12 +4,23 @@ import argparse
 import json
 from pathlib import Path
 
-from crazytrader_contracts import execution, ledger, market, models, risk, venue_fills, venue_rules
+from crazytrader_contracts import (
+    account,
+    execution,
+    ledger,
+    market,
+    models,
+    risk,
+    venue_fills,
+    venue_rules,
+)
 from crazytrader_contracts.events import EventEnvelope
 from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    account.VenueAccountRead,
+    account.AccountReconciliationReport,
     venue_fills.QuoteFillIdentity,
     venue_fills.VenueQuoteFill,
     ledger.VenueFillLedgerTransaction,

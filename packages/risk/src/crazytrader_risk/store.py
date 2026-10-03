@@ -201,8 +201,10 @@ class RiskStore:
             raise StateUnavailable("lifecycle registry not yet verified")
         with self.store.connection() as conn:
             incident = conn.execute(
-                "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s LIMIT 1",
-                (context.tenant_id,),
+                "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s UNION ALL "
+                "SELECT 1 FROM ct_account_reconciliation_reports WHERE tenant_id=%s "
+                "AND blocks_new_risk LIMIT 1",
+                (context.tenant_id, context.tenant_id),
             ).fetchone()
             if incident is not None and context.accounting_health == "HEALTHY":
                 raise StateUnavailable(

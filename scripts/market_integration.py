@@ -17,6 +17,14 @@ from platform_probe import IMAGES, docker  # noqa: E402
 
 
 def main() -> None:
+    targets = sys.argv[1:] or ["tests/market"]
+    allowed = (Path(__file__).resolve().parents[1] / "tests/market").resolve()
+    if any(
+        not Path(target.split("::", 1)[0]).resolve().is_relative_to(allowed)
+        or not Path(target.split("::", 1)[0]).exists()
+        for target in targets
+    ):
+        raise ValueError("integration targets must exist inside tests/market")
     prefix = "ct-market-" + uuid.uuid4().hex[:8]
     names = [prefix + "-" + key for key in ("postgres", "clickhouse", "object")]
     names.append(prefix + "-opa")
@@ -151,7 +159,7 @@ def main() -> None:
         else:
             raise RuntimeError("market fixtures not ready")
         subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/market", "-q", "--tb=short"],
+            [sys.executable, "-m", "pytest", *targets, "-q", "--tb=short"],
             env=env,
             check=True,
         )

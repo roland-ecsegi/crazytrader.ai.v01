@@ -76,8 +76,9 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
 review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
-action: complete account reconciliation; then sourced BUY fee/slippage buffers and verified
-certification dependency. Mixed custody reservation/proven remainder release verified. Actual quoteQty
+action: sourced SIMULATION BUY fee/slippage funding and selected unmodified Nautilus
+simulation; controlled absence recovery/incident resolution. Bounded fixture account
+comparison and mixed custody verified. Above-L0 source/certification assertions stay denied. Actual quoteQty
 accounting and cost attribution implemented with additive contracts. Current certification L0; no Phase5 gate.
 
 ## Progress log
@@ -153,3 +154,11 @@ quote cash/fees and legacy/new replay verified. Evidence/review committed; no Ph
 2026-10-03 mixed custody:44 actual cases PASS (174.04s),147 units/mypy43/106 schemas/build
 PASS. One immutable allocation; exact original-source cancel restoration and replay.
 Review/evidence committed. Next account-wide comparison; no Phase5 gate.
+
+2026-10-03 account milestone:50 actual combined cases PASS (219.07s), final10 account
+cases PASS (53.17s); later alert repair ten unchanged cases PASS, fixed dedup case
+PASS (7.76s). Platform/ledger17 PASS (7.92s),150 units/mypy45/110 schemas/build PASS.
+Immutable raw partial-source receipts, per-read audit and one critical unchanged-fault
+alert; balances/open/history/fills/cumulative quote/reservation/cost comparison.
+No certification effect or historical latch clearing. Next simulation costs/mature
+Nautilus adapter and controlled recovery; no Phase5 gate.

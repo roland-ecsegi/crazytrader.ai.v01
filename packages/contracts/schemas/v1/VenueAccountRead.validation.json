@@ -1,0 +1,100 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "anchor_request_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Anchor Request Id",
+      "type": "string"
+    },
+    "anchor_request_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Anchor Request Sha256",
+      "type": "string"
+    },
+    "available": {
+      "title": "Available",
+      "type": "boolean"
+    },
+    "execution_mode": {
+      "const": "SIMULATION",
+      "default": "SIMULATION",
+      "title": "Execution Mode",
+      "type": "string"
+    },
+    "finished_at": {
+      "format": "date-time",
+      "title": "Finished At",
+      "type": "string"
+    },
+    "raw_json": {
+      "anyOf": [
+        {
+          "maxLength": 10000000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Raw Json"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "const": "OFFICIAL_SDK_LOOPBACK_FIXTURE",
+      "default": "OFFICIAL_SDK_LOOPBACK_FIXTURE",
+      "title": "Source",
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "symbols": {
+      "items": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_.:@/-]+$",
+        "type": "string"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Symbols",
+      "type": "array"
+    },
+    "tenant_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "venue_account_ref": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.:@/-]+$",
+      "title": "Venue Account Ref",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "venue_account_ref",
+    "anchor_request_id",
+    "anchor_request_sha256",
+    "symbols",
+    "started_at",
+    "finished_at",
+    "available",
+    "raw_json"
+  ],
+  "title": "VenueAccountRead",
+  "type": "object"
+}

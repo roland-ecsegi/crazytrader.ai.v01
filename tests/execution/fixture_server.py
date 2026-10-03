@@ -12,7 +12,13 @@ from urllib.parse import parse_qs, urlsplit
 
 
 @contextmanager
-def sdk_venue(store, tenant, timeout_after_accept=True, timeout_after_cancel=False):
+def sdk_venue(
+    store,
+    tenant,
+    timeout_after_accept=True,
+    timeout_after_cancel=False,
+    account_history_unavailable=False,
+):
     with store.connection() as conn:
         conn.execute(
             "CREATE TABLE IF NOT EXISTS ct_test_wire_orders (tenant text NOT NULL, "
@@ -148,14 +154,95 @@ def sdk_venue(store, tenant, timeout_after_accept=True, timeout_after_cancel=Fal
 
         def do_GET(self):
             params = self.params()
+            path = urlsplit(self.path).path
+            if path == "/api/v3/account":
+                with store.connection() as conn:
+                    conn.execute(
+                        "CREATE TABLE IF NOT EXISTS ct_test_wire_accounts (tenant text PRIMARY "
+                        "KEY, body text NOT NULL)"
+                    )
+                    row = conn.execute(
+                        "SELECT body FROM ct_test_wire_accounts WHERE tenant=%s", (tenant,)
+                    ).fetchone()
+                body = (
+                    json.loads(row["body"])
+                    if row
+                    else {
+                        "makerCommission": 0,
+                        "takerCommission": 0,
+                        "buyerCommission": 0,
+                        "sellerCommission": 0,
+                        "commissionRates": {
+                            "maker": "0",
+                            "taker": "0",
+                            "buyer": "0",
+                            "seller": "0",
+                        },
+                        "canTrade": True,
+                        "canWithdraw": False,
+                        "canDeposit": False,
+                        "brokered": False,
+                        "requireSelfTradePrevention": False,
+                        "preventSor": False,
+                        "updateTime": 1790985600000,
+                        "accountType": "SPOT",
+                        "permissions": ["SPOT"],
+                        "uid": 1,
+                        "balances": [
+                            {"asset": "BTC", "free": "1", "locked": "0"},
+                            {"asset": "USDT", "free": "0", "locked": "0"},
+                        ],
+                    }
+                )
+                self.respond(body)
+                return
+            if path in {"/api/v3/openOrders", "/api/v3/allOrders"}:
+                if account_history_unavailable and path == "/api/v3/allOrders":
+                    self.send_response(503)
+                    self.end_headers()
+                    return
+                with store.connection() as conn:
+                    rows = conn.execute(
+                        "SELECT body FROM ct_test_wire_orders WHERE tenant=%s", (tenant,)
+                    ).fetchall()
+                bodies = [json.loads(row["body"]) for row in rows]
+                if path.endswith("openOrders"):
+                    bodies = [b for b in bodies if b["status"] in {"NEW", "PARTIALLY_FILLED"}]
+                else:
+                    bodies = [
+                        b
+                        for b in bodies
+                        if b["symbol"] == params["symbol"]
+                        and b["orderId"] >= int(params.get("orderId", "0"))
+                    ]
+                bodies.sort(key=lambda b: b["orderId"])
+                for body in bodies:
+                    body.update(
+                        time=1790985600000,
+                        updateTime=1790985600000,
+                        isWorking=True,
+                        origQuoteOrderQty="0",
+                        icebergQty="0",
+                        stopPrice="0",
+                    )
+                self.respond(bodies[: int(params.get("limit", "1000"))])
+                return
             if urlsplit(self.path).path == "/api/v3/myTrades":
                 assert params["signature"]
                 with store.connection() as conn:
-                    rows = conn.execute(
-                        "SELECT body FROM ct_test_wire_fills WHERE tenant=%s "
-                        "AND body::jsonb->>'orderId'=%s ORDER BY trade_id",
-                        (tenant, params["orderId"]),
-                    ).fetchall()
+                    if "orderId" in params:
+                        rows = conn.execute(
+                            "SELECT body FROM ct_test_wire_fills WHERE tenant=%s "
+                            "AND body::jsonb->>'orderId'=%s ORDER BY trade_id",
+                            (tenant, params["orderId"]),
+                        ).fetchall()
+                    else:
+                        rows = conn.execute(
+                            "SELECT body FROM ct_test_wire_fills WHERE tenant=%s "
+                            "AND body::jsonb->>'symbol'=%s AND trade_id>=%s ORDER BY trade_id "
+                            "LIMIT 1000",
+                            (tenant, params["symbol"], int(params.get("fromId", "0"))),
+                        ).fetchall()
                 self.respond([json.loads(row["body"]) for row in rows])
                 return
             assert urlsplit(self.path).path == "/api/v3/order"

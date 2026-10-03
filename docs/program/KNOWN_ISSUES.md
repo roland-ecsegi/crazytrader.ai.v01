@@ -26,3 +26,9 @@ quantity*price; rounded actual quoteQty needs additive accounting evidence/contr
 Owner/system cap currencies need explicit binding/FX proof before future increasing
 authority; production remains L0 and rejects increasing authority. These are engineering
 dependencies, not external blockers or certification completion.
+
+Phase5 bounded account reader proves fixture history only; real venue retention,
+owner-local cursors/discovery/bootstrap and multi-account journal attribution remain
+unverified. Externally funded base holdings lack acquisition-cost provenance: cash
+settles exactly, but PnL/cost health must remain unknown until immutable cost evidence.
+Historical account/order incidents do not auto-clear on later matching reads.

@@ -91,6 +91,9 @@ Breaking schema changes require a new schema version.
 
 ## Reconciliation events
 
+- AccountReconciliationChecked.v1
+- AccountReconciliationMatched.v1
+- AccountReconciliationMismatch.v1
 - ReconciliationStarted.v1
 - ReconciliationCompleted.v1
 - ReconciliationMismatchDetected.v1

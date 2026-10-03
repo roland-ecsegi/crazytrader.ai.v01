@@ -135,8 +135,10 @@ class ExecutionStore:
         with self.store.connection() as conn:
             self._lock(conn, request.tenant_id)
             incident = conn.execute(
-                "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s LIMIT 1",
-                (request.tenant_id,),
+                "SELECT 1 FROM ct_reconciliation_incidents WHERE tenant_id=%s UNION ALL "
+                "SELECT 1 FROM ct_account_reconciliation_reports WHERE tenant_id=%s "
+                "AND blocks_new_risk LIMIT 1",
+                (request.tenant_id, request.tenant_id),
             ).fetchone()
             if incident is not None:
                 raise StateUnavailable("canonical reconciliation incident blocks unproven exposure")
@@ -329,8 +331,10 @@ class ExecutionStore:
             "SELECT digest FROM ct_venue_safety_facts WHERE tenant_id=%s UNION ALL "
             "SELECT digest FROM ct_venue_rule_receipts WHERE tenant_id=%s UNION ALL "
             "SELECT encode(sha256(convert_to(body,'UTF8')),'hex') digest "
-            "FROM ct_reconciliation_incidents WHERE tenant_id=%s ORDER BY digest",
-            (tenant, tenant, tenant, tenant),
+            "FROM ct_reconciliation_incidents WHERE tenant_id=%s UNION ALL "
+            "SELECT digest FROM ct_account_reconciliation_reports WHERE tenant_id=%s "
+            "AND blocks_new_risk ORDER BY digest",
+            (tenant, tenant, tenant, tenant, tenant),
         ).fetchall()
         return digest(json.dumps([str(row["digest"]) for row in rows], separators=(",", ":")))
 

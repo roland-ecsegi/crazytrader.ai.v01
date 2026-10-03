@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 import psycopg
+from crazytrader_contracts.account import AccountReconciliationReport
 from crazytrader_contracts.codec import canonical as canonical
 from crazytrader_contracts.codec import digest as digest
 from crazytrader_contracts.events import EventEnvelope
@@ -34,6 +35,9 @@ class HealthChange(Contract):
 
 
 PAYLOAD_TYPES: dict[str, type[Contract]] = {
+    "AccountReconciliationChecked.v1": AccountReconciliationReport,
+    "AccountReconciliationMatched.v1": AccountReconciliationReport,
+    "AccountReconciliationMismatch.v1": AccountReconciliationReport,
     "ServiceHealthChanged.v1": HealthChange,
     "MarketTradeReceived.v1": MarketTrade,
     "MarketCandleClosed.v1": MarketCandle,
@@ -82,6 +86,14 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         source, occurred = "execution", payload.observed_at
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
             raise ValueError("cancellation receipt ownership mismatch")
+    elif isinstance(payload, AccountReconciliationReport):
+        source, occurred = "reconciliation", payload.occurred_at
+        if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
+            raise ValueError("account reconciliation ownership mismatch")
+        if event.event_type != "AccountReconciliationChecked.v1" and (
+            (event.event_type == "AccountReconciliationMatched.v1") != (payload.status == "MATCHED")
+        ):
+            raise ValueError("account reconciliation verdict mismatch")
     elif isinstance(payload, ExecutionIncident):
         source, occurred = "reconciliation", payload.occurred_at
         if event.tenant_id != payload.tenant_id or event.actor_id != payload.actor_id:
@@ -268,7 +280,14 @@ class EventStore:
                     event.payload.sha256,
                 ),
             )
-            if isinstance(payload, ExecutionIncident) or (
+            if (
+                isinstance(payload, ExecutionIncident)
+                or (
+                    isinstance(payload, AccountReconciliationReport)
+                    and event.event_type == "AccountReconciliationMismatch.v1"
+                    and bool(payload.findings)
+                )
+            ) or (
                 isinstance(payload, (HealthChange, MarketStatus)) and payload.health != "HEALTHY"
             ):
                 conn.execute(

@@ -54,6 +54,9 @@ def set_truth(store, request, rows, status):
         )
         order.update(
             status=status,
+            cummulativeQuoteQty=format(
+                sum((Decimal(row["quoteQty"]) for row in rows), Decimal(0)), "f"
+            ),
             executedQty=format(sum((Decimal(row["qty"]) for row in rows), Decimal(0)), "f"),
         )
         conn.execute(

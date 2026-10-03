@@ -42,6 +42,49 @@ def main() -> None:
     # Public fixture endpoint cannot redirect the mature SDK outside loopback.
     client.rest_api._session.max_redirects = 0
     try:
+        if raw["action"] == "ACCOUNT":
+            symbols = raw["symbols"]
+            if (
+                not isinstance(symbols, list)
+                or not 1 <= len(symbols) <= 32
+                or len(set(symbols)) != len(symbols)
+            ):
+                raise ValueError("bounded unique fixture symbol scope required")
+
+            def pages(symbol, fills, result):
+                cursor = 0
+                for _ in range(20):
+                    response = (
+                        client.rest_api.my_trades(symbol=symbol, from_id=cursor, limit=1000)
+                        if fills
+                        else client.rest_api.all_orders(symbol=symbol, order_id=cursor, limit=1000)
+                    )
+                    page = [entry.to_dict() for entry in response.data()]
+                    result.append(page)
+                    if len(page) < 1000:
+                        return result
+                    next_cursor = page[-1]["id" if fills else "orderId"] + 1
+                    if next_cursor <= cursor:
+                        raise ValueError("history pagination did not advance")
+                    cursor = next_cursor
+                raise ValueError("history page limit reached")
+
+            data = {}
+            try:
+                data["before"] = client.rest_api.get_account().data().to_dict()
+                data["open"] = [
+                    entry.to_dict() for entry in client.rest_api.get_open_orders().data()
+                ]
+                data["history"] = {}
+                for symbol in symbols:
+                    data["history"][symbol] = {"orders": [], "fills": []}
+                    pages(symbol, False, data["history"][symbol]["orders"])
+                    pages(symbol, True, data["history"][symbol]["fills"])
+                data["after"] = client.rest_api.get_account().data().to_dict()
+                print(json.dumps({"status": "OBSERVED", "account": data}))
+            except Exception:
+                print(json.dumps({"status": "UNKNOWN", "account": data}))
+            return
         if raw["action"] == "SUBMIT":
             # SDK generated annotation is float, but its serializer accepts the exact
             # decimal string unchanged. Actual wire test is mandatory; never cast float.
