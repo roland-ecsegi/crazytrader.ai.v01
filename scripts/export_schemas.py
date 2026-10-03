@@ -20,6 +20,8 @@ from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    simulation.NativeSimulationJob,
+    simulation.NativeSimulationReceipt,
     simulation.SimulationCostProfile,
     simulation.BuyFundingPlan,
     account.VenueAccountRead,

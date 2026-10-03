@@ -76,8 +76,8 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
 review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
-action: native simulation source contracts/durable job/result boundary, financial adapter
-and restart proof; then controlled absence recovery/incident resolution. Modeled
+action: PostgreSQL native job/request binding, native financial journal/state/incident
+adapter and restart proof; native source/worker/file boundary verified; then controlled absence recovery/incident resolution. Modeled
 funding and unmodified Nautilus baseline verified. Bounded fixture account
 comparison and mixed custody verified. Above-L0 source/certification assertions stay denied. Actual quoteQty
 accounting and cost attribution implemented with additive contracts. Current certification L0; no Phase5 gate.
@@ -169,3 +169,9 @@ actual quote journal3 cases PASS (1.70s). Explicit model/currency/precision/fee 
 no execution grant. Unmodified Nautilus1.221.0 two-run native financial equality PASS;
 raw native source captured. Baseline only, durable financial adapter/recovery next.
 Account checkpointff36e635 hosted CI37133706740 PASS. No Phase5 gate.
+
+2026-10-03 native source boundary:162 tests/mypy48/118 schemas/build PASS. Seven
+actual isolated native tests; private fsynced claim/result, response-loss recovery,
+missing result never reruns, exact source/clock/currency and native precision checks.
+No SDK provenance fabrication. Native environment added to CI setup. PostgreSQL
+financial adapter/recovery next; no Phase5 gate/certification.

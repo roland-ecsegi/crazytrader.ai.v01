@@ -2,6 +2,7 @@
 setup:
 	uv sync --locked
 	uv sync --locked --project services/market-data/sdk
+	uv sync --locked --project infra/spikes/python
 check:
 	uv run --locked ruff check .
 	uv run --locked ruff format --check .
