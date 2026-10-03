@@ -7,6 +7,7 @@ from pathlib import Path
 from crazytrader_contracts import (
     account,
     execution,
+    expiry,
     ledger,
     market,
     models,
@@ -21,6 +22,7 @@ from crazytrader_platform.storage import HealthChange
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = [
+    expiry.UnsentExecutionExpiry,
     native_fills.NativeSimulationFill,
     native_fills.NativeSimulationIncident,
     ledger.NativeFillLedgerTransaction,

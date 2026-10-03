@@ -76,7 +76,8 @@ stable IDs. Never reset SUBMITTING to CREATED or release unknown funds on rollba
 ## Resume checkpoint
 Phase5 SDK milestone published at6e23475; canonical settlement and final source
 review repairs PASS. Owned cancellation and complete venue-rule dispatch enforcement verified. Next exact
-action: unsent expiry and controlled absence recovery/incident resolution. Native
+action: controlled authoritative absence/retry and append-only incident resolution.
+Unsent expiry verified. Native
 job/request binding, financial journal/state/incidents, worker/source and restart
 proof verified. Modeled
 funding and unmodified Nautilus baseline verified. Bounded fixture account
@@ -188,3 +189,9 @@ no Phase5 gate.
 source, additive journal, deferred PostgreSQL atomic completion, crash/duplicate
 recovery and critical incidents. Final13 native cases PASS (27.88s),17 platform/ledger PASS (7.50s),164 units/
 mypy51/128 schemas/scan/offline SDK/wheel-sdist PASS; no Phase5 gate. Next unsent expiry/controlled absence/resolution.
+
+2026-10-03 unsent expiry:7 actual cases PASS (6.10s),169 units/mypy53/130 schemas
+PASS. Original custody, duplicate/race, unknown retention, native admission expiry
+and source/proof/audit rollback. Final36 affected cases PASS (98.62s),17 platform/ledger PASS (6.79s), scan/offline
+SDK/wheel-sdist PASS. Next controlled absence/retry and append-only incident resolution;
+no Phase5 gate.

@@ -19,6 +19,7 @@ from crazytrader_contracts.execution import (
     NativeSimulationAdmission,
     NativeSimulationResultRecord,
 )
+from crazytrader_contracts.expiry import UnsentExecutionExpiry
 from crazytrader_contracts.ledger import (
     LedgerTransaction,
     NativeFillLedgerTransaction,
@@ -42,6 +43,7 @@ class HealthChange(Contract):
 
 
 PAYLOAD_TYPES: dict[str, type[Contract]] = {
+    "UnsentExecutionExpired.v1": UnsentExecutionExpiry,
     "NativeSimulationCriticalMismatch.v1": NativeSimulationIncident,
     "LedgerNativeFillAppended.v1": NativeFillLedgerTransaction,
     "NativeSimulationAdmitted.v1": NativeSimulationAdmission,
@@ -82,6 +84,10 @@ def validate_payload(event: EventEnvelope, payload: Contract) -> Contract:
         raise ValueError("payload schema mismatch")
     if isinstance(payload, HealthChange):
         source, occurred = payload.service_id, payload.occurred_at
+    elif isinstance(payload, UnsentExecutionExpiry):
+        source, occurred = "execution", payload.occurred_at
+        if event.tenant_id != payload.request.tenant_id or event.actor_id != payload.actor_id:
+            raise ValueError("expiry event ownership mismatch")
     elif isinstance(payload, CancellationEvaluationRecord):
         source, occurred = "execution", payload.authorization.evaluated_at
         if (
